@@ -33,13 +33,13 @@ export const adminMenuItems: MenuItem[] = [
   { icon: AlertTriangle, label: "Complaints", path: "/complaints" }, // AlertCircle → AlertTriangle (more urgent)
   { icon: Package, label: "Bulk Orders", path: "/bulkorder" }, // BulkOrder → "Bulk Orders" (better readability)
   {icon:  ShoppingCart, label: "All Orders", path: "/orders" },
-  {icon:  Download, label: "Orders Export", path: "/orders-export" },
+  {icon:  Download, label: "Orders Export", path: "/orders-export"},
 ];
 
 export const vendorMenuItems: MenuItem[] = [
   { icon: Home, label: "Home", path: "/vendor/home" },
   { icon: UtensilsCrossed, label: "Restaurant Details", path: "/vendor-detail" },
-  { icon: ShoppingCart, label: "Orders", path: "/vendor/orders" },
+  { icon: ShoppingCart, label: "Orders", path: "/vendor/orders"  },
 ];
 
 export const userMenuItems: MenuItem[] = [
