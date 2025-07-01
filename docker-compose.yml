@@ -6,9 +6,9 @@ services:
       dockerfile: Dockerfile
     container_name: railfood-frontend
     ports:
-      - "80:80"   # Maps host port 80 to container port 80
-      - "443:443" # Maps host port 443 to container port 443
+      - "80:80"   # Map host port 80 to container port 80
+      - "443:443" # Map host port 443 to container port 443
     volumes:
-      - /root/railfood-main1/webroot:/usr/share/nginx/html/.well-known/acme-challenge
+      - /root/railfood-main1/webroot:/usr/share/nginx/html
       - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: unless-stopped
