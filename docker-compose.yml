@@ -1,12 +1,13 @@
-version: '3.8'
-
+version: '3'
 services:
   frontend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: railfood-frontend
     ports:
-      - "80:80"  # IPv4 and IPv6
-      - "443:443"  # IPv4 and IPv6
+      - "80:80"   # Maps host port 80 to container port 80
+      - "443:443" # Maps host port 443 to container port 443
     volumes:
       - /root/railfood-main1/webroot:/usr/share/nginx/html/.well-known/acme-challenge
       - /etc/letsencrypt:/etc/letsencrypt:ro
