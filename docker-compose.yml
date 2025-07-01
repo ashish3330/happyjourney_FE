@@ -6,4 +6,8 @@ services:
     container_name: railfood-frontend
     ports:
       - "80:80"
+      - "443:443" # Add port 443 for HTTPS
+    volumes:
+      - ./webroot:/usr/share/nginx/html/.well-known
+      - /etc/letsencrypt:/etc/letsencrypt:ro # Mount certificates read-only
     restart: unless-stopped
