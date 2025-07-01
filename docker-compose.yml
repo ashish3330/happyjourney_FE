@@ -5,9 +5,9 @@ services:
     build: .
     container_name: railfood-frontend
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80"  # IPv4 and IPv6
+      - "443:443"  # IPv4 and IPv6
     volumes:
-      - /root/railfood-main1/webroot:/usr/share/nginx/html/.well-known/acme-challenge # Match Certbot webroot
-      - /etc/letsencrypt:/etc/letsencrypt:ro # Mount certificates
+      - /root/railfood-main1/webroot:/usr/share/nginx/html/.well-known/acme-challenge
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: unless-stopped
