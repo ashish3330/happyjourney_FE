@@ -88,7 +88,7 @@ const UserOrder: React.FC = () => {
   }
 
   const isCustomer = role?.toLowerCase() === "user";
-  const DOWNLOAD_ENDPOINT = "http://94.136.184.78:8080/api/files/download";
+  const DOWNLOAD_ENDPOINT = "http://178.212.35.180:8080/api/files/download";
 
   const getLogoUrl = (systemFileName: string) => {
     return `${DOWNLOAD_ENDPOINT}?systemFileName=${encodeURIComponent(systemFileName)}`;
