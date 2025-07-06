@@ -1,7 +1,7 @@
-import { FC, useEffect, useState, useCallback, useRef } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 import api from "../utils/axios";
 import LoaderModal from "../components/LoaderModal";
-import { Edit, Plus, Search, Trash2, X } from "lucide-react";
+import { Edit, Plus, Trash2, X } from "lucide-react";
 import Pagination from "../components/Pagination";
 import { Button } from "@/components/ui/button";
 import { Box, Modal, Typography, IconButton } from "@mui/material";
@@ -10,6 +10,7 @@ import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import AddCSVStation from "@/components/AddCSVStation";
 import debounce from "lodash.debounce";
+import Select from "react-select";
 
 const style = {
   position: "absolute",
@@ -32,10 +33,8 @@ const Station: FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [openCSV, setOpenCSV] = useState(false);
   const [mode, setMode] = useState<"add" | "edit">("add");
-  const [stationCodeInput, setStationCodeInput] = useState("");
-  const [cityInput, setCityInput] = useState("");
-  const [stationCodeFilter, setStationCodeFilter] = useState("");
-  const [cityFilter, setCityFilter] = useState("");
+  const [selectedStation, setSelectedStation] = useState<string>("");
+  const [selectedVendor, setSelectedVendor] = useState<string>("");
   const [page, setPage] = useState({
     current_page: 1,
     to: 0,
@@ -46,10 +45,56 @@ const Station: FC = () => {
     last_page: 0,
   });
 
-  // Refs for input elements to manage focus
-  const stationCodeInputRef = useRef<HTMLInputElement>(null);
-  const cityInputRef = useRef<HTMLInputElement>(null);
-  const activeInputRef = useRef<"stationCode" | "city" | null>(null);
+  // Mock stationOptions (replace with actual data source)
+  const stationOptions = listData.map((item: any) => ({
+    value: item.stationCode,
+    label: `${item.stationCode} - ${item.stationName}`,
+  }));
+
+  // Options for records dropdown
+  const recordOptions = [
+    { value: 10, label: "10 Records" },
+    { value: 25, label: "25 Records" },
+    { value: 50, label: "50 Records" },
+  ];
+
+  // Custom styles for react-select to match the original dropdown
+  const selectStyles = {
+    control: (provided: any, state: any) => ({
+      ...provided,
+      minHeight: "38px",
+      border: "1px solid #d1d5db", // Matches border border-gray-300
+      borderRadius: "0.5rem", // Matches rounded-lg
+      padding: "0.5rem 1rem", // Matches px-4 py-2
+      fontSize: "0.875rem", // Matches text-sm
+      backgroundColor: "#fff",
+      boxShadow: state.isFocused ? "0 0 0 1px #303fe8" : "none", // Blue outline on focus
+      "&:hover": {
+        borderColor: "#9ca3af", // Matches hover border-gray-400
+      },
+    }),
+    placeholder: (provided: any) => ({
+      ...provided,
+      color: "#9ca3af", // Matches placeholder text-gray-400
+    }),
+    singleValue: (provided: any) => ({
+      ...provided,
+      color: "#111827", // Matches text-gray-900
+    }),
+    menu: (provided: any) => ({
+      ...provided,
+      zIndex: 9999,
+      borderRadius: "0.5rem", // Consistent rounded corners
+    }),
+    option: (provided: any, state: any) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? "#303fe8" : state.isFocused ? "#f3f4f6" : "#fff",
+      color: state.isSelected ? "#fff" : "#111827",
+      "&:hover": {
+        backgroundColor: "#f3f4f6", // Matches hover:bg-gray-100
+      },
+    }),
+  };
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -89,7 +134,7 @@ const Station: FC = () => {
   const getData = async (
     pageNumber = 1,
     pageSize = 10,
-    filters = { stationCode: "", city: "" }
+    stationCode = ""
   ) => {
     setLoading(true);
     try {
@@ -97,8 +142,7 @@ const Station: FC = () => {
         page: (pageNumber - 1).toString(),
         size: pageSize.toString(),
       });
-      if (filters.stationCode) queryParams.append("stationCode", filters.stationCode);
-      if (filters.city) queryParams.append("stationName", filters.city);
+      if (stationCode) queryParams.append("stationCode", stationCode);
 
       const res = await api.get(`/stations?${queryParams.toString()}`);
 
@@ -138,54 +182,32 @@ const Station: FC = () => {
     }
   };
 
-  // Debounced functions for applying filters
-  const debouncedStationCodeFilter = useCallback(
+  // Debounced function for applying station filter
+  const debouncedStationFilter = useCallback(
     debounce((value: string) => {
-      setStationCodeFilter(value);
       setPage((prev) => ({ ...prev, current_page: 1 }));
-      getData(1, page.per_page, { stationCode: value, city: cityFilter });
+      getData(1, page.per_page, value);
     }, 300),
-    [cityFilter, page.per_page]
+    [page.per_page]
   );
 
-  const debouncedCityFilter = useCallback(
-    debounce((value: string) => {
-      setCityFilter(value);
-      setPage((prev) => ({ ...prev, current_page: 1 }));
-      getData(1, page.per_page, { stationCode: stationCodeFilter, city: value });
-    }, 300),
-    [stationCodeFilter, page.per_page]
-  );
-
-  const handleStationCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setStationCodeInput(value);
-    activeInputRef.current = "stationCode";
-    debouncedStationCodeFilter(value);
+  const handleStationChange = (option: { value: string; label: string } | null) => {
+    const value = option?.value || "";
+    setSelectedStation(value);
+    setSelectedVendor(""); // Reset vendor as per your logic
+    debouncedStationFilter(value);
   };
 
-  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCityInput(value);
-    activeInputRef.current = "city";
-    debouncedCityFilter(value);
-  };
-
-  // Restore focus after re-render
-  useEffect(() => {
-    if (activeInputRef.current === "stationCode" && stationCodeInputRef.current) {
-      stationCodeInputRef.current.focus();
-      const length = stationCodeInputRef.current.value.length;
-      stationCodeInputRef.current.setSelectionRange(length, length);
-    } else if (activeInputRef.current === "city" && cityInputRef.current) {
-      cityInputRef.current.focus();
-      const length = cityInputRef.current.value.length;
-      cityInputRef.current.setSelectionRange(length, length);
+  const handlePageSizeChange = (option: { value: number; label: string } | null) => {
+    const newSize = option?.value || 10; // Default to 10 if cleared
+    if (newSize !== page.per_page) {
+      setPage((prev) => ({ ...prev, per_page: newSize, current_page: 1 }));
+      getData(1, newSize, selectedStation);
     }
-  }, [listData, page]);
+  };
 
   useEffect(() => {
-    getData(page.current_page, page.per_page, { stationCode: stationCodeFilter, city: cityFilter });
+    getData(page.current_page, page.per_page, selectedStation);
   }, [refresh]);
 
   const handlePageClick = (e: any) => {
@@ -193,16 +215,8 @@ const Station: FC = () => {
       const newPage = e.selected + 1;
       if (newPage !== page.current_page) {
         setPage((prev) => ({ ...prev, current_page: newPage }));
-        getData(newPage, page.per_page, { stationCode: stationCodeFilter, city: cityFilter });
+        getData(newPage, page.per_page, selectedStation);
       }
-    }
-  };
-
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSize = parseInt(e.target.value, 10);
-    if (newSize !== page.per_page) {
-      setPage((prev) => ({ ...prev, per_page: newSize, current_page: 1 }));
-      getData(1, newSize, { stationCode: stationCodeFilter, city: cityFilter });
     }
   };
 
@@ -216,45 +230,28 @@ const Station: FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center bg-white px-4 py-4 gap-4 sm:gap-0 sm:py-0 sm:h-16">
             <div className="w-full sm:w-auto">
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 w-full">
-                <div className="relative w-full sm:w-48">
-                  <div className="absolute inset-y-0 left-1 flex items-center ps-3 pointer-events-none">
-                    <Search className="size-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    id="stationCodeFilter"
-                    ref={stationCodeInputRef}
-                    className="w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-3xl outline-none"
-                    placeholder="Station Code"
-                    value={stationCodeInput}
-                    onChange={handleStationCodeChange}
-                    onFocus={() => (activeInputRef.current = "stationCode")}
+                <div className="w-full sm:w-64">
+                  <Select
+                    options={stationOptions}
+                    value={stationOptions.find((option) => option.value === selectedStation) || null}
+                    onChange={handleStationChange}
+                    placeholder="Select a station"
+                    styles={selectStyles}
+                    isClearable
+                    className="mt-1"
                   />
                 </div>
-                <div className="relative w-full sm:w-48">
-                  <div className="absolute inset-y-0 left-1 flex items-center ps-3 pointer-events-none">
-                    <Search className="size-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    id="cityFilter"
-                    ref={cityInputRef}
-                    className="w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-3xl outline-none"
-                    placeholder="Staion Name"
-                    value={cityInput}
-                    onChange={handleCityChange}
-                    onFocus={() => (activeInputRef.current = "city")}
+                <div className="w-full sm:w-40">
+                  <Select
+                    options={recordOptions}
+                    value={recordOptions.find((option) => option.value === page.per_page) || null}
+                    onChange={handlePageSizeChange}
+                    placeholder="Select records"
+                    styles={selectStyles}
+                    isClearable={false}
+                    className="mt-1"
                   />
                 </div>
-                <select
-                  value={page.per_page}
-                  onChange={handlePageSizeChange}
-                  className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-full sm:w-auto"
-                >
-                  <option value={10}>10 Records</option>
-                  <option value={25}>25 Records</option>
-                  <option value={50}>50 Records</option>
-                </select>
               </div>
             </div>
             <div className="w-full sm:w-auto">
