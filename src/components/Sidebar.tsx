@@ -1,6 +1,7 @@
 import React, { useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { adminMenuItems } from "../constants/menuItems";
+import happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
 
 type SidebarProps = {
   collapsed: boolean;
@@ -34,7 +35,13 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed, setCollap
       } bg-white shadow-sm border-r transition-all duration-300 overflow-hidden md:overflow-visible fixed md:static z-10 ${className || ""}`}
     >
       <div className={`flex items-center p-4 ${collapsed ? "hidden md:flex" : "flex"}`}>
-        {!collapsed && <h1 className="text-xl font-bold text-gray-800">RELSWAD</h1>}
+      {!collapsed && (
+          <img
+            src={happy_Journey_Logo}
+            alt="RELSWAD Logo"
+            className="h-30 w-auto"
+          />
+        )}
       </div>
       <nav className={`mt-4 ${collapsed ? "hidden md:block" : "block"}`}>
         {adminMenuItems.map((item, index) => {
