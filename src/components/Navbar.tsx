@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import api from "../utils/axios";
 import { useAuth } from "../contexts/AuthContext";
+import happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
 
 type NavbarProps = {
   collapsed?: boolean;
@@ -53,6 +54,13 @@ const Navbar: React.FC<NavbarProps> = ({ collapsed, setCollapsed }) => {
               <Menu size={20} />
             </button>
           )}
+          {collapsed && (
+          <img
+            src={happy_Journey_Logo}
+            alt="happy journey logo"
+            className="h-15 w-auto"
+          />
+        )}
           <div>
             <div className="flex items-center text-sm text-gray-500 mt-1">
               <span className="mx-2"></span>
