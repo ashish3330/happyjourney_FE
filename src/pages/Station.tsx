@@ -34,7 +34,6 @@ const Station: FC = () => {
   const [openCSV, setOpenCSV] = useState(false);
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [selectedStation, setSelectedStation] = useState<string>("");
-  const [selectedVendor, setSelectedVendor] = useState<string>("");
   const [page, setPage] = useState({
     current_page: 1,
     to: 0,
