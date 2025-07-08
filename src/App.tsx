@@ -13,7 +13,7 @@ import AdminOrders from "./pages/AdminOrders";
 import VendorHome from "./pages/VendorHome";
 import OrderFood from "./pages/OrderFood";
 import VendorOrders from "./pages/VendorOrders";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import PrivateRoute from "./layout/PrivateRoute";
 import BulkOrderForm from "./pages/BulkOrderForm";
 import WalletPage from "./pages/WalletPage";
@@ -32,8 +32,13 @@ import BulkOrdersDashboard from "./pages/BulkOrderDashboard";
 import ComplaintsDashboard from "./pages/ComplaintsDashboard";
 import CallbacksDashboard from "./pages/CallbacksDashboard";
 import OrdersExportDashboard from "./pages/OrdersExportDashboard";
+import { HappyJourneyFooter } from "./components/FooterConfigs";
 
 const App = () => {
+  const FooterWrapper = () => {
+    const { accessToken } = useAuth();
+    return accessToken ? <HappyJourneyFooter /> : null;
+  };
   return (
     
     <AuthProvider>
@@ -106,6 +111,7 @@ const App = () => {
             }
           />
         </Routes>
+        <FooterWrapper />
       </BrowserRouter>
     </AuthProvider>
   );

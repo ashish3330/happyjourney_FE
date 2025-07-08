@@ -7,6 +7,8 @@ import api from "@/utils/axios";
 import Pagination from "@/components/Pagination";
 import WhyChooseRelswad from "./WhyChooseRelswad";
 import { SparklesIcon, FireIcon } from "@heroicons/react/20/solid";
+import WhyChoose from "@/components/WhyChoose";
+import { HappyJourneyConfig } from "@/components/HappyJourneyConfig";
 
 // Define interfaces
 interface Station {
@@ -433,8 +435,8 @@ const OrderFood = () => {
           </div>
         )}
 
-        <WhyChooseRelswad />
-      </div>
+     <WhyChoose config={HappyJourneyConfig} />  
+</div>
     </div>
   );
 };
