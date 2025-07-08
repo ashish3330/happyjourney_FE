@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Search, Star, Clock } from "lucide-react";
 import api from "@/utils/axios";
 import Pagination from "@/components/Pagination";
-import WhyChooseRelswad from "./WhyChooseRelswad";
 import { SparklesIcon, FireIcon } from "@heroicons/react/20/solid";
 import WhyChoose from "@/components/WhyChoose";
 import { HappyJourneyConfig } from "@/components/HappyJourneyConfig";

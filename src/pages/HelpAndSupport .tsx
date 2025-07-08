@@ -98,8 +98,8 @@ const HelpAndSupport = () => {
                     <h3 className="font-medium text-gray-800">Email Support</h3>
                   </div>
                   <p className="text-gray-600 mb-3">Typically responds within 4 hours</p>
-                  <a href="mailto:support@relswad.com" className="text-blue-600 font-medium">
-                    support@relswad.com
+                  <a href="mailto:support@happyjourney.com" className="text-blue-600 font-medium">
+                    support@happyjourney.com
                   </a>
                 </div>
               </div>

@@ -38,7 +38,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed, setCollap
       {!collapsed && (
           <img
             src={happy_Journey_Logo}
-            alt="RELSWAD Logo"
+            alt="HappyJourney Logo"
             className="h-30 w-auto"
           />
         )}

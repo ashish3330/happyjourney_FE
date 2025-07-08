@@ -34,7 +34,7 @@ const UserSidebar = forwardRef<HTMLDivElement, UserSidebarProps>(({ collapsed, s
       } bg-white shadow-sm border-r transition-all duration-300 overflow-hidden md:overflow-visible fixed md:static z-10 ${className || ""}`}
     >
       <div className={`flex items-center p-4 ${collapsed ? "hidden md:flex" : "flex"}`}>
-        {!collapsed && <h1 className="text-xl font-bold text-gray-800">RelSwad</h1>}
+        {!collapsed && <h1 className="text-xl font-bold text-gray-800">HappyJourney</h1>}
       </div>
       <nav className={`mt-4 ${collapsed ? "hidden md:block" : "block"}`}>
         {userMenuItems.map((item, index) => {

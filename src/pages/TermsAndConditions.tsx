@@ -20,7 +20,7 @@ const TermsAndConditions = () => {
             <div>
               <h3 className="text-lg font-medium text-gray-800 mb-2">General Terms</h3>
               <p className="text-gray-600 mb-3">
-                By using Relswad services, you agree to these terms. Our platform connects you with 
+                By using HappyJourney services, you agree to these terms. Our platform connects you with 
                 restaurants for food delivery to train stations. You must be at least 18 years old to 
                 place orders.
               </p>

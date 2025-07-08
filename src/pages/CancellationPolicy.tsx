@@ -55,8 +55,7 @@ const CancellationPolicy = () => {
             <h3 className="text-lg font-medium text-gray-800 mb-2">Refund Processing</h3>
             <p className="text-gray-600">
               Refunds for cancelled orders are processed within 3-5 business days. The refund will be 
-              credited to your original payment method. For wallet payments, the amount will be 
-              credited back to your Relswad wallet immediately.
+              credited to your original payment method.
             </p>
           </div>
 

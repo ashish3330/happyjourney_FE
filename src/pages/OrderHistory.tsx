@@ -360,7 +360,7 @@ const OrderHistory: React.FC = () => {
     doc.setFontSize(22);
     doc.setTextColor(30, 64, 175);
     doc.setFont("helvetica", "bold");
-    doc.text("RelSwad", pageWidth / 2, currentY, { align: "center" });
+    doc.text("HappyJourney", pageWidth / 2, currentY, { align: "center" });
     currentY += 6;
 
     doc.setFontSize(10);
@@ -507,10 +507,10 @@ const OrderHistory: React.FC = () => {
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.text("Thank you for choosing RelSwad!", pageWidth / 2, 280, { align: "center" });
-    doc.text("For any queries, please contact support@railway.com", pageWidth / 2, 284, { align: "center" });
+    doc.text("Thank you for choosing HappyJourney!", pageWidth / 2, 280, { align: "center" });
+    doc.text("For any queries, please contact support@happyjourney.com", pageWidth / 2, 284, { align: "center" });
 
-    doc.save(`RelSwad_Invoice_${order.orderId}.pdf`);
+    doc.save(`HappyJourney_Invoice_${order.orderId}.pdf`);
   };
 
   const currentOrders = useMemo(
