@@ -36,11 +36,13 @@ const UserSidebar = forwardRef<HTMLDivElement, UserSidebarProps>(({ collapsed, s
     >
       <div className={`flex items-center p-4 ${collapsed ? "hidden md:flex" : "flex"}`}>
         {!collapsed && (
-          <img
-            src={happy_Journey_Logo}
-            alt="HappyJourney Logo"
-            className="h-30 w-auto"
-          />
+          <div className="hidden md:flex items-center p-4">
+            <img
+              src={happy_Journey_Logo}
+              alt="HappyJourney Logo"
+              className="h-25 w-auto"
+            />
+          </div>
         )}
       </div>
       <nav className={`mt-4 ${collapsed ? "hidden md:block" : "block"}`}>
