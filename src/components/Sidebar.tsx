@@ -45,7 +45,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ collapsed, setCollap
           </div>
         )}
       </div>
-      <nav className={`mt-4 ${collapsed ? "hidden md:block" : "block"}`}>
+      <nav className={`mt-10 ${collapsed ? "hidden md:block" : "block"}`}>
         {adminMenuItems.map((item, index) => {
           const isActive = location.pathname === item.path;
           return (
