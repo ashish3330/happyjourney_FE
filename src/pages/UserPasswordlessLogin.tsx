@@ -59,9 +59,14 @@ const UserPasswordlessLogin: React.FC = () => {
         phoneNumber,
         otp: data.otp,
       });
+      console.log('API Response:', response.data); // Log for debugging
       if (response.status === 200 && response.data.accessToken) {
         const { accessToken, role, userName: username, userId } = response.data;
-        login({ accessToken, role, username, userId });
+        const userIdNumber = Number(userId);
+        if (isNaN(userIdNumber)) {
+          throw new Error('Invalid userId: cannot convert to a number');
+        }
+        login({ accessToken, role, username, userId: userIdNumber });
 
         if (role.toLowerCase() === 'user') {
           navigate('/home');
@@ -72,6 +77,7 @@ const UserPasswordlessLogin: React.FC = () => {
         throw new Error('Invalid OTP response');
       }
     } catch (error) {
+      console.error('OTP Verification Error:', error);
       setError('otp', {
         type: 'manual',
         message: 'Invalid or expired OTP',
@@ -82,7 +88,7 @@ const UserPasswordlessLogin: React.FC = () => {
   // Generate random stars for the background
   const generateStars = () => {
     const stars = [];
-    for (let i = 0; i < 150; i++) { // Reduced number for mobile performance
+    for (let i = 0; i < 150; i++) {
       const style = {
         top: `${Math.random() * 100}%`,
         left: `${Math.random() * 100}%`,
