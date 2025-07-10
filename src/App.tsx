@@ -33,6 +33,7 @@ import ComplaintsDashboard from "./pages/ComplaintsDashboard";
 import CallbacksDashboard from "./pages/CallbacksDashboard";
 import OrdersExportDashboard from "./pages/OrdersExportDashboard";
 import { HappyJourneyFooter } from "./components/FooterConfigs";
+import UserPasswordlessLogin from "./pages/UserPasswordlessLogin";
 
 const App = () => {
   const FooterWrapper = () => {
@@ -45,7 +46,8 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           <Route element={<PublicLayout />}>
-            <Route path="/login" element={<Login />} />
+            <Route path="/admin-vendor/login" element={<Login />} />
+            <Route path="/login" element={<UserPasswordlessLogin />} />
             <Route path="/register" element={<UserRegister />} />
             <Route path="/admin/register" element={<AdminRegister />} />
             <Route path="/verify-otp" element={<Otp />} />
