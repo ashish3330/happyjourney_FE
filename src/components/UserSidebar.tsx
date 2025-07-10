@@ -45,7 +45,7 @@ const UserSidebar = forwardRef<HTMLDivElement, UserSidebarProps>(({ collapsed, s
           </div>
         )}
       </div>
-      <nav className={`mt-10 ${collapsed ? "hidden md:block" : "block"}`}>
+      <nav className={`${collapsed ? "hidden md:block" : "block mt-10"}`}>
         {userMenuItems.map((item, index) => {
           const isActive = location.pathname === item.path;
           return (

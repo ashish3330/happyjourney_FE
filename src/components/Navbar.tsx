@@ -58,7 +58,7 @@ const Navbar: React.FC<NavbarProps> = ({ collapsed, setCollapsed }) => {
           <img
             src={happy_Journey_Logo}
             alt="happy journey logo"
-            className="h-15 w-auto"
+            className="h-20 w-auto"
           />
         )}
           <div>
