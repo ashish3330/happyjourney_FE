@@ -9,7 +9,7 @@ import {
   FaUsers
 } from 'react-icons/fa';
 
-export const happyJourneyConfig = {
+export const HappyJourneyConfig = {
   brandName: 'Happy Journey',
   tagline: 'Delicious Meals, Delivered Onboard',
   heroDescription:
