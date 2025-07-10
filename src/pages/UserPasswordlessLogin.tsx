@@ -1,13 +1,22 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import api from "../utils/axios";
-import { useAuth } from "../contexts/AuthContext";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { motion } from 'framer-motion';
+import { Train } from 'lucide-react';
+import api from '../utils/axios';
+import { useAuth } from '../contexts/AuthContext';
 
-type PasswordlessFormInputs = {
+interface PasswordlessFormInputs {
   phoneNumber: string;
   otp: string;
-};
+}
+
+interface AuthResponse {
+  accessToken: string;
+  role: string;
+  userName: string;
+  userId: string;
+}
 
 const UserPasswordlessLogin: React.FC = () => {
   const navigate = useNavigate();
@@ -15,16 +24,18 @@ const UserPasswordlessLogin: React.FC = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setError,
     clearErrors,
-  } = useForm<PasswordlessFormInputs>();
+  } = useForm<PasswordlessFormInputs>({
+    defaultValues: { phoneNumber: '+91', otp: '' },
+  });
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState('+91');
 
   const onSubmitPhone = async (data: PasswordlessFormInputs) => {
     try {
-      const response = await api.post("/auth/passwordless-login", {
+      const response = await api.post<AuthResponse>('/auth/passwordless-login', {
         phoneNumber: data.phoneNumber,
       });
       if (response.status === 200) {
@@ -32,85 +43,183 @@ const UserPasswordlessLogin: React.FC = () => {
         setIsOtpSent(true);
         clearErrors();
       } else {
-        throw new Error("Failed to send OTP");
+        throw new Error('Failed to send OTP');
       }
     } catch (error) {
-      setError("phoneNumber", {
-        type: "manual",
-        message: "Failed to send OTP. Please check the phone number.",
+      setError('phoneNumber', {
+        type: 'manual',
+        message: 'Failed to send OTP. Please check the phone number.',
       });
     }
   };
 
   const onSubmitOtp = async (data: PasswordlessFormInputs) => {
     try {
-      const response = await api.post("/auth/verify-passwordless-otp", {
+      const response = await api.post<AuthResponse>('/auth/verify-passwordless-otp', {
         phoneNumber,
         otp: data.otp,
       });
       if (response.status === 200 && response.data.accessToken) {
         const { accessToken, role, userName: username, userId } = response.data;
-        login({
-          accessToken,
-          role,
-          username,
-          userId,
-        });
+        login({ accessToken, role, username, userId });
 
-        // Redirect based on role (case-insensitive)
-        const normalizedRole = role.toLowerCase();
-        if (normalizedRole === "user") {
-          navigate("/home");
+        if (role.toLowerCase() === 'user') {
+          navigate('/home');
         } else {
-          throw new Error("Invalid role for user login");
+          throw new Error('Invalid role for user login');
         }
       } else {
-        throw new Error("Invalid OTP response");
+        throw new Error('Invalid OTP response');
       }
     } catch (error) {
-      setError("otp", {
-        type: "manual",
-        message: "Invalid or expired OTP",
+      setError('otp', {
+        type: 'manual',
+        message: 'Invalid or expired OTP',
       });
     }
   };
 
+  // Generate random stars for the background
+  const generateStars = () => {
+    const stars = [];
+    for (let i = 0; i < 150; i++) { // Reduced number for mobile performance
+      const style = {
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+        width: `${Math.random() * 2}px`,
+        height: `${Math.random() * 2}px`,
+        opacity: Math.random(),
+        animationDelay: `${Math.random() * 10}s`,
+      };
+      stars.push(<div key={i} className="star absolute bg-white rounded-full" style={style} />);
+    }
+    return stars;
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
-          `` Login
-        </h2>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-900">
+      {/* Galaxy and Nebula Background */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {/* Nebula base layers */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="nebula-1 absolute w-full h-full bg-purple-900/70 rounded-full filter blur-3xl mix-blend-screen" />
+          <div className="nebula-2 absolute w-full h-full bg-blue-900/70 rounded-full filter blur-3xl mix-blend-screen" />
+          <div className="nebula-3 absolute w-full h-full bg-pink-900/70 rounded-full filter blur-3xl mix-blend-screen" />
+        </div>
+        
+        {/* Animated stars */}
+        {generateStars()}
+        
+        {/* Large twinkling stars */}
+        <div className="twinkling-stars">
+          {[...Array(15)].map((_, i) => (
+            <div 
+              key={`twinkle-${i}`} 
+              className="absolute bg-white rounded-full animate-pulse"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                width: `${1 + Math.random() * 2}px`,
+                height: `${1 + Math.random() * 2}px`,
+                animationDuration: `${3 + Math.random() * 7}s`,
+                opacity: 0.7,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        .star {
+          animation: twinkle var(--duration, 5s) infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 1; }
+        }
+        
+        .nebula-1 {
+          top: -50%;
+          left: -50%;
+          width: 150%;
+          height: 150%;
+          animation: drift 80s linear infinite;
+        }
+        
+        .nebula-2 {
+          top: -30%;
+          left: -30%;
+          width: 120%;
+          height: 120%;
+          animation: drift 100s linear infinite reverse;
+        }
+        
+        .nebula-3 {
+          top: -40%;
+          left: -20%;
+          width: 130%;
+          height: 130%;
+          animation: drift 120s linear infinite;
+        }
+        
+        @keyframes drift {
+          0% { transform: translate(0, 0) rotate(0deg); }
+          25% { transform: translate(5%, 5%) rotate(5deg); }
+          50% { transform: translate(10%, 0) rotate(0deg); }
+          75% { transform: translate(5%, -5%) rotate(-5deg); }
+          100% { transform: translate(0, 0) rotate(0deg); }
+        }
+      `}</style>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md mx-4 p-6 relative z-10"
+        role="region"
+        aria-label="HappyJourney login form"
+      >
+        <div className="flex items-center justify-center mb-6">
+          <Train className="h-8 w-8 text-blue-300 mr-2" aria-hidden="true" />
+          <h2 className="text-3xl font-bold text-white">HappyJourney</h2>
+        </div>
+        <p className="text-center text-blue-100 mb-8 text-sm">
+          Sizzling Meals, Delivered to Your Train Seat!
+        </p>
 
         <form
           onSubmit={handleSubmit(isOtpSent ? onSubmitOtp : onSubmitPhone)}
-          className="space-y-5"
+          className="space-y-6"
+          noValidate
         >
           <div>
             <label
               htmlFor="phoneNumber"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-blue-100 mb-1"
             >
               Phone Number
             </label>
             <input
               id="phoneNumber"
               type="tel"
-              {...register("phoneNumber", {
-                required: "Phone number is required",
+              {...register('phoneNumber', {
+                required: 'Phone number is required',
                 pattern: {
-                  value: /^\+?[1-9]\d{1,14}$/,
-                  message: "Invalid phone number format",
+                  value: /^\+91\d{10}$/,
+                  message: 'Enter a valid 10-digit Indian phone number (e.g., +919876543210)',
                 },
               })}
-              className={`w-full px-4 py-2 border ${
-                errors.phoneNumber ? "border-red-500" : "border-gray-300"
-              } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              placeholder="+1234567890"
-              disabled={isOtpSent}
+              className={`w-full px-4 py-3 bg-gray-800/70 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-white placeholder-gray-400 transition-all duration-300 ${
+                errors.phoneNumber ? 'border-red-500' : 'border-gray-700'
+              }`}
+              placeholder="+919876543210"
+              disabled={isOtpSent || isSubmitting}
+              aria-invalid={errors.phoneNumber ? 'true' : 'false'}
+              aria-describedby={errors.phoneNumber ? 'phoneNumber-error' : undefined}
             />
             {errors.phoneNumber && (
-              <p className="text-sm text-red-500 mt-1">
+              <p id="phoneNumber-error" className="text-sm text-red-400 mt-1">
                 {errors.phoneNumber.message}
               </p>
             )}
@@ -120,46 +229,82 @@ const UserPasswordlessLogin: React.FC = () => {
             <div>
               <label
                 htmlFor="otp"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-blue-100 mb-1"
               >
                 OTP
               </label>
               <input
                 id="otp"
                 type="text"
-                {...register("otp", {
-                  required: "OTP is required",
+                {...register('otp', {
+                  required: 'OTP is required',
                   pattern: {
                     value: /^\d{4,6}$/,
-                    message: "OTP must be 4-6 digits",
+                    message: 'OTP must be 4-6 digits',
                   },
                 })}
-                className={`w-full px-4 py-2 border ${
-                  errors.otp ? "border-red-500" : "border-gray-300"
-                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-4 py-3 bg-gray-800/70 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-white placeholder-gray-400 transition-all duration-300 ${
+                  errors.otp ? 'border-red-500' : 'border-gray-700'
+                }`}
                 placeholder="Enter OTP"
+                autoFocus
+                aria-invalid={errors.otp ? 'true' : 'false'}
+                aria-describedby={errors.otp ? 'otp-error' : undefined}
               />
               {errors.otp && (
-                <p className="text-sm text-red-500 mt-1">{errors.otp.message}</p>
+                <p id="otp-error" className="text-sm text-red-400 mt-1">
+                  {errors.otp.message}
+                </p>
               )}
             </div>
           )}
 
-          <button
+          <motion.button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            disabled={isSubmitting}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className={`w-full flex items-center justify-center py-3 rounded-lg text-white font-medium transition-colors duration-300 ${
+              isSubmitting ? 'bg-blue-600/70 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+            aria-label={isOtpSent ? 'Verify OTP' : 'Send OTP'}
           >
-            {isOtpSent ? "Verify OTP" : "Send OTP"}
-          </button>
+            {isSubmitting ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+                Processing...
+              </>
+            ) : (
+              <>{isOtpSent ? 'Verify OTP' : 'Send OTP'}</>
+            )}
+          </motion.button>
         </form>
 
-        <p className="mt-4 text-sm text-gray-500 text-center">
-          Don't have an account?{" "}
-          <a href="/register" className="text-blue-600 hover:underline">
+        <p className="mt-6 text-sm text-blue-200/80 text-center">
+          Don't have an account?{' '}
+          <a href="/register" className="text-blue-300 hover:underline font-medium">
             Sign Up
           </a>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 };
