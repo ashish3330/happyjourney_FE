@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
@@ -32,6 +32,28 @@ const UserPasswordlessLogin: React.FC = () => {
   });
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('+91');
+  const [resendTimer, setResendTimer] = useState(30); // 30 seconds cooldown
+  const [canResend, setCanResend] = useState(false);
+
+  // Timer effect for resend OTP
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (isOtpSent && resendTimer > 0) {
+      timer = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            clearInterval(timer!);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isOtpSent, resendTimer]);
 
   const onSubmitPhone = async (data: PasswordlessFormInputs) => {
     try {
@@ -41,6 +63,8 @@ const UserPasswordlessLogin: React.FC = () => {
       if (response.status === 200) {
         setPhoneNumber(data.phoneNumber);
         setIsOtpSent(true);
+        setResendTimer(30); // Reset timer when OTP is sent
+        setCanResend(false);
         clearErrors();
       } else {
         throw new Error('Failed to send OTP');
@@ -81,6 +105,27 @@ const UserPasswordlessLogin: React.FC = () => {
       setError('otp', {
         type: 'manual',
         message: 'Invalid or expired OTP',
+      });
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+    try {
+      const response = await api.post<AuthResponse>('/auth/passwordless-login', {
+        phoneNumber,
+      });
+      if (response.status === 200) {
+        setResendTimer(30); // Reset timer on resend
+        setCanResend(false);
+        clearErrors();
+      } else {
+        throw new Error('Failed to resend OTP');
+      }
+    } catch (error) {
+      setError('phoneNumber', {
+        type: 'manual',
+        message: 'Failed to resend OTP. Please try again.',
       });
     }
   };
@@ -232,37 +277,55 @@ const UserPasswordlessLogin: React.FC = () => {
           </div>
 
           {isOtpSent && (
-            <div>
-              <label
-                htmlFor="otp"
-                className="block text-sm font-medium text-blue-100 mb-1"
-              >
-                OTP
-              </label>
-              <input
-                id="otp"
-                type="text"
-                {...register('otp', {
-                  required: 'OTP is required',
-                  pattern: {
-                    value: /^\d{4,6}$/,
-                    message: 'OTP must be 4-6 digits',
-                  },
-                })}
-                className={`w-full px-4 py-3 bg-gray-800/70 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-white placeholder-gray-400 transition-all duration-300 ${
-                  errors.otp ? 'border-red-500' : 'border-gray-700'
-                }`}
-                placeholder="Enter OTP"
-                autoFocus
-                aria-invalid={errors.otp ? 'true' : 'false'}
-                aria-describedby={errors.otp ? 'otp-error' : undefined}
-              />
-              {errors.otp && (
-                <p id="otp-error" className="text-sm text-red-400 mt-1">
-                  {errors.otp.message}
+            <>
+              <div>
+                <label
+                  htmlFor="otp"
+                  className="block text-sm font-medium text-blue-100 mb-1"
+                >
+                  OTP
+                </label>
+                <input
+                  id="otp"
+                  type="text"
+                  {...register('otp', {
+                    required: 'OTP is required',
+                    pattern: {
+                      value: /^\d{4,6}$/,
+                      message: 'OTP must be 4-6 digits',
+                    },
+                  })}
+                  className={`w-full px-4 py-3 bg-gray-800/70 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-white placeholder-gray-400 transition-all duration-300 ${
+                    errors.otp ? 'border-red-500' : 'border-gray-700'
+                  }`}
+                  placeholder="Enter OTP"
+                  autoFocus
+                  aria-invalid={errors.otp ? 'true' : 'false'}
+                  aria-describedby={errors.otp ? 'otp-error' : undefined}
+                />
+                {errors.otp && (
+                  <p id="otp-error" className="text-sm text-red-400 mt-1">
+                    {errors.otp.message}
+                  </p>
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-blue-200/80">
+                  {resendTimer > 0
+                    ? `Resend OTP in ${resendTimer} seconds`
+                    : canResend && (
+                        <button
+                          type="button"
+                          onClick={handleResendOtp}
+                          className="text-blue-300 hover:underline font-medium"
+                          aria-label="Resend OTP"
+                        >
+                          Resend OTP
+                        </button>
+                      )}
                 </p>
-              )}
-            </div>
+              </div>
+            </>
           )}
 
           <motion.button
