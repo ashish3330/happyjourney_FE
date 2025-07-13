@@ -434,8 +434,7 @@ const OrderFood = () => {
           </div>
         )}
 
-     <WhyChoose config={HappyJourneyConfig} />  
-</div>
+    <WhyChoose config={HappyJourneyConfig} />      </div>
     </div>
   );
 };

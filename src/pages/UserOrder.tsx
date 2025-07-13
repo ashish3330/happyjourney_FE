@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/utils/axios";
 import { useAuth } from "@/contexts/AuthContext";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Vendor {
   vendorId: number;
@@ -49,7 +50,7 @@ interface CartItem {
 
 interface CartSummary {
   cartId: string;
-  customerId: number;
+  customerId: number | null;
   items: CartItem[];
   subtotal: number;
   taxAmount: number;
@@ -59,7 +60,7 @@ interface CartSummary {
 
 const UserOrder: React.FC = () => {
   const { id: urlId } = useParams<{ id: string }>();
-  const { role, userId } = useAuth();
+  const { accessToken } = useAuth();
   const navigate = useNavigate();
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -87,19 +88,11 @@ const UserOrder: React.FC = () => {
     );
   }
 
-  const isCustomer = role?.toLowerCase() === "user";
-  const DOWNLOAD_ENDPOINT = "https://thehappyjourneyy.com/api/files/download";
+  const DOWNLOAD_ENDPOINT = API_BASE_URL + "/files/download";
 
   const getLogoUrl = (systemFileName: string) => {
     return `${DOWNLOAD_ENDPOINT}?systemFileName=${encodeURIComponent(systemFileName)}`;
   };
-
-  useEffect(() => {
-    if (!isCustomer || !userId) {
-      navigate("/login");
-      return;
-    }
-  }, [isCustomer, userId, navigate]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -279,6 +272,15 @@ const UserOrder: React.FC = () => {
   }, []);
 
   const sortedCategories = [...categories].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+  const handleCheckout = () => {
+    if (!accessToken) {
+      // Redirect to login with return URL for checkout
+      navigate(`/login?returnTo=/checkout/${effectiveVendorId}`);
+    } else {
+      navigate(`/checkout/${effectiveVendorId}`);
+    }
+  };
 
   const renderSkeletonLoader = () => (
     <div className="max-w-7xl mx-auto p-4 space-y-8">
@@ -631,7 +633,7 @@ const UserOrder: React.FC = () => {
                 </Button>
                 <Button
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => navigate(`/checkout/${effectiveVendorId}`)}
+                  onClick={handleCheckout}
                 >
                   Checkout
                 </Button>
@@ -754,10 +756,7 @@ const UserOrder: React.FC = () => {
                   </Button>
                   <Button
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => {
-                      setIsCartExpanded(false);
-                      navigate(`/checkout/${effectiveVendorId}`);
-                    }}
+                    onClick={handleCheckout}
                   >
                     Checkout
                   </Button>

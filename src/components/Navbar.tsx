@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import api from "../utils/axios";
 import { useAuth } from "../contexts/AuthContext";
-import happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
+import Happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg";
 
 type NavbarProps = {
   collapsed?: boolean;
@@ -14,21 +14,21 @@ const Navbar: React.FC<NavbarProps> = ({ collapsed, setCollapsed }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { username, logout } = useAuth();
+  const { username, logout, accessToken } = useAuth();
 
   const handleLogout = async () => {
     try {
       const response = await api.get("/auth/logout");
       if (response.status === 200) {
         logout();
-        navigate("/login");
+        navigate("/home");
       } else {
         throw new Error("Invalid response");
       }
     } catch (error) {
       console.error("Logout failed", error);
       logout();
-      navigate("/login");
+      navigate("/home");
     }
   };
 
@@ -55,12 +55,12 @@ const Navbar: React.FC<NavbarProps> = ({ collapsed, setCollapsed }) => {
             </button>
           )}
           {collapsed && (
-          <img
-            src={happy_Journey_Logo}
-            alt="happy journey logo"
-            className="h-20 w-auto"
-          />
-        )}
+            <img
+              src={Happy_Journey_Logo}
+              alt="Happy Journey Logo"
+              className="h-15 w-auto"
+            />
+          )}
           <div>
             <div className="flex items-center text-sm text-gray-500 mt-1">
               <span className="mx-2"></span>
@@ -68,31 +68,44 @@ const Navbar: React.FC<NavbarProps> = ({ collapsed, setCollapsed }) => {
           </div>
         </div>
 
-        <div className="relative" ref={dropdownRef}>
-          <button
-            className="flex items-center space-x-2 focus:outline-none"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-          >
-            <span className="text-sm text-gray-600 hidden sm:inline">
-              Hi, {username || "User"}
-            </span>
-            <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
-                {username ? username.charAt(0).toUpperCase() : "U"}
-              </span>
-            </div>
-            <ChevronDown className="w-4 h-4 text-gray-500" />
-          </button>
-
-          {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-30">
+        <div className="relative flex items-center space-x-4">
+          {accessToken ? (
+            <div ref={dropdownRef}>
               <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                className="flex items-center space-x-2 focus:outline-none"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                Logout
+                <span className="text-sm text-gray-600 hidden sm:inline">
+                  Hi, {username || "User"}
+                </span>
+                <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
+                    {username ? username.charAt(0).toUpperCase() : "U"}
+                  </span>
+                </div>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
               </button>
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-30">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
+          ) : (
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigate("/login")}
+                  type="button"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Login
+                </button>
+              </div>
           )}
         </div>
       </div>
