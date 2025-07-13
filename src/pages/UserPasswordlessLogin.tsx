@@ -229,11 +229,11 @@ const UserPasswordlessLogin: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md mx-4 p-6 relative z-10"
         role="region"
-        aria-label="Relswad login form"
+        aria-label="happy journey login form"
       >
         <div className="flex items-center justify-center mb-6">
           <Train className="h-8 w-8 text-blue-300 mr-2" aria-hidden="true" />
-          <h2 className="text-3xl font-bold text-white">Relswad</h2>
+          <h2 className="text-3xl font-bold text-white">Happy Journey</h2>
         </div>
         <p className="text-center text-blue-100 mb-8 text-sm">
           Sizzling Meals, Delivered to Your Train Seat!
