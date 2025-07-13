@@ -35,6 +35,7 @@ export const adminMenuItems: MenuItem[] = [
   { icon: Package, label: "Bulk Orders", path: "/bulkorder" },
   { icon: ShoppingCart, label: "All Orders", path: "/orders" },
   { icon: Download, label: "Orders Export", path: "/orders-export" },
+  { icon: Download, label: "Vendor Summary", path: "/vendor-summary" },
 ];
 
 // Vendor menu items (unchanged)
@@ -61,8 +62,9 @@ export const userMenuItems: MenuItem[] = [
 // Guest menu items (for unauthenticated users)
 export const guestMenuItems: MenuItem[] = [
   { icon: Home, label: "Home", path: "/home" },
+  { icon: History, label: "Order History", path: "/order-history" },
   { icon: History, label: "Shipping Policy", path: "/shipping-policy" },
-  // { icon: AlertCircle, label: "Complaint", path: "/createcomplaint" },
+  { icon: AlertCircle, label: "Complaint", path: "/createcomplaint" },
   { icon: Shield, label: "Privacy Policy", path: "/privacy-policy" },
   { icon: XCircle, label: "Cancellation Policy", path: "/cancellation-policy" },
   { icon: FileText, label: "Terms & Conditions", path: "/terms" },
