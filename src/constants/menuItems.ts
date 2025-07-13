@@ -62,7 +62,7 @@ export const userMenuItems: MenuItem[] = [
 // Guest menu items (for unauthenticated users)
 export const guestMenuItems: MenuItem[] = [
   { icon: Home, label: "Home", path: "/home" },
-  { icon: History, label: "Order History", path: "/order-history" },
+  // { icon: History, label: "Order History", path: "/order-history" },
   { icon: History, label: "Shipping Policy", path: "/shipping-policy" },
   { icon: AlertCircle, label: "Complaint", path: "/createcomplaint" },
   { icon: Shield, label: "Privacy Policy", path: "/privacy-policy" },
