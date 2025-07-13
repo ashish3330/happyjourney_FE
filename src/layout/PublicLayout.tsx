@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
-import UserSideBar from "../components/UserSidebar";
+import GuestSidebar from "../components/GuestSidebar";
 import Navbar from "../components/Navbar";
 
 
@@ -30,7 +30,7 @@ const PublicLayout: FC = () => {
   return (
     <div className="">
       <div className="flex w-full h-full">
-        <UserSideBar collapsed={collapsed} setCollapsed={setCollapsed} ref={sidebarRef} />
+        <GuestSidebar collapsed={collapsed} setCollapsed={setCollapsed} ref={sidebarRef} />
         <main className="flex-1 h-full overflow-y-auto bg-gray-50">
           <div ref={navbarRef} className="sticky top-0 z-10 bg-white shadow">
             <Navbar collapsed={collapsed} setCollapsed={setCollapsed} />

@@ -24,8 +24,6 @@ import OrderHistory from "./pages/OrderHistory";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import ComplaintForm from "./pages/ComplaintForm";
-import ContactForm from "./pages/ContactForm";
-import FeedbackForm from "./pages/FeedbackForm";
 import UserOrder from "./pages/UserOrder";
 import PlaceOrder from "./pages/PlaceOrder";
 import OrderConfirmation from "./pages/OrderConfirmation";
@@ -36,6 +34,7 @@ import OrdersExportDashboard from "./pages/OrdersExportDashboard";
 import { RelswadFooter } from "./components/FooterConfigs";
 import UserPasswordlessLogin from "./pages/UserPasswordlessLogin";
 import ShippingPolicy from "./pages/ShippingPolicy";
+import ContactForm from "./pages/ContactForm";
 
 const FooterWrapper = () => {
   const { accessToken } = useAuth();
@@ -54,13 +53,22 @@ const App = () => {
           <Route path="/register" element={<UserRegister />} />
           <Route path="/admin/register" element={<AdminRegister />} />
           <Route path="/verify-otp" element={<Otp />} />
-          <Route path="/shipping-policy" element={<ShippingPolicy />} />
+  
           {/* Public routes with navbar and sidebar */}
           <Route element={<PublicLayout />}>
             <Route path="/home" element={<OrderFood />} />
-            <Route path="/user-order/:id" element={<UserOrder />} />
-            <Route path="/unauthorized" element={<div>Unauthorized Access</div>} />
-            <Route path="*" element={<div>404 Not Found</div>} />
+            <Route path="/shipping-policy/" element={<ShippingPolicy />} />
+            <Route path="/shipping-policy" element={<ShippingPolicy />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/cancellation-policy" element={<CancellationPolicy />} />
+          <Route path="/payment-policy" element={<PaymentPolicy />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/bulk-order" element={<BulkOrderForm />} />
+          <Route path="/contact" element={<ContactForm />} /> 
+          <Route path="/help" element={<HelpAndSupport />} /> 
+          <Route path="/user-order/:id" element={<UserOrder />} />
+          <Route path="/unauthorized" element={<div>Unauthorized Access</div>} />
+          <Route path="*" element={<div>404 Not Found</div>} />
           </Route>
 
           {/* Admin protected routes */}
@@ -87,20 +95,19 @@ const App = () => {
           {/* User protected routes */}
           <Route element={<PrivateRoute allowedRoles={["user"]} />}>
             <Route path="/cart" element={<OrderFood />} />
-            <Route path="/bulk-order" element={<BulkOrderForm />} />
+            {/* <Route path="/bulk-order" element={<BulkOrderForm />} /> */}
             <Route path="/createcomplaint" element={<ComplaintForm />} />
-            <Route path="/feedback" element={<FeedbackForm />} />
-            <Route path="/contact" element={<ContactForm />} />
+            {/* <Route path="/feedback" element={<FeedbackForm />} />
+            <Route path="/contact" element={<ContactForm />} /> */}
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/order-history" element={<OrderHistory />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            {/* <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/cancellation-policy" element={<CancellationPolicy />} />
             <Route path="/payment-policy" element={<PaymentPolicy />} />
             <Route path="/terms" element={<TermsAndConditions />} />
-            <Route path="/help" element={<HelpAndSupport />} />
+            <Route path="/help" element={<HelpAndSupport />} /> */}
             <Route path="/checkout/:vendorId" element={<PlaceOrder />} />
             <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
-            <Route path="/shipping-policy/" element={<ShippingPolicy />} />
           </Route>
 
           {/* Root route */}
