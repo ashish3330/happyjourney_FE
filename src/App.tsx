@@ -48,10 +48,17 @@ const App = () => {
           <Route element={<PublicLayout />}>
             <Route path="/admin-vendor/login" element={<Login />} />
             <Route path="/" element={<OrderFood />} />
+            <Route path="/home" element={<OrderFood />} />
             <Route path="/login" element={<UserPasswordlessLogin />} />
             <Route path="/register" element={<UserRegister />} />
             <Route path="/admin/register" element={<AdminRegister />} />
             <Route path="/verify-otp" element={<Otp />} />
+            <Route path="/contact" element={<ContactForm />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/cancellation-policy" element={<CancellationPolicy />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/help" element={<HelpAndSupport />} />
+
             <Route path="/unauthorized" element={<div>Unauthorized Access</div>} />
             <Route path="*" element={<div>404 Not Found</div>} />
           </Route>
@@ -76,19 +83,13 @@ const App = () => {
           </Route>
 
           <Route element={<PrivateRoute allowedRoles={['user']} />}>
-          <Route path="/" element={<OrderFood />} />
-          <Route path="/home" element={<OrderFood />} />
           <Route path="/cart" element={<OrderFood />} />
           <Route path="/bulk-order" element={<BulkOrderForm />} />
           <Route path="/createcomplaint" element={<ComplaintForm />} />
           <Route path="/feedback" element={<FeedbackForm />} />
-          <Route path="/contact" element={<ContactForm />} />
           <Route path="/wallet" element={<WalletPage />} />
           <Route path="/order-history" element={<OrderHistory />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/cancellation-policy" element={<CancellationPolicy />} />
-          <Route path="/terms" element={<TermsAndConditions />} />
-          <Route path="/help" element={<HelpAndSupport />} />
+       
           <Route path="/user-order/:id" element={<UserOrder />} />
           <Route path="/checkout/:vendorId" element={<PlaceOrder />} />
           <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} /> 

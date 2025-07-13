@@ -30,7 +30,7 @@ const QUICK_LINKS: FooterLink[] = [
 ];
 
 const CONTACT_INFO = {
-  phone: '+91 70004 96695',
+  phone: '+91 9826262660',
   email: 'support@happyjourney.com', // Placeholder, can be customized per brand
 };
 
