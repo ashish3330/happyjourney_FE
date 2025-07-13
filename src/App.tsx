@@ -31,14 +31,14 @@ import BulkOrdersDashboard from "./pages/BulkOrderDashboard";
 import ComplaintsDashboard from "./pages/ComplaintsDashboard";
 import CallbacksDashboard from "./pages/CallbacksDashboard";
 import OrdersExportDashboard from "./pages/OrdersExportDashboard";
-import { RelswadFooter } from "./components/FooterConfigs";
+import { HappyJourneyFooter } from "./components/FooterConfigs";
 import UserPasswordlessLogin from "./pages/UserPasswordlessLogin";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import ContactForm from "./pages/ContactForm";
 
 const FooterWrapper = () => {
   const { accessToken } = useAuth();
-  return accessToken ? <RelswadFooter /> : null;
+  return accessToken ? <HappyJourneyFooter /> : null;
 };
 
 const App = () => {
