@@ -1,7 +1,7 @@
 import React, { useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { userMenuItems } from "../constants/menuItems";
-import happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
+import Happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
 
 type UserSidebarProps = {
   collapsed: boolean;
@@ -35,17 +35,17 @@ const UserSidebar = forwardRef<HTMLDivElement, UserSidebarProps>(({ collapsed, s
       } bg-white shadow-sm border-r transition-all duration-300 overflow-hidden md:overflow-visible fixed md:static z-10 ${className || ""}`}
     >
       <div className={`flex items-center p-4 ${collapsed ? "hidden md:flex" : "flex"}`}>
-        {!collapsed && (
+      {!collapsed && (
           <div className="hidden md:flex items-center p-4">
             <img
-              src={happy_Journey_Logo}
-              alt="HappyJourney Logo"
+              src={Happy_Journey_Logo}
+              alt="Happy Journey Logo"
               className="h-25 w-auto"
             />
           </div>
         )}
       </div>
-      <nav className={`${collapsed ? "hidden md:block" : "block mt-10"}`}>
+      <nav className={`mt-10 ${collapsed ? "hidden md:block" : "block"}`}>
         {userMenuItems.map((item, index) => {
           const isActive = location.pathname === item.path;
           return (

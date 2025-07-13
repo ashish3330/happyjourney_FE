@@ -229,11 +229,11 @@ const UserPasswordlessLogin: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md mx-4 p-6 relative z-10"
         role="region"
-        aria-label="HappyJourney login form"
+        aria-label="Relswad login form"
       >
         <div className="flex items-center justify-center mb-6">
           <Train className="h-8 w-8 text-blue-300 mr-2" aria-hidden="true" />
-          <h2 className="text-3xl font-bold text-white">HappyJourney</h2>
+          <h2 className="text-3xl font-bold text-white">Relswad</h2>
         </div>
         <p className="text-center text-blue-100 mb-8 text-sm">
           Sizzling Meals, Delivered to Your Train Seat!
@@ -366,13 +366,6 @@ const UserPasswordlessLogin: React.FC = () => {
             )}
           </motion.button>
         </form>
-
-        <p className="mt-6 text-sm text-blue-200/80 text-center">
-          Don't have an account?{' '}
-          <a href="/register" className="text-blue-300 hover:underline font-medium">
-            Sign Up
-          </a>
-        </p>
       </motion.div>
     </div>
   );
