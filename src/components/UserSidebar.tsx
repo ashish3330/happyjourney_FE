@@ -1,7 +1,8 @@
 import React, { useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { userMenuItems } from "../constants/menuItems";
+import { guestMenuItems, userMenuItems } from "../constants/menuItems";
 import Happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
+import { useAuth } from '../contexts/AuthContext';
 
 type UserSidebarProps = {
   collapsed: boolean;
@@ -12,6 +13,8 @@ type UserSidebarProps = {
 const UserSidebar = forwardRef<HTMLDivElement, UserSidebarProps>(({ collapsed, setCollapsed, className }, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const {role}  = useAuth();
+  const menuItem = role != null ? userMenuItems : guestMenuItems
 
   useEffect(() => {
     const handleResize = () => {
@@ -46,7 +49,7 @@ const UserSidebar = forwardRef<HTMLDivElement, UserSidebarProps>(({ collapsed, s
         )}
       </div>
       <nav className={`mt-10 ${collapsed ? "hidden md:block" : "block"}`}>
-        {userMenuItems.map((item, index) => {
+        {menuItem.map((item, index) => {
           const isActive = location.pathname === item.path;
           return (
             <div key={index} className="px-2 py-1">
