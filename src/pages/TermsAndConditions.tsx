@@ -20,7 +20,7 @@ const TermsAndConditions = () => {
             <div>
               <h3 className="text-lg font-medium text-gray-800 mb-2">A. Introduction</h3>
               <p className="text-gray-600 mb-3">
-                Welcome to HappyJourney, a brand of HappyJourney Services Private Limited, registered under the Indian Companies Act. By using our services, website (happyjourney.com), mobile apps, or call center, you agree to these Terms and Conditions. We are committed to transparent and ethical practices. Some services may have additional terms, which will be provided and become part of your agreement if used.
+                Welcome to HappyJourney, a brand of HappyJourney Services Private Limited, registered under the Indian Companies Act. By using our services, website (happyjourneyy.in), mobile apps, or call center, you agree to these Terms and Conditions. We are committed to transparent and ethical practices. Some services may have additional terms, which will be provided and become part of your agreement if used.
               </p>
             </div>
           </div>
@@ -33,7 +33,7 @@ const TermsAndConditions = () => {
               <h3 className="text-lg font-medium text-gray-800 mb-2">B. Definitions</h3>
               <ul className="list-disc pl-5 space-y-2 text-gray-600">
                 <li><strong>HappyJourney</strong>: HappyJourney Services Private Limited, registered under the Indian Companies Act.</li>
-                <li><strong>Website</strong>: http://happyjourney.com, where we offer products and services.</li>
+                <li><strong>Website</strong>: http://happyjourneyy.in, where we offer products and services.</li>
                 <li><strong>Services</strong>: Services requested via our website or apps, including e-Catering.</li>
                 <li><strong>Restaurants/Vendors</strong>: Entities preparing and delivering ordered products.</li>
                 <li><strong>Customer/You</strong>: The person ordering products or services.</li>
