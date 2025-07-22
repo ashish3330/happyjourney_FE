@@ -87,7 +87,7 @@ const formSchema = z.object({
 // Mock logger
 const logger = {
   info: (msg: string, meta?: any) => console.log(`[INFO] ${msg}`, meta),
-    error: (msg: string, meta?: any) => console.error(`[ERROR] ${msg}`, meta),
+  error: (msg: string, meta?: any) => console.error(`[ERROR] ${msg}`, meta),
   warn: (msg: string, meta?: any) => console.warn(`[WARN] ${msg}`, meta),
 };
 
@@ -158,7 +158,6 @@ const PlaceOrder: React.FC = () => {
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [station, setStation] = useState<Station | null>(null);
   const [vendorDetails, setVendorDetails] = useState<VendorDetails | null>(null);
-  
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<string>("");
   const [formData, setFormData] = useState({
     pnrNumber: "",
@@ -173,7 +172,28 @@ const PlaceOrder: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const maxRetries = 3;
+
+  // Load Razorpay script dynamically
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => {
+      logger.info("Razorpay checkout script loaded");
+      setRazorpayLoaded(true);
+    };
+    script.onerror = () => {
+      logger.error("Failed to load Razorpay checkout script");
+      setError("Failed to load payment gateway. Please try again.");
+      toast.error("Failed to load payment gateway");
+    };
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   // Validate vendorId
   if (isNaN(effectiveVendorId) || effectiveVendorId <= 0) {
@@ -350,11 +370,19 @@ const PlaceOrder: React.FC = () => {
       return;
     }
 
+    if (formData.paymentMethod === "ONLINE" && !razorpayLoaded) {
+      setError("Payment gateway not loaded. Please try again.");
+      toast.error("Payment gateway not loaded");
+      logger.error("Razorpay script not loaded");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     const orderPayload = {
       vendorId: effectiveVendorId,
+      customerId: userId,
       paymentMethod: formData.paymentMethod === "ONLINE" ? "RAZORPAY" : "COD",
       deliveryTime: new Date(new Date().getTime() + (vendorDetails?.preparationTime || 30) * 60 * 1000).toISOString(),
       pnrNumber: formData.pnrNumber,
@@ -363,6 +391,7 @@ const PlaceOrder: React.FC = () => {
       seatNumber: formData.seatNumber,
       deliveryStationId: Number(formData.deliveryStationId),
       deliveryInstructions: formData.deliveryInstructions,
+      items: cartSummary.items,
     };
 
     if (formData.paymentMethod === "COD") {
@@ -373,7 +402,7 @@ const PlaceOrder: React.FC = () => {
         logger.info("COD order created successfully", { orderId: order.orderId });
         setCartSummary(null);
         toast.success("🎉 Order placed successfully! You'll receive it soon!", {
-          duration: 3000, // Display for 3 seconds
+          duration: 3000,
         });
         navigate("/order-history");
       } catch (err: any) {
@@ -384,53 +413,65 @@ const PlaceOrder: React.FC = () => {
         setIsLoading(false);
       }
     } else {
+      let orderId: number | null = null;
       try {
-        logger.info("Initiating online order creation", { vendorId: effectiveVendorId });
-        const response = await api.post("/orders", orderPayload);
-        const order = response.data;
-        logger.info("Online order created", { orderId: order.orderId });
+        // Step 1: Create a temporary order
+        logger.info("Creating temporary order for online payment", { vendorId: effectiveVendorId });
+        const orderResponse = await api.post("/orders", {
+          ...orderPayload,
+          paymentStatus: "PENDING", // Ensure order is marked as pending
+        });
+        orderId = orderResponse.data.orderId;
+        logger.info("Temporary order created", { orderId });
 
-        const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+        // Step 2: Create Razorpay order
+        logger.info("Initiating Razorpay order creation", { orderId });
+        const createOrderResponse = await api.post(`/api/payments/create-order/${orderId}`);
+        const razorpayOrderId = createOrderResponse.data;
+        logger.info("Razorpay order created", { razorpayOrderId });
+
+        const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_gyTr82IideY3dc";
         if (!razorpayKey) {
           throw new Error("Razorpay key not configured");
         }
 
+        // Step 3: Open Razorpay payment modal
         const options = {
           key: razorpayKey,
-          amount: order.finalAmount * 100,
+          amount: cartSummary.finalAmount * 100, // Convert to paise
           currency: "INR",
           name: "Railswad",
-          description: `Food Order #${order.orderId}`,
-          order_id: order.razorpayOrderID,
+          description: `Food Order #${orderId}`,
+          order_id: razorpayOrderId,
           handler: async function (response: any) {
             try {
-              logger.info("Verifying payment", { orderId: order.orderId });
-              await api.post(`/payments/verify-payment/${order.orderId}`, {
+              // Step 4: Verify payment
+              logger.info("Verifying payment", { orderId });
+              await api.post(`/api/payments/verify-payment/${orderId}`, {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
               });
+              logger.info("Payment verified successfully", { orderId });
               setCartSummary(null);
               toast.success("🎉 Payment successful! Your order is confirmed!", {
                 duration: 3000,
               });
-              navigate(`/order-confirmation/${order.orderId}`);
+              navigate(`/order-confirmation/${orderId}`);
             } catch (error: any) {
               logger.error("Payment verification failed", { error: error.message });
               toast.error(error.response?.data?.message || "Payment verification failed");
-              try {
-                await api.delete(`/orders/${order.orderId}`);
-                logger.info("Order cancelled due to payment verification failure", { orderId: order.orderId });
-              } catch (cancelError: any) {
-                logger.error("Failed to cancel order after payment failure", { error: cancelError.message });
+              // Step 5: Delete temporary order on verification failure
+              if (orderId) {
+                try {
+                  await api.delete(`/orders/${orderId}`);
+                  logger.info("Temporary order deleted due to payment verification failure", { orderId });
+                } catch (cancelError: any) {
+                  logger.error("Failed to delete temporary order", { error: cancelError.message });
+                }
               }
               setIsLoading(false);
             }
-          },
-          prefill: {
-            name: "Customer Name", // TODO: Fetch from useAuth
-            email: "customer@example.com",
-            contact: "9999999999",
           },
           theme: {
             color: "#3399cc",
@@ -439,11 +480,14 @@ const PlaceOrder: React.FC = () => {
             ondismiss: async () => {
               toast.error("Payment cancelled");
               logger.warn("Payment cancelled by user");
-              try {
-                await api.delete(`/orders/${order.orderId}`);
-                logger.info("Order cancelled due to payment cancellation", { orderId: order.orderId });
-              } catch (cancelError: any) {
-                logger.error("Failed to cancel order after payment cancellation", { error: cancelError.message });
+              // Step 6: Delete temporary order on cancellation
+              if (orderId) {
+                try {
+                  await api.delete(`/orders/${orderId}`);
+                  logger.info("Temporary order deleted due to payment cancellation", { orderId });
+                } catch (cancelError: any) {
+                  logger.error("Failed to delete temporary order", { error: cancelError.message });
+                }
               }
               setIsLoading(false);
             },
@@ -454,11 +498,14 @@ const PlaceOrder: React.FC = () => {
         razorpay.on("payment.failed", async (response: any) => {
           toast.error(`Payment failed: ${response.error.description}`);
           logger.error("Payment failed", { description: response.error.description });
-          try {
-            await api.delete(`/orders/${order.orderId}`);
-            logger.info("Order cancelled due to payment failure", { orderId: order.orderId });
-          } catch (cancelError: any) {
-            logger.error("Failed to cancel order after payment failure", { error: cancelError.message });
+          // Step 7: Delete temporary order on payment failure
+          if (orderId) {
+            try {
+              await api.delete(`/orders/${orderId}`);
+              logger.info("Temporary order deleted due to payment failure", { orderId });
+            } catch (cancelError: any) {
+              logger.error("Failed to delete temporary order", { error: cancelError.message });
+            }
           }
           setIsLoading(false);
         });
@@ -468,6 +515,15 @@ const PlaceOrder: React.FC = () => {
         const errorMessage = err.response?.data?.message || "Failed to process your order. Please try again.";
         setError(errorMessage);
         toast.error(errorMessage);
+        // Clean up temporary order if created
+        if (orderId) {
+          try {
+            await api.delete(`/orders/${orderId}`);
+            logger.info("Temporary order deleted due to order creation failure", { orderId });
+          } catch (cancelError: any) {
+            logger.error("Failed to delete temporary order", { error: cancelError.message });
+          }
+        }
         setIsLoading(false);
       }
     }
@@ -678,7 +734,7 @@ const PlaceOrder: React.FC = () => {
             <Button
               className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full py-3 text-lg font-semibold transition-all duration-200 flex items-center justify-center"
               onClick={handlePlaceOrder}
-              disabled={isLoading}
+              disabled={isLoading || (formData.paymentMethod === "ONLINE" && !razorpayLoaded)}
               aria-busy={isLoading}
             >
               {isLoading ? (

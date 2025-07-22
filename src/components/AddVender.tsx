@@ -34,6 +34,7 @@ type FormData = {
   logoUrl: string;
   fssaiLicense: string;
   gstNumber: string | null;
+  panNumber: string | null;
   stationId: number;
   address: string;
   preparationTimeMin: number;
@@ -65,20 +66,21 @@ const validationSchema = yup.object().shape({
     .string()
     .required("Phone is required")
     .matches(/^[0-9]+$/, "Phone must be numeric"),
-  password: yup.string().when("$mode", {
+  password: yup.string().when("mode", {
     is: "add",
     then: (schema) => schema.required("Password is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
   businessName: yup.string().required("Business name is required"),
   description: yup.string().required("Description is required"),
-  logoUrl: yup.string().when("$mode", {
+  logoUrl: yup.string().when("mode", {
     is: "add",
     then: (schema) => schema.required("Logo URL is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
   fssaiLicense: yup.string().required("FSSAI License is required"),
   gstNumber: yup.string().nullable(),
+  panNumber: yup.string().nullable(),
   stationId: yup
     .number()
     .required("Station ID is required")
@@ -101,17 +103,15 @@ const validationSchema = yup.object().shape({
   veg: yup.boolean().required("Vegetarian status is required"),
 });
 
-export default function AddVendor({
+export default function AddVender({
   open,
   setOpen,
   id,
-  setId,
   mode,
   setRefresh,
   refresh,
+  setId,
 }: IndiProps) {
-  
-  const [, setUploadedFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [logoUrlPreview, setLogoUrlPreview] = useState<string | null>(null);
   const [stationsList, setStationsList] = useState<Station[]>([]);
@@ -122,10 +122,11 @@ export default function AddVendor({
     control,
     reset,
     setValue,
-    formState: { errors, isDirty },
+    getValues,
+    watch,
+    formState: { errors },
   } = useForm<FormData>({
-    resolver: yupResolver(validationSchema) as any,
-    context: { mode },
+    resolver: yupResolver(validationSchema as any, { context: { mode } }),
     defaultValues: {
       email: "",
       username: "",
@@ -136,44 +137,54 @@ export default function AddVendor({
       logoUrl: "",
       fssaiLicense: "",
       gstNumber: null,
-      stationId: 0,
+      panNumber: null,
+      stationId: 0, // Changed from null to 0 as a default number
       address: "",
       preparationTimeMin: 0,
       minOrderAmount: 0,
       rating: 0,
       activeStatus: true,
       veg: false,
-    },
+    } as FormData,
   });
 
+  // Watch the veg field to debug its value
+  const vegValue = watch("veg");
+  useEffect(() => {
+    console.log("[DEBUG] Current veg value:", vegValue);
+  }, [vegValue]);
+
   const handleClose = () => {
+    console.log("[DEBUG] Closing form, current veg value:", getValues("veg"));
     setId(null);
     if (logoUrlPreview) {
-      URL.revokeObjectURL(logoUrlPreview); // Clean up any existing preview URL
+      URL.revokeObjectURL(logoUrlPreview);
     }
     setLogoUrlPreview(null);
-    setUploadedFileUrl(null);
     setShowPassword(false);
     reset();
     setOpen(false);
   };
 
   useEffect(() => {
-    const getData = async (pageNumber = 1, pageSize = 10) => {
+    const getData = async () => {
       setIsLoading(true);
       try {
-        const res = await api.get(
-          `/stations?page=${pageNumber - 1}&size=${pageSize}`
-        );
-        setStationsList(res.data.content || []);
+        const res = await api.get(`/stations/all`);
+        const stations: Station[] = res.data || [];
+        console.log("[DEBUG] Fetched stations:", stations);
+        setStationsList(stations);
+        if (mode === "add" && stations.length > 0 && !getValues("stationId")) {
+          setValue("stationId", stations[0].stationId, { shouldDirty: true });
+        }
       } catch (error) {
-        console.error("Failed to fetch stations:", error);
+        console.error("[DEBUG] Failed to fetch stations:", error);
       } finally {
         setIsLoading(false);
       }
     };
     getData();
-  }, []);
+  }, [mode, setValue, getValues]);
 
   useEffect(() => {
     const fetchVendorData = async () => {
@@ -182,88 +193,98 @@ export default function AddVendor({
           setIsLoading(true);
           const res = await api.get(`/vendors/${id}`);
           if (res.status === 200 && res.data) {
-            const fileUrl = res.data.logoUrl;
-            setUploadedFileUrl(fileUrl || null);
+            const fileUrl = res.data.logoUrl || "";
             if (fileUrl) {
-              // Fetch the image as a blob for preview
-              const response = await api.get(
-                `/files/download?systemFileName=${fileUrl}`,
-                { responseType: "blob" }
-              );
-              if (response.status === 200) {
-                const blobUrl = URL.createObjectURL(response.data);
-                setLogoUrlPreview(blobUrl);
-              } else {
+              try {
+                const response = await api.get(
+                  `/files/download?systemFileName=${fileUrl}`,
+                  { responseType: "blob" }
+                );
+                if (response.status === 200) {
+                  const blobUrl = URL.createObjectURL(response.data);
+                  setLogoUrlPreview(blobUrl);
+                } else {
+                  console.warn("[DEBUG] Failed to fetch logo image for preview");
+                  setLogoUrlPreview(null);
+                }
+              } catch (fetchError) {
+                console.warn("[DEBUG] Error fetching logo image:", fetchError);
                 setLogoUrlPreview(null);
               }
             } else {
               setLogoUrlPreview(null);
             }
-            reset({
+            const formData: FormData = {
               email: res.data.email || "",
               username: res.data.username || "",
               phone: res.data.phone || "",
-              password: "",
+              password: "", // Don't include password in edit mode
               businessName: res.data.businessName || "",
               description: res.data.description || "",
-              logoUrl: fileUrl || "",
+              logoUrl: fileUrl,
               fssaiLicense: res.data.fssaiLicense || "",
               gstNumber: res.data.gstNumber || null,
-              stationId: res.data.stationId || 0,
+              panNumber: res.data.panNumber || null,
+              stationId: Number(res.data.stationId) || 0,
               address: res.data.address || "",
-              preparationTimeMin: res.data.preparationTimeMin || 0,
-              minOrderAmount: res.data.minOrderAmount || 0,
-              rating: res.data.rating || 0,
-              activeStatus: res.data.activeStatus ?? true,
-              veg: res.data.isVeg ?? false,
+              preparationTimeMin: Number(res.data.preparationTimeMin) || 0,
+              minOrderAmount: Number(res.data.minOrderAmount) || 0,
+              rating: Number(res.data.rating) || 0,
+              activeStatus: res.data.activeStatus !== false,
+              veg: res.data.veg === true,
+            };
+            console.log("[DEBUG] Setting vendor data:", formData);
+            Object.entries(formData).forEach(([key, value]) => {
+              setValue(key as keyof FormData, value, { shouldDirty: false });
             });
+          } else {
+            console.error("[DEBUG] Invalid vendor data response");
+            reset();
           }
         } catch (error) {
-          console.error("Error fetching vendor data:", error);
+          console.error("[DEBUG] Error fetching vendor data:", error);
           setLogoUrlPreview(null);
+          reset();
         } finally {
           setIsLoading(false);
         }
       }
     };
     fetchVendorData();
-  }, [id, mode, reset]);
+  }, [id, mode, reset, setValue, stationsList]);
 
   useEffect(() => {
     return () => {
-      // Clean up blob URLs on component unmount
       if (logoUrlPreview) {
         URL.revokeObjectURL(logoUrlPreview);
       }
     };
   }, [logoUrlPreview]);
 
-  const onSubmit: SubmitHandler<FormData> = async (data) => {
+  const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
+    console.log("[DEBUG] Form data on submit:", data);
     setIsLoading(true);
     try {
       const endpoint =
         mode === "edit" && id ? `/vendors/${id}` : "/auth/create-vendor";
       const method = mode === "edit" ? api.put : api.post;
-      const { veg, ...restData } = data;
       const payload = {
-        ...restData,
+        ...data,
         verified: true,
-        isVeg: veg,
+        veg: data.veg,
       };
+      console.log("[DEBUG] API payload:", payload);
       const res = await method(endpoint, payload);
+      console.log("[DEBUG] API response:", res.data);
       if (res.status === 200 || res.status === 201) {
         setRefresh(!refresh);
         handleClose();
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("[DEBUG] Error submitting form:", error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getTitle = (): string => {
-    return mode === "add" ? "Add New Vendor" : "Edit Vendor Details";
   };
 
   const handleFileChange = async (
@@ -273,17 +294,14 @@ export default function AddVendor({
     const file = event.target.files?.[0];
     if (!file) {
       setLogoUrlPreview(null);
-      setUploadedFileUrl(null);
       onChange("");
       return;
     }
 
-    // Set temporary preview
     const tempPreview = URL.createObjectURL(file);
     setLogoUrlPreview(tempPreview);
 
     try {
-      // Upload file
       const formData = new FormData();
       formData.append("file", file);
       const resp = await api.post("/files/upload", formData, {
@@ -294,49 +312,57 @@ export default function AddVendor({
         const fileUrl = resp.data.fileUrl;
         onChange(fileUrl);
         setValue("logoUrl", fileUrl, { shouldDirty: true });
-        setUploadedFileUrl(fileUrl);
-
-        // Fetch the uploaded image as a blob for preview
         try {
           const response = await api.get(
-            `/file/download?systemFileName=${fileUrl}`,
+            `/files/download?systemFileName=${fileUrl}`,
             { responseType: "blob" }
           );
           if (response.status === 200) {
             const blobUrl = URL.createObjectURL(response.data);
             setLogoUrlPreview(blobUrl);
-            URL.revokeObjectURL(tempPreview); // Clean up temporary preview
+            URL.revokeObjectURL(tempPreview);
           } else {
-            console.error("Failed to fetch uploaded image for preview");
-            setLogoUrlPreview(tempPreview); // Fallback to temp preview
+            console.error("[DEBUG] Failed to fetch uploaded image for preview");
+            setLogoUrlPreview(tempPreview);
           }
         } catch (fetchError) {
-          console.error("Error fetching image blob:", fetchError);
-          setLogoUrlPreview(tempPreview); // Fallback to temp preview
+          console.error("[DEBUG] Error fetching image blob:", fetchError);
+          setLogoUrlPreview(tempPreview);
         }
       } else {
-        console.error("Invalid upload response");
-        setLogoUrlPreview(tempPreview); // Fallback to temp preview
-        setUploadedFileUrl(null);
+        console.error("[DEBUG] Invalid upload response");
+        setLogoUrlPreview(tempPreview);
         onChange("");
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
-      setLogoUrlPreview(tempPreview); // Fallback to temp preview
-      setUploadedFileUrl(null);
+      console.error("[DEBUG] Error uploading file:", error);
+      setLogoUrlPreview(tempPreview);
       onChange("");
     }
   };
 
   const handleSelectChange = (
-    onChange: (value: number) => void,
-    event: SelectChangeEvent<number>
+    onChange: (value: number | null) => void,
+    event: SelectChangeEvent<number | null>
   ) => {
-    onChange(Number(event.target.value));
+    const value = event.target.value === "" ? null : Number(event.target.value);
+    onChange(value);
+  };
+
+  const handleNumberChange = (
+    onChange: (value: number) => void,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const value = parseInt(e.target.value, 10);
+    onChange(isNaN(value) ? 0 : value);
   };
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
+  };
+
+  const getTitle = (): string => {
+    return mode === "add" ? "Add New Vendor" : "Edit Vendor Details";
   };
 
   return (
@@ -364,7 +390,7 @@ export default function AddVendor({
           display: "flex",
           flexDirection: "column",
         }}
-      >
+    >
         {isLoading && (
           <Box
             sx={{
@@ -397,9 +423,7 @@ export default function AddVendor({
           </Typography>
           <IconButton
             onClick={handleClose}
-            sx={{
-              color: "text.secondary",
-            }}
+            sx={{ color: "text.secondary" }}
           >
             <X size={20} />
           </IconButton>
@@ -407,17 +431,14 @@ export default function AddVendor({
 
         <Box
           component="form"
-          onSubmit={handleSubmit(onSubmit as any)}
+          onSubmit={handleSubmit(onSubmit)}
           sx={{
             flex: 1,
             overflowY: "auto",
             pr: 1,
-            "&::-webkit-scrollbar": {
-              width: "0.4em",
-            },
+            "&::-webkit-scrollbar": { width: "0.4em" },
             "&::-webkit-scrollbar-track": {
               boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-              webkitBoxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
             },
             "&::-webkit-scrollbar-thumb": {
               backgroundColor: "rgba(0,0,0,.1)",
@@ -426,11 +447,7 @@ export default function AddVendor({
           }}
         >
           <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="subtitle1"
-              gutterBottom
-              sx={{ fontWeight: 600 }}
-            >
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
               Vendor Information
             </Typography>
             <Divider sx={{ mb: 3 }} />
@@ -530,11 +547,7 @@ export default function AddVendor({
           </Box>
 
           <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="subtitle1"
-              gutterBottom
-              sx={{ fontWeight: 600 }}
-            >
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
               Business Details
             </Typography>
             <Divider sx={{ mb: 3 }} />
@@ -590,6 +603,25 @@ export default function AddVendor({
                     error={!!errors.gstNumber}
                     helperText={errors.gstNumber?.message}
                     size="small"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                  />
+                )}
+              />
+
+              <Controller
+                name="panNumber"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="PAN Number (Optional)"
+                    variant="outlined"
+                    fullWidth
+                    error={!!errors.panNumber}
+                    helperText={errors.panNumber?.message}
+                    size="small"
+                    value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.value || null)}
                   />
                 )}
@@ -619,26 +651,19 @@ export default function AddVendor({
                 name="stationId"
                 control={control}
                 render={({ field }) => (
-                  <FormControl
-                    fullWidth
-                    size="small"
-                    error={!!errors.stationId}
-                  >
+                  <FormControl fullWidth size="small" error={!!errors.stationId}>
                     <InputLabel>Station Location</InputLabel>
                     <Select
                       {...field}
                       label="Station Location"
-                      value={field.value || ""}
+                      value={field.value ?? ""}
                       onChange={(e) => handleSelectChange(field.onChange, e)}
                     >
-                      <MenuItem value={0} disabled>
+                      <MenuItem value="" disabled>
                         Select a station
                       </MenuItem>
                       {stationsList.map((station) => (
-                        <MenuItem
-                          key={station.stationId}
-                          value={station.stationId}
-                        >
+                        <MenuItem key={station.stationId} value={station.stationId}>
                           {station.stationName}
                         </MenuItem>
                       ))}
@@ -668,7 +693,7 @@ export default function AddVendor({
                           accept="image/*"
                           onChange={(e) => handleFileChange(field.onChange, e)}
                           style={{ display: "none" }}
-                          disabled={isLoading} // Disable during upload
+                          disabled={isLoading}
                         />
                         <Button
                           variant="outlined"
@@ -725,11 +750,7 @@ export default function AddVendor({
           </Box>
 
           <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="subtitle1"
-              gutterBottom
-              sx={{ fontWeight: 600 }}
-            >
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
               Business Settings
             </Typography>
             <Divider sx={{ mb: 3 }} />
@@ -754,11 +775,8 @@ export default function AddVendor({
                     error={!!errors.preparationTimeMin}
                     helperText={errors.preparationTimeMin?.message}
                     size="small"
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value ? Number(e.target.value) : 0
-                      )
-                    }
+                    onChange={(e) => handleNumberChange(field.onChange, e)}
+                    value={field.value}
                     InputProps={{ inputProps: { min: 0 } }}
                   />
                 )}
@@ -777,11 +795,8 @@ export default function AddVendor({
                     error={!!errors.minOrderAmount}
                     helperText={errors.minOrderAmount?.message}
                     size="small"
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value ? Number(e.target.value) : 0
-                      )
-                    }
+                    onChange={(e) => handleNumberChange(field.onChange, e)}
+                    value={field.value}
                     InputProps={{ inputProps: { min: 0, step: "0.01" } }}
                   />
                 )}
@@ -800,55 +815,54 @@ export default function AddVendor({
                     error={!!errors.rating}
                     helperText={errors.rating?.message}
                     size="small"
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value ? Number(e.target.value) : 0
-                      )
-                    }
+                    onChange={(e) => handleNumberChange(field.onChange, e)}
+                    value={field.value}
                     InputProps={{ inputProps: { min: 0, max: 5, step: "0.1" } }}
                   />
                 )}
               />
 
-              <Box>
-                <Controller
-                  name="activeStatus"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControlLabel
-                      control={(
-                        <Checkbox
-                          checked={field.value}
-                          onChange={(e) => field.onChange(e.target.checked)}
-                          color="primary"
-                        />
-                      )}
-                      label="Active Vendor"
-                      sx={{ mt: 1 }}
-                    />
-                  )}
-                />
-              </Box>
+              <Controller
+                name="activeStatus"
+                control={control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="Active Vendor"
+                    sx={{ mt: 1 }}
+                  />
+                )}
+              />
 
-              <Box>
-                <Controller
-                  name="veg"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControlLabel
-                      control={(
-                        <Checkbox
-                          checked={field.value}
-                          onChange={(e) => field.onChange(e.target.checked)}
-                          color="primary"
-                        />
-                      )}
-                      label="Vegetarian Only"
-                      sx={{ mt: 1 }}
+              <Controller
+                name="veg"
+                control={control}
+                render={({ field }) => (
+                  <Box sx={{ mt: 1, display: "flex", alignItems: "center" }}>
+                    <Checkbox
+                      checked={field.value}
+                      onChange={(e) => {
+                        const newValue = e.target.checked;
+                        field.onChange(newValue);
+                        console.log("[DEBUG] Veg checkbox changed to:", newValue);
+                      }}
+                      color="primary"
                     />
-                  )}
-                />
-              </Box>
+                    <Typography variant="body2">Vegetarian Only</Typography>
+                    {errors.veg && (
+                      <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                        {errors.veg.message}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              />
             </Box>
           </Box>
 
@@ -874,7 +888,7 @@ export default function AddVendor({
             <Button
               variant="contained"
               type="submit"
-              disabled={isLoading || (mode === "edit" && !isDirty)}
+              disabled={isLoading}
               sx={{ minWidth: 100 }}
             >
               {isLoading ? (
