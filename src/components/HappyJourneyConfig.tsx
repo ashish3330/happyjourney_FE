@@ -97,7 +97,7 @@ export const HappyJourneyConfig = {
       { icon: <FaUsers className="w-6 h-6 text-blue-600 mr-3" />, text: 'Dedicated group order coordinator' },
       { icon: <FaUser className="w-6 h-6 text-amber-600 mr-3" />, text: 'Custom menus for your group’s needs' },
     ],
-    image: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?auto=format&fit=crop&w=800&q=80',
+    image: 'https://media.istockphoto.com/id/1127562113/photo/indian-food-curry-butter-chicken-palak-paneer-chiken-tikka-biryani-vegetable-curry-papad-dal.jpg?s=2048x2048&w=is&k=20&c=lzyyuEHLw740o-ZIC8neJQMYuqaWcYIGCgfVMprwT48=',
   },
   testimonials: [
     {

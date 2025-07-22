@@ -289,7 +289,7 @@ const OrderFood = () => {
           <div className="w-full lg:w-1/2 h-full">
             <div className="relative w-full h-48 md:h-64 lg:h-80 rounded-xl overflow-hidden shadow-lg">
               <img
-                src="https://plus.unsplash.com/premium_photo-1673108852141-e8c3c22a4a22?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                src="https://media.istockphoto.com/id/1158623408/photo/indian-hindu-veg-thali-food-platter-selective-focus.jpg?s=2048x2048&w=is&k=20&c=8TokrDFU7l0NCqcEng6hHp6EqYn1dcwyH7uc9tbIN3U="
                 alt="Delicious food on train"
                 className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
               />
