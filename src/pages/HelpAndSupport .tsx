@@ -99,7 +99,7 @@ const HelpAndSupport = () => {
                   </div>
                   <p className="text-gray-600 mb-3">Typically responds within 4 hours</p>
                   <a href="mailto:support@happyjourney.com" className="text-blue-600 font-medium">
-                    support@happyjourneyy.in
+                    support@thehappyjourneyy.in
                   </a>
                 </div>
               </div>
