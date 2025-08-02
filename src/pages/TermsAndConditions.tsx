@@ -1,5 +1,5 @@
 
-import { FileText, ClipboardList, AlertTriangle, BookOpen, Truck, CreditCard, Phone, Users, Ticket, Ban } from "lucide-react";
+import { FileText, ClipboardList, AlertTriangle, BookOpen, Truck, CreditCard, Users, Ticket, Ban } from "lucide-react";
 
 const TermsAndConditions = () => {
   return (

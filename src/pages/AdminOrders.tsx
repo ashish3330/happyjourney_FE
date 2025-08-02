@@ -963,41 +963,43 @@ const AdminOrders: React.FC = () => {
           )}
 
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-md p-4">
+            <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto p-4">
               <DialogHeader>
-                <DialogTitle className="text-blue-800">Order Details</DialogTitle>
+                <DialogTitle className="text-blue-800 text-lg">Order Details</DialogTitle>
               </DialogHeader>
               {selectedOrder && (
-                <div className="space-y-3 text-sm">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-blue-700 flex items-center gap-2">
-                      <Truck className="w-4 h-4" /> Order Information
-                    </h3>
+                <div className="space-y-2 text-xs">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                      <Truck className="w-3 h-3" /> Order Info
+                    </div>
+                    <div></div>
                     <p><strong>ID:</strong> {selectedOrder.orderId}</p>
-                    <p><strong>Customer ID:</strong> {selectedOrder.customerId}</p>
+                    <p><strong>Customer:</strong> {selectedOrder.customerId}</p>
                     <p><strong>Status:</strong> {statusConfig[selectedOrder.orderStatus]?.label || "Unknown"}</p>
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-blue-700 flex items-center gap-2">
-                      <FaMapMarkerAlt className="w-4 h-4" /> Delivery Information
-                    </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                      <FaMapMarkerAlt className="w-3 h-3" /> Delivery Info
+                    </div>
+                    <div></div>
                     <p><strong>Station:</strong> {stationData[selectedOrder.deliveryStationId]?.stationName || `Station #${selectedOrder.deliveryStationId}`}</p>
                     <p><strong>Train:</strong> {selectedOrder.trainNumber || `Train #${selectedOrder.trainId}`}</p>
                     <p><strong>Coach/Seat:</strong> {selectedOrder.coachNumber || "N/A"}/{selectedOrder.seatNumber || "N/A"}</p>
                     <p><strong>Vendor:</strong> {selectedOrder.vendorName || "Unknown"}</p>
-                    <p><strong>Delivery Time:</strong> {formatDate(selectedOrder.deliveryTime)}</p>
+                    <p><strong>Delivery:</strong> {formatDate(selectedOrder.deliveryTime)}</p>
                     {selectedOrder.deliveryInstructions && (
                       <p><strong>Instructions:</strong> {selectedOrder.deliveryInstructions}</p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-blue-700 flex items-center gap-2">
-                      <MdFastfood className="w-4 h-4" /> Items ({(selectedOrder.items || []).length})
-                    </h3>
+                  <div className="space-y-1">
+                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                      <MdFastfood className="w-3 h-3" /> Items ({(selectedOrder.items || []).length})
+                    </div>
                     {(selectedOrder.items || []).map((item) => (
-                      <div key={item.itemId} className="border-t border-blue-100 pt-2">
+                      <div key={item.itemId} className="border-t border-blue-100 pt-1 grid grid-cols-2 gap-2">
                         <p><strong>Name:</strong> {item.itemName || `Item #${item.itemId}`}</p>
-                        <p><strong>Quantity:</strong> {item.quantity} × ₹{(item.unitPrice || 0).toFixed(2)}</p>
+                        <p><strong>Qty:</strong> {item.quantity} × ₹{(item.unitPrice || 0).toFixed(2)}</p>
                         <p><strong>Total:</strong> ₹{((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}</p>
                         {item.specialInstructions !== "No special instructions" && (
                           <p><strong>Note:</strong> {item.specialInstructions}</p>
@@ -1005,19 +1007,20 @@ const AdminOrders: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-blue-700 flex items-center gap-2">
-                      <MdPayment className="w-4 h-4" /> Payment Information
-                    </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                      <MdPayment className="w-3 h-3" /> Payment Info
+                    </div>
+                    <div></div>
                     <p><strong>Method:</strong> {paymentMethodConfig[selectedOrder.paymentMethod]?.label || "Unknown"}</p>
                     <p><strong>Status:</strong> {paymentConfig[selectedOrder.paymentStatus]?.label || "Unknown"}</p>
                     {selectedOrder.razorpayOrderID && (
-                      <p><strong>Transaction ID:</strong> {selectedOrder.razorpayOrderID}</p>
+                      <p><strong>Tx ID:</strong> {selectedOrder.razorpayOrderID}</p>
                     )}
                     {selectedOrder.paymentMethod === "COD" && selectedOrder.paymentStatus !== "COMPLETED" && activeTab === "active" && (
-                      <div className="mt-2">
-                        <Label htmlFor={`cod-status-${selectedOrder.orderId}`} className="text-sm text-blue-700">
-                          Update COD Payment Status
+                      <div className="col-span-2 mt-1">
+                        <Label htmlFor={`cod-status-${selectedOrder.orderId}`} className="text-xs text-blue-700">
+                          Update COD Payment
                         </Label>
                         <div className="flex gap-2 mt-1">
                           <Select
@@ -1040,10 +1043,10 @@ const AdminOrders: React.FC = () => {
                             }
                             placeholder="Select payment status"
                             styles={selectStyles}
-                            className="w-[180px]"
+                            className="w-[160px]"
                           />
                           <Input
-                            placeholder="Optional remarks"
+                            placeholder="Remarks"
                             value={codRemarks[selectedOrder.orderId] || ""}
                             onChange={(e) =>
                               setCodRemarks((prev) => ({
@@ -1051,18 +1054,19 @@ const AdminOrders: React.FC = () => {
                                 [selectedOrder.orderId]: e.target.value,
                               }))
                             }
-                            className="max-w-xs text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                            className="max-w-[160px] text-xs border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                         </div>
                       </div>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-blue-700 flex items-center gap-2">
-                      <FaRupeeSign className="w-4 h-4" /> Order Summary
-                    </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                      <FaRupeeSign className="w-3 h-3" /> Order Summary
+                    </div>
+                    <div></div>
                     <p><strong>Subtotal:</strong> ₹{(selectedOrder.totalAmount || 0).toFixed(2)}</p>
-                    <p><strong>Delivery Charges:</strong> ₹{(selectedOrder.deliveryCharges || 0).toFixed(2)}</p>
+                    <p><strong>Delivery:</strong> ₹{(selectedOrder.deliveryCharges || 0).toFixed(2)}</p>
                     <p><strong>Tax ({selectedOrder.taxPercentage || 5}%):</strong> ₹{(selectedOrder.taxAmount || 0).toFixed(2)}</p>
                     {selectedOrder.discountAmount && selectedOrder.discountAmount > 0 && (
                       <p><strong>Discount:</strong> -₹{(selectedOrder.discountAmount || 0).toFixed(2)}</p>
@@ -1070,8 +1074,8 @@ const AdminOrders: React.FC = () => {
                     <p><strong>Total:</strong> ₹{(selectedOrder.finalAmount || 0).toFixed(2)}</p>
                   </div>
                   {activeTab === "active" && selectedOrder && getAvailableStatuses(selectedOrder.orderStatus).length > 0 && (
-                    <div className="mt-2">
-                      <Label htmlFor={`order-status-${selectedOrder.orderId}`} className="text-sm text-blue-700">
+                    <div className="mt-1 col-span-2">
+                      <Label htmlFor={`order-status-${selectedOrder.orderId}`} className="text-xs text-blue-700">
                         Update Order Status
                       </Label>
                       <div className="flex gap-2 mt-1">
@@ -1095,10 +1099,10 @@ const AdminOrders: React.FC = () => {
                           }
                           placeholder="Select status"
                           styles={selectStyles}
-                          className="w-[180px]"
+                          className="w-[160px]"
                         />
                         <Input
-                          placeholder="Optional remarks"
+                          placeholder="Remarks"
                           value={statusRemarks[selectedOrder.orderId] || ""}
                           onChange={(e) =>
                             setStatusRemarks((prev) => ({
@@ -1106,18 +1110,18 @@ const AdminOrders: React.FC = () => {
                               [selectedOrder.orderId]: e.target.value,
                             }))
                           }
-                          className="max-w-xs text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                          className="max-w-[160px] text-xs border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                         />
                       </div>
                     </div>
                   )}
                 </div>
               )}
-              <DialogFooter className="mt-4">
+              <DialogFooter className="mt-3">
                 <Button
                   variant="outline"
                   onClick={handleClose}
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs"
                 >
                   Close
                 </Button>

@@ -176,6 +176,12 @@ const Restaurant: FC = () => {
     );
   }
 
+  const formatTime = (time: string) => {
+    if (!time) return "-";
+    // Remove seconds from HH:mm:ss format to display HH:mm
+    return time.split(":").slice(0, 2).join(":");
+  };
+
   return (
     <div className="min-h-screen w-full bg-gray-100">
       {loading && <LoaderModal />}
@@ -225,7 +231,11 @@ const Restaurant: FC = () => {
                       <th className="px-4 py-3">Logo</th>
                       <th className="px-4 py-3">Business Name</th>
                       <th className="px-4 py-3">Description</th>
+                      <th className="px-4 py-3">Phone Number</th>
+                      <th className="px-4 py-3">GST Number</th>
+                      <th className="px-4 py-3">PAN Number</th>
                       <th className="px-4 py-3">FSSAI License</th>
+                      <th className="px-4 py-3">Available Time</th>
                       <th className="px-4 py-3">Veg/Non-Veg</th>
                       <th className="px-4 py-3">Status</th>
                       <th className="px-4 py-3">Action</th>
@@ -262,7 +272,16 @@ const Restaurant: FC = () => {
                           {item.description || "-"}
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-900">
+                          {item.phoneNumber || "-"}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
+                          {item.gstNumber || "-"}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
                           {item.fssaiLicense || "-"}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
+                          {formatTime(item.availableStartTime)} - {formatTime(item.availableEndTime)}
                         </td>
                         <td className="px-4 py-4 text-sm">
                           <div className="flex justify-center items-center gap-1">
@@ -411,8 +430,26 @@ const Restaurant: FC = () => {
                           <p className="text-gray-600 line-clamp-2">{item.description || "-"}</p>
                         </div>
                         <div>
+                          <span className="font-medium text-gray-700">Phone Number:</span>
+                          <p className="text-gray-600">{item.phoneNumber || "-"}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">GST Number:</span>
+                          <p className="text-gray-600">{item.gstNumber || "-"}</p>
+                        </div>  
+                        <div>
+                          <span className="font-medium text-gray-700">PAN Number:</span>
+                          <p className="text-gray-600">{item.panNumber || "-"}</p>
+                        </div>
+                        <div>
                           <span className="font-medium text-gray-700">FSSAI License:</span>
                           <p className="text-gray-600">{item.fssaiLicense || "-"}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Available Time:</span>
+                          <p className="text-gray-600">
+                            {formatTime(item.availableStartTime)} - {formatTime(item.availableEndTime)}
+                          </p>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">Rating:</span>
@@ -520,4 +557,4 @@ const Restaurant: FC = () => {
   );
 };
 
-export default Restaurant;  
+export default Restaurant;

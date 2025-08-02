@@ -27,7 +27,8 @@ import api from "@/utils/axios";
 type FormData = {
   email: string;
   username: string;
-  phone: string;
+  phone: string; // Changed from phoneNumber to match VendorCreationDTO
+  secondaryPhoneNumber: string | null;
   password: string;
   businessName: string;
   description: string;
@@ -42,6 +43,9 @@ type FormData = {
   rating: number;
   activeStatus: boolean;
   veg: boolean;
+  availableStartTime: string;
+  availableEndTime: string;
+  verified: boolean;
 };
 
 interface IndiProps {
@@ -64,11 +68,20 @@ const validationSchema = yup.object().shape({
   username: yup.string().required("Username is required"),
   phone: yup
     .string()
-    .required("Phone is required")
-    .matches(/^[0-9]+$/, "Phone must be numeric"),
+    .required("Phone number is required")
+    .matches(/^[0-9]+$/, "Phone number must be numeric")
+    .min(10, "Phone number must be at least 10 digits")
+    .max(15, "Phone number must be at most 15 digits"),
+  secondaryPhoneNumber: yup
+    .string()
+    .nullable()
+    .matches(/^[0-9]*$/, { message: "Secondary phone must be numeric", excludeEmptyString: true })
+    .min(10, "Secondary phone must be at least 10 digits")
+    .max(15, "Secondary phone must be at most 15 digits")
+    .optional(),
   password: yup.string().when("mode", {
     is: "add",
-    then: (schema) => schema.required("Password is required"),
+    then: (schema) => schema.required("Password is required").min(6, "Password must be at least 6 characters"),
     otherwise: (schema) => schema.notRequired(),
   }),
   businessName: yup.string().required("Business name is required"),
@@ -101,9 +114,23 @@ const validationSchema = yup.object().shape({
     .max(5, "Rating cannot be more than 5"),
   activeStatus: yup.boolean().required("Active status is required"),
   veg: yup.boolean().required("Vegetarian status is required"),
+  availableStartTime: yup
+    .string()
+    .required("Available start time is required")
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:mm)"),
+  availableEndTime: yup
+    .string()
+    .required("Available end time is required")
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:mm)")
+    .test("is-after-start", "End time must be after start time", function (value) {
+      const startTime = this.parent.availableStartTime;
+      if (!startTime || !value) return true;
+      return value > startTime;
+    }),
+  verified: yup.boolean().default(true),
 });
 
-export default function AddVender({
+export default function AddVendor({
   open,
   setOpen,
   id,
@@ -123,7 +150,6 @@ export default function AddVender({
     reset,
     setValue,
     getValues,
-    watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(validationSchema as any, { context: { mode } }),
@@ -131,6 +157,7 @@ export default function AddVender({
       email: "",
       username: "",
       phone: "",
+      secondaryPhoneNumber: null,
       password: "",
       businessName: "",
       description: "",
@@ -138,24 +165,20 @@ export default function AddVender({
       fssaiLicense: "",
       gstNumber: null,
       panNumber: null,
-      stationId: 0, // Changed from null to 0 as a default number
+      stationId: 0,
       address: "",
       preparationTimeMin: 0,
       minOrderAmount: 0,
       rating: 0,
       activeStatus: true,
       veg: false,
-    } as FormData,
+      availableStartTime: "",
+      availableEndTime: "",
+      verified: true,
+    },
   });
 
-  // Watch the veg field to debug its value
-  const vegValue = watch("veg");
-  useEffect(() => {
-    console.log("[DEBUG] Current veg value:", vegValue);
-  }, [vegValue]);
-
   const handleClose = () => {
-    console.log("[DEBUG] Closing form, current veg value:", getValues("veg"));
     setId(null);
     if (logoUrlPreview) {
       URL.revokeObjectURL(logoUrlPreview);
@@ -166,19 +189,30 @@ export default function AddVender({
     setOpen(false);
   };
 
+  // Helper function to convert HH:mm:ss to HH:mm for form display
+  const formatTimeForForm = (time: string | null | undefined): string => {
+    if (!time) return "";
+    return time.split(":").slice(0, 2).join(":"); // Convert HH:mm:ss to HH:mm
+  };
+
+  // Helper function to convert HH:mm to HH:mm:ss for API payload
+  const formatTimeForApi = (time: string): string => {
+    if (!time) return "";
+    return `${time}:00`; // Append :00 to convert HH:mm to HH:mm:ss
+  };
+
   useEffect(() => {
     const getData = async () => {
       setIsLoading(true);
       try {
-        const res = await api.get(`/stations/all`);
+        const res = await api.get("/stations/all");
         const stations: Station[] = res.data || [];
-        console.log("[DEBUG] Fetched stations:", stations);
         setStationsList(stations);
         if (mode === "add" && stations.length > 0 && !getValues("stationId")) {
           setValue("stationId", stations[0].stationId, { shouldDirty: true });
         }
       } catch (error) {
-        console.error("[DEBUG] Failed to fetch stations:", error);
+        console.error("Failed to fetch stations:", error);
       } finally {
         setIsLoading(false);
       }
@@ -196,29 +230,24 @@ export default function AddVender({
             const fileUrl = res.data.logoUrl || "";
             if (fileUrl) {
               try {
-                const response = await api.get(
-                  `/files/download?systemFileName=${fileUrl}`,
-                  { responseType: "blob" }
-                );
+                const response = await api.get(`/files/download?systemFileName=${fileUrl}`, {
+                  responseType: "blob",
+                });
                 if (response.status === 200) {
                   const blobUrl = URL.createObjectURL(response.data);
                   setLogoUrlPreview(blobUrl);
-                } else {
-                  console.warn("[DEBUG] Failed to fetch logo image for preview");
-                  setLogoUrlPreview(null);
                 }
               } catch (fetchError) {
-                console.warn("[DEBUG] Error fetching logo image:", fetchError);
+                console.warn("Error fetching logo image:", fetchError);
                 setLogoUrlPreview(null);
               }
-            } else {
-              setLogoUrlPreview(null);
             }
             const formData: FormData = {
               email: res.data.email || "",
               username: res.data.username || "",
-              phone: res.data.phone || "",
-              password: "", // Don't include password in edit mode
+              phone: res.data.phoneNumber || "", // Map phoneNumber from API to phone in form
+              secondaryPhoneNumber: res.data.secondaryPhoneNumber || null,
+              password: "",
               businessName: res.data.businessName || "",
               description: res.data.description || "",
               logoUrl: fileUrl,
@@ -232,18 +261,16 @@ export default function AddVender({
               rating: Number(res.data.rating) || 0,
               activeStatus: res.data.activeStatus !== false,
               veg: res.data.veg === true,
+              availableStartTime: formatTimeForForm(res.data.availableStartTime), // Convert to HH:mm
+              availableEndTime: formatTimeForForm(res.data.availableEndTime), // Convert to HH:mm
+              verified: res.data.verified !== false,
             };
-            console.log("[DEBUG] Setting vendor data:", formData);
             Object.entries(formData).forEach(([key, value]) => {
               setValue(key as keyof FormData, value, { shouldDirty: false });
             });
-          } else {
-            console.error("[DEBUG] Invalid vendor data response");
-            reset();
           }
         } catch (error) {
-          console.error("[DEBUG] Error fetching vendor data:", error);
-          setLogoUrlPreview(null);
+          console.error("Error fetching vendor data:", error);
           reset();
         } finally {
           setIsLoading(false);
@@ -251,7 +278,7 @@ export default function AddVender({
       }
     };
     fetchVendorData();
-  }, [id, mode, reset, setValue, stationsList]);
+  }, [id, mode, reset, setValue]);
 
   useEffect(() => {
     return () => {
@@ -262,26 +289,43 @@ export default function AddVender({
   }, [logoUrlPreview]);
 
   const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
-    console.log("[DEBUG] Form data on submit:", data);
     setIsLoading(true);
     try {
-      const endpoint =
-        mode === "edit" && id ? `/vendors/${id}` : "/auth/create-vendor";
+      const endpoint = mode === "edit" && id ? `/vendors/${id}` : "/auth/create-vendor";
       const method = mode === "edit" ? api.put : api.post;
       const payload = {
-        ...data,
-        verified: true,
-        veg: data.veg,
+        email: data.email,
+        username: data.username,
+        phone: data.phone, // Use phone to match VendorCreationDTO
+        password: data.password || undefined,
+        businessName: data.businessName,
+        description: data.description,
+        logoUrl: data.logoUrl,
+        fssaiLicense: data.fssaiLicense,
+        gstNumber: data.gstNumber || null,
+        panNumber: data.panNumber || null,
+        stationId: data.stationId,
+        address: data.address,
+        preparationTimeMin: data.preparationTimeMin,
+        minOrderAmount: data.minOrderAmount,
+        rating: data.rating,
+        verified: data.verified,
+        isVeg: data.veg, // Map to DTO field
+        activeStatus: data.activeStatus,
+        secondaryPhoneNumber: data.secondaryPhoneNumber || null,
+        availableStartTime: formatTimeForApi(data.availableStartTime), // Convert to HH:mm:ss
+        availableEndTime: formatTimeForApi(data.availableEndTime), // Convert to HH:mm:ss
       };
-      console.log("[DEBUG] API payload:", payload);
       const res = await method(endpoint, payload);
-      console.log("[DEBUG] API response:", res.data);
       if (res.status === 200 || res.status === 201) {
         setRefresh(!refresh);
         handleClose();
+      } else {
+        alert("Failed to submit vendor form. Please try again.");
       }
-    } catch (error) {
-      console.error("[DEBUG] Error submitting form:", error);
+    } catch (error: any) {
+      console.error("Error submitting form:", error);
+      alert(error.response?.data?.message || "Failed to submit vendor form. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -313,29 +357,24 @@ export default function AddVender({
         onChange(fileUrl);
         setValue("logoUrl", fileUrl, { shouldDirty: true });
         try {
-          const response = await api.get(
-            `/files/download?systemFileName=${fileUrl}`,
-            { responseType: "blob" }
-          );
+          const response = await api.get(`/files/download?systemFileName=${fileUrl}`, {
+            responseType: "blob",
+          });
           if (response.status === 200) {
             const blobUrl = URL.createObjectURL(response.data);
             setLogoUrlPreview(blobUrl);
             URL.revokeObjectURL(tempPreview);
-          } else {
-            console.error("[DEBUG] Failed to fetch uploaded image for preview");
-            setLogoUrlPreview(tempPreview);
           }
         } catch (fetchError) {
-          console.error("[DEBUG] Error fetching image blob:", fetchError);
+          console.error("Error fetching image blob:", fetchError);
           setLogoUrlPreview(tempPreview);
         }
       } else {
-        console.error("[DEBUG] Invalid upload response");
         setLogoUrlPreview(tempPreview);
         onChange("");
       }
     } catch (error) {
-      console.error("[DEBUG] Error uploading file:", error);
+      console.error("Error uploading file:", error);
       setLogoUrlPreview(tempPreview);
       onChange("");
     }
@@ -353,7 +392,7 @@ export default function AddVender({
     onChange: (value: number) => void,
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const value = parseInt(e.target.value, 10);
+    const value = parseFloat(e.target.value);
     onChange(isNaN(value) ? 0 : value);
   };
 
@@ -390,7 +429,7 @@ export default function AddVender({
           display: "flex",
           flexDirection: "column",
         }}
-    >
+      >
         {isLoading && (
           <Box
             sx={{
@@ -421,10 +460,7 @@ export default function AddVender({
           <Typography variant="h6" component="h2" id="vendor-modal-title">
             {getTitle()}
           </Typography>
-          <IconButton
-            onClick={handleClose}
-            sx={{ color: "text.secondary" }}
-          >
+          <IconButton onClick={handleClose} sx={{ color: "text.secondary" }}>
             <X size={20} />
           </IconButton>
         </Box>
@@ -437,13 +473,8 @@ export default function AddVender({
             overflowY: "auto",
             pr: 1,
             "&::-webkit-scrollbar": { width: "0.4em" },
-            "&::-webkit-scrollbar-track": {
-              boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "rgba(0,0,0,.1)",
-              borderRadius: 2,
-            },
+            "&::-webkit-scrollbar-track": { boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)" },
+            "&::-webkit-scrollbar-thumb": { backgroundColor: "rgba(0,0,0,.1)", borderRadius: 2 },
           }}
         >
           <Box sx={{ mb: 4 }}>
@@ -505,11 +536,28 @@ export default function AddVender({
                     helperText={errors.phone?.message}
                     size="small"
                     InputProps={{
-                      startAdornment: (
-                        <Typography variant="body2" sx={{ mr: 1 }}>
-                          +91
-                        </Typography>
-                      ),
+                      startAdornment: <Typography variant="body2" sx={{ mr: 1 }}>+91</Typography>,
+                    }}
+                  />
+                )}
+              />
+
+              <Controller
+                name="secondaryPhoneNumber"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Secondary Phone Number (Optional)"
+                    variant="outlined"
+                    fullWidth
+                    error={!!errors.secondaryPhoneNumber}
+                    helperText={errors.secondaryPhoneNumber?.message}
+                    size="small"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                    InputProps={{
+                      startAdornment: <Typography variant="body2" sx={{ mr: 1 }}>+91</Typography>,
                     }}
                   />
                 )}
@@ -531,10 +579,7 @@ export default function AddVender({
                       size="small"
                       InputProps={{
                         endAdornment: (
-                          <IconButton
-                            onClick={handleTogglePasswordVisibility}
-                            edge="end"
-                          >
+                          <IconButton onClick={handleTogglePasswordVisibility} edge="end">
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         ),
@@ -746,6 +791,44 @@ export default function AddVender({
                   )}
                 />
               </Box>
+
+              <Controller
+                name="availableStartTime"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Available Start Time"
+                    type="time"
+                    variant="outlined"
+                    fullWidth
+                    error={!!errors.availableStartTime}
+                    helperText={errors.availableStartTime?.message}
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{ inputProps: { step: 60 } }}
+                  />
+                )}
+              />
+
+              <Controller
+                name="availableEndTime"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Available End Time"
+                    type="time"
+                    variant="outlined"
+                    fullWidth
+                    error={!!errors.availableEndTime}
+                    helperText={errors.availableEndTime?.message}
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{ inputProps: { step: 60 } }}
+                  />
+                )}
+              />
             </Box>
           </Box>
 
@@ -844,23 +927,17 @@ export default function AddVender({
                 name="veg"
                 control={control}
                 render={({ field }) => (
-                  <Box sx={{ mt: 1, display: "flex", alignItems: "center" }}>
-                    <Checkbox
-                      checked={field.value}
-                      onChange={(e) => {
-                        const newValue = e.target.checked;
-                        field.onChange(newValue);
-                        console.log("[DEBUG] Veg checkbox changed to:", newValue);
-                      }}
-                      color="primary"
-                    />
-                    <Typography variant="body2">Vegetarian Only</Typography>
-                    {errors.veg && (
-                      <Typography variant="caption" color="error" sx={{ ml: 2 }}>
-                        {errors.veg.message}
-                      </Typography>
-                    )}
-                  </Box>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="Vegetarian Only"
+                    sx={{ mt: 1 }}
+                  />
                 )}
               />
             </Box>
@@ -877,12 +954,7 @@ export default function AddVender({
               borderColor: "divider",
             }}
           >
-            <Button
-              variant="outlined"
-              onClick={handleClose}
-              sx={{ minWidth: 100 }}
-              disabled={isLoading}
-            >
+            <Button variant="outlined" onClick={handleClose} sx={{ minWidth: 100 }} disabled={isLoading}>
               Cancel
             </Button>
             <Button
