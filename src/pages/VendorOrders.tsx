@@ -649,13 +649,13 @@ const VendorOrders: React.FC = () => {
       { align: "center" }
     );
     doc.text(
-      "For any queries, please contact support@happyjourney.com",
+      "For any queries, please contact support@railwayeats.com",
       105,
       284,
       { align: "center" }
     );
 
-    doc.save(`HappyJourney_Invoice_${order.orderId}.pdf`);
+    doc.save(`RelSwad_Invoice_${order.orderId}.pdf`);
   };
 
   const currentOrders = useMemo(

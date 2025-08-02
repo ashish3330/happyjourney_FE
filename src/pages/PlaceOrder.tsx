@@ -21,7 +21,7 @@ interface CartItem {
 
 interface CartSummary {
   cartId: string;
-  customerId: number;
+  userId: number;
   vendorId: number;
   items: CartItem[];
   subtotal: number;
@@ -382,7 +382,6 @@ const PlaceOrder: React.FC = () => {
 
     const orderPayload = {
       vendorId: effectiveVendorId,
-      customerId: userId,
       paymentMethod: formData.paymentMethod === "ONLINE" ? "RAZORPAY" : "COD",
       deliveryTime: new Date(new Date().getTime() + (vendorDetails?.preparationTime || 30) * 60 * 1000).toISOString(),
       pnrNumber: formData.pnrNumber,
@@ -391,7 +390,7 @@ const PlaceOrder: React.FC = () => {
       seatNumber: formData.seatNumber,
       deliveryStationId: Number(formData.deliveryStationId),
       deliveryInstructions: formData.deliveryInstructions,
-      items: cartSummary.items,
+      cartId: cartSummary.cartId,
     };
 
     if (formData.paymentMethod === "COD") {

@@ -88,7 +88,7 @@ const HelpAndSupport = () => {
                   </div>
                   <p className="text-gray-600 mb-3">Available 24/7 for urgent order issues</p>
                   <a href="tel:+917000496695" className="text-blue-600 font-medium">
-                  +91 9826262660
+                  +91 70004 96695
                   </a>
                 </div>
 
@@ -98,8 +98,8 @@ const HelpAndSupport = () => {
                     <h3 className="font-medium text-gray-800">Email Support</h3>
                   </div>
                   <p className="text-gray-600 mb-3">Typically responds within 4 hours</p>
-                  <a href="mailto:support@happyjourney.com" className="text-blue-600 font-medium">
-                    support@thehappyjourneyy.in
+                  <a href="mailto:support@relswad.in" className="text-blue-600 font-medium">
+                    support@relswad.in
                   </a>
                 </div>
               </div>

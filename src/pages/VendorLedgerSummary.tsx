@@ -10,6 +10,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import Select from "react-select";
 import api from "@/utils/axios";
 import { useAuth } from "@/contexts/AuthContext";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface StationDTO {
   stationId: number;
@@ -45,6 +47,18 @@ interface VendorDetailsDTO {
   ledgerSummary: VendorLedgerSummaryDTO;
 }
 
+interface VendorLedgerDTO {
+  ledgerId: number;
+  vendorId: number;
+  orderId: string;
+  amount: number;
+  transactionType: "CREDIT" | "DEBIT";
+  description: string;
+  createdAt: string;
+  systemBalance: number;
+  vendorBalance: number;
+}
+
 const VendorLedgerSummary: FC = () => {
   const { accessToken } = useAuth();
   const [stations, setStations] = useState<StationDTO[]>([]);
@@ -54,13 +68,12 @@ const VendorLedgerSummary: FC = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [vendorDetails, setVendorDetails] = useState<VendorDetailsDTO | null>(null);
+  const [ledgerRecords, setLedgerRecords] = useState<VendorLedgerDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get current date for max date validation
   const today = useMemo(() => new Date(), []);
 
-  // Validate dates
   const validateDates = useCallback((start: Date | null, end: Date | null): boolean => {
     if (!start || !end) {
       setError("Please select both start and end dates");
@@ -76,7 +89,6 @@ const VendorLedgerSummary: FC = () => {
     return true;
   }, []);
 
-  // Fetch stations from /stations/all
   const fetchStations = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -95,7 +107,6 @@ const VendorLedgerSummary: FC = () => {
     }
   }, [accessToken]);
 
-  // Fetch vendors based on selected station from /vendors/stations/{stationId}
   const fetchVendors = useCallback(
     async (stationId: string) => {
       if (!stationId) {
@@ -126,10 +137,10 @@ const VendorLedgerSummary: FC = () => {
     [accessToken]
   );
 
-  // Fetch vendor details and summary
   const fetchVendorDetails = useCallback(async () => {
     if (!selectedVendor) {
       setVendorDetails(null);
+      setLedgerRecords([]);
       return;
     }
     if (!validateDates(startDate, endDate)) {
@@ -146,23 +157,33 @@ const VendorLedgerSummary: FC = () => {
       if (endDate)
         queryParams.append("endDate", format(endOfDay(endDate), "yyyy-MM-dd'T'HH:mm:ss"));
 
-      const response = await api.get<VendorDetailsDTO>(
-        `/admin/vendor-ledger/${selectedVendor}/details?${queryParams.toString()}`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-      setVendorDetails(response.data);
+      const [detailsResponse, recordsResponse] = await Promise.all([
+        api.get<VendorDetailsDTO>(
+          `/admin/vendor-ledger/${selectedVendor}/details?${queryParams.toString()}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        ),
+        api.get<{ content: VendorLedgerDTO[] }>(
+          `/admin/vendor-ledger/${selectedVendor}/records?${queryParams.toString()}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            params: { page: 0, size: 1000 },
+          }
+        ),
+      ]);
+
+      setVendorDetails(detailsResponse.data);
+      setLedgerRecords(recordsResponse.data.content || []);
     } catch (err: any) {
-      console.error("Failed to fetch vendor details:", err);
-      setError(err.response?.data?.message || "Failed to load vendor details");
-      toast.error("Failed to load vendor details.");
+      console.error("Failed to fetch vendor details or records:", err);
+      setError(err.response?.data?.message || "Failed to load vendor details and records");
+      toast.error("Failed to load vendor details and records.");
     } finally {
       setLoading(false);
     }
   }, [accessToken, selectedVendor, startDate, endDate, validateDates]);
 
-  // Handle Excel export
   const handleExport = async () => {
     if (!selectedVendor) {
       setError("Please select a vendor");
@@ -188,7 +209,6 @@ const VendorLedgerSummary: FC = () => {
         responseType: "blob",
       });
 
-      // Trigger file download
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -207,7 +227,188 @@ const VendorLedgerSummary: FC = () => {
     }
   };
 
-  // Handle filter submission
+  const handlePdfExport = () => {
+    if (!selectedVendor || !vendorDetails) {
+      setError("Please select a vendor");
+      toast.error("Please select a vendor");
+      return;
+    }
+    if (!validateDates(startDate, endDate)) {
+      return;
+    }
+  
+    setLoading(true);
+    setError(null);
+    try {
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 10;
+      let y = margin;
+  
+      // Header with gradient effect
+      doc.setFillColor(30, 136, 229); // Relswad Blue
+      doc.rect(0, 0, pageWidth, 35, "F");
+      doc.setFillColor(255, 112, 67); // Orange accent
+      doc.rect(0, 35, pageWidth, 2, "F");
+      doc.setFontSize(20);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.text("Relswad", margin, y + 15);
+      doc.setFontSize(12);
+      doc.text("Train Food Delivery Redefined", margin, y + 22);
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Vendor Ledger Invoice", pageWidth - margin - 60, y + 15);
+      doc.setFontSize(10);
+      doc.text(`Invoice ID: INV-${selectedVendor}-${format(new Date(), "yyyyMMdd")}`, pageWidth - margin - 60, y + 22);
+      y += 40;
+  
+      // Company Details
+      doc.setFontSize(10);
+      doc.setTextColor(50, 50, 50);
+      doc.setFont("helvetica", "normal");
+      doc.text("Relswad", margin, y);
+      doc.text("Jhansi, India", margin, y + 5);
+      doc.text("Email: support@relswad.com", margin, y + 10);
+      doc.text("Phone: +91 123 456 7890", margin, y + 15);
+      y += 25;
+  
+      // Vendor Details
+      doc.setFontSize(14);
+      doc.setTextColor(30, 136, 229);
+      doc.setFont("helvetica", "bold");
+      doc.text("Vendor Details", margin, y);
+      doc.setDrawColor(30, 136, 229);
+      doc.line(margin, y + 2, margin + 40, y + 2);
+      y += 10;
+      doc.setFontSize(10);
+      doc.setTextColor(50, 50, 50);
+      doc.setFont("helvetica", "normal");
+      const vendorInfo = [
+        { label: "Vendor Name", value: vendorDetails.vendorName || "N/A" },
+        { label: "Business Name", value: vendorDetails.businessName || "N/A" },
+        { label: "GST Number", value: vendorDetails.gstNumber || "N/A" },
+        { label: "Email", value: vendorDetails.email || "N/A" },
+        { label: "Phone", value: vendorDetails.phoneNumber || "N/A" },
+        { label: "Address", value: vendorDetails.address || "N/A" },
+      ];
+      
+      // Draw vendor info table
+      doc.setFillColor(245, 247, 250);
+      doc.rect(margin, y, pageWidth - 2 * margin, vendorInfo.length * 6, "F");
+      vendorInfo.forEach((info, index) => {
+        doc.text(`${info.label}:`, margin + 2, y + 4 + (index * 6));
+        doc.text(info.value, margin + 30, y + 4 + (index * 6));
+      });
+      y += vendorInfo.length * 6 + 10;
+  
+      // Ledger Summary
+      doc.setFontSize(14);
+      doc.setTextColor(30, 136, 229);
+      doc.setFont("helvetica", "bold");
+      doc.text("Ledger Summary", margin, y);
+      doc.line(margin, y + 2, margin + 40, y + 2);
+      y += 10;
+      
+      if (vendorDetails.ledgerSummary) {
+        const summaryData = [
+          ["Total Credits", `₹${vendorDetails.ledgerSummary.totalCredits.toFixed(2)}`],
+          ["Total Debits", `₹${vendorDetails.ledgerSummary.totalDebits.toFixed(2)}`],
+          ["Net Balance", `₹${vendorDetails.ledgerSummary.netBalance.toFixed(2)}`],
+        ];
+        
+        autoTable(doc, {
+          startY: y,
+          head: [['Description', 'Amount']],
+          body: summaryData,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [30, 136, 229],
+            textColor: [255, 255, 255],
+            fontSize: 10,
+            fontStyle: 'bold',
+          },
+          bodyStyles: {
+            fontSize: 10,
+            textColor: [50, 50, 50],
+          },
+          margin: { left: margin },
+          tableWidth: 'wrap',
+        });
+        y = (doc as any).lastAutoTable.finalY + 10;
+      }
+  
+      // Ledger Records Table
+      doc.setFontSize(14);
+      doc.setTextColor(30, 136, 229);
+      doc.setFont("helvetica", "bold");
+      doc.text("Ledger Records", margin, y);
+      doc.line(margin, y + 2, margin + 40, y + 2);
+      y += 10;
+  
+      if (ledgerRecords.length > 0) {
+        const recordsData = ledgerRecords.map(record => {
+          let formattedDate = "Invalid Date";
+          try {
+            formattedDate = format(new Date(record.createdAt), "yyyy-MM-dd HH:mm:ss");
+          } catch (e) {
+            console.warn(`Invalid date format for record ${record.ledgerId}: ${record.createdAt}`);
+          }
+          return [
+            record.orderId || "N/A",
+            `₹${(record.amount || 0).toFixed(2)}`,
+            record.transactionType || "N/A",
+            record.description || "N/A",
+            `₹${(record.systemBalance || 0).toFixed(2)}`,
+            `₹${(record.vendorBalance || 0).toFixed(2)}`,
+            formattedDate,
+          ];
+        });
+  
+        autoTable(doc, {
+          startY: y,
+          head: [["Order ID", "Amount", "Type", "Description", "System Balance", "Vendor Balance", "Created At"]],
+          body: recordsData,
+          theme: "striped",
+          headStyles: {
+            fillColor: [30, 136, 229],
+            textColor: [255, 255, 255],
+            fontSize: 10,
+            fontStyle: "bold",
+          },
+          bodyStyles: {
+            fontSize: 9,
+            textColor: [50, 50, 50],
+          },
+          margin: { left: margin, right: margin },
+          pageBreak: 'auto',
+          didDrawPage: (data) => {
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            const pageCount = doc.internal.pages.length;
+            doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - margin - 20, doc.internal.pageSize.getHeight() - 10);
+            doc.text("Relswad - Jhansi, India", margin, doc.internal.pageSize.getHeight() - 10);
+          }
+        });
+      } else {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text("No ledger records found for the selected vendor and date range.", margin, y + 5);
+      }
+  
+      // Save PDF
+      doc.save(`vendor_ledger_${selectedVendor}_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`);
+      toast.success("Vendor ledger PDF exported successfully!");
+    } catch (err: any) {
+      console.error("PDF generation failed:", err);
+      setError(`Failed to generate PDF: ${err.message}`);
+      toast.error(`Failed to generate PDF: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleFilterSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (validateDates(startDate, endDate)) {
@@ -215,17 +416,14 @@ const VendorLedgerSummary: FC = () => {
     }
   };
 
-  // Load stations on mount
   useEffect(() => {
     fetchStations();
   }, [fetchStations]);
 
-  // Fetch vendors when station changes
   useEffect(() => {
     fetchVendors(selectedStation);
   }, [selectedStation, fetchVendors]);
 
-  // Options for react-select
   const stationOptions = useMemo(
     () =>
       stations.map((station) => ({
@@ -244,42 +442,26 @@ const VendorLedgerSummary: FC = () => {
     [vendors]
   );
 
-  // Custom styles for react-select to match Tailwind theme
   const selectStyles = {
     control: (provided: any) => ({
       ...provided,
       borderColor: "#93c5fd",
       boxShadow: "none",
-      "&:hover": {
-        borderColor: "#3b82f6",
-      },
+      "&:hover": { borderColor: "#3b82f6" },
       minHeight: "2.5rem",
       fontSize: "0.875rem",
     }),
-    menu: (provided: any) => ({
-      ...provided,
-      zIndex: 9999,
-    }),
+    menu: (provided: any) => ({ ...provided, zIndex: 9999 }),
     option: (provided: any, state: any) => ({
       ...provided,
       backgroundColor: state.isSelected ? "#3b82f6" : state.isFocused ? "#e0f2fe" : "white",
       color: state.isSelected ? "white" : "#1f2937",
-      "&:hover": {
-        backgroundColor: "#e0f2fe",
-        color: "#1f2937",
-      },
+      "&:hover": { backgroundColor: "#e0f2fe", color: "#1f2937" },
     }),
-    singleValue: (provided: any) => ({
-      ...provided,
-      color: "#1f2937",
-    }),
-    placeholder: (provided: any) => ({
-      ...provided,
-      color: "#9ca3af",
-    }),
+    singleValue: (provided: any) => ({ ...provided, color: "#1f2937" }),
+    placeholder: (provided: any) => ({ ...provided, color: "#9ca3af" }),
   };
 
-  // Stats cards for ledger summary
   const statsCards = useMemo(() => {
     if (!vendorDetails) return [];
     return [
@@ -307,7 +489,6 @@ const VendorLedgerSummary: FC = () => {
     ];
   }, [vendorDetails]);
 
-  // StatCard Component
   interface StatCardProps {
     title: string;
     value: string;
@@ -344,7 +525,7 @@ const VendorLedgerSummary: FC = () => {
           <CardTitle className="text-xl sm:text-2xl font-bold text-blue-800">
             Vendor Ledger Summary
           </CardTitle>
-          <p className="text-sm text-blue-600">View and export vendor ledger details</p>
+          <p className="text-sm text-blue-600">View, export, and download vendor ledger details</p>
         </CardHeader>
       </Card>
       <Card className="mb-6 shadow-md border border-blue-100">
@@ -455,67 +636,159 @@ const VendorLedgerSummary: FC = () => {
               )}
               Export Excel
             </Button>
+            <Button
+              onClick={handlePdfExport}
+              className="bg-orange-600 text-white hover:bg-orange-700 flex items-center gap-2"
+              disabled={loading || !selectedVendor}
+              aria-label="Download vendor ledger as PDF"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              Download PDF
+            </Button>
           </div>
         </CardContent>
       </Card>
       {vendorDetails && (
-        <Card className="shadow-md border border-blue-100">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-lg font-semibold text-blue-800">Vendor Details</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6">
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-blue-800 mb-4">Vendor Information</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                  <p className="text-sm font-medium text-blue-700">Vendor Name</p>
-                  <p className="text-sm text-blue-600 font-semibold">{vendorDetails.vendorName}</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                  <p className="text-sm font-medium text-blue-700">Business Name</p>
-                  <p className="text-sm text-blue-600 font-semibold">{vendorDetails.businessName}</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                  <p className="text-sm font-medium text-blue-700">GST Number</p>
-                  <p className="text-sm text-blue-600 font-semibold">{vendorDetails.gstNumber}</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                  <p className="text-sm font-medium text-blue-700">Email</p>
-                  <p className="text-sm text-blue-600">{vendorDetails.email || "N/A"}</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                  <p className="text-sm font-medium text-blue-700">Phone Number</p>
-                  <p className="text-sm text-blue-600">{vendorDetails.phoneNumber || "N/A"}</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                  <p className="text-sm font-medium text-blue-700">Address</p>
-                  <p className="text-sm text-blue-600">{vendorDetails.address || "N/A"}</p>
+        <div>
+          <Card className="mb-6 shadow-md border border-blue-100">
+            <CardHeader className="bg-blue-50">
+              <CardTitle className="text-lg font-semibold text-blue-800">Vendor Details</CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 sm:p-6">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-blue-800 mb-4">Vendor Information</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-blue-700">Vendor Name</p>
+                    <p className="text-sm text-blue-600 font-semibold">{vendorDetails.vendorName}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-blue-700">Business Name</p>
+                    <p className="text-sm text-blue-600 font-semibold">{vendorDetails.businessName}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-blue-700">GST Number</p>
+                    <p className="text-sm text-blue-600 font-semibold">{vendorDetails.gstNumber}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-blue-700">Email</p>
+                    <p className="text-sm text-blue-600">{vendorDetails.email || "N/A"}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-blue-700">Phone Number</p>
+                    <p className="text-sm text-blue-600">{vendorDetails.phoneNumber || "N/A"}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-blue-700">Address</p>
+                    <p className="text-sm text-blue-600">{vendorDetails.address || "N/A"}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-blue-800 mb-4">Ledger Summary</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {statsCards.map((card, index) => (
-                  <StatCard
-                    key={index}
-                    title={card.title}
-                    value={card.value}
-                    icon={card.icon}
-                    color={card.color}
-                    textColor={card.textColor}
-                  />
-                ))}
+              <div>
+                <h2 className="text-lg font-semibold text-blue-800 mb-4">Ledger Summary</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {statsCards.map((card, index) => (
+                    <StatCard
+                      key={index}
+                      title={card.title}
+                      value={card.value}
+                      icon={card.icon}
+                      color={card.color}
+                      textColor={card.textColor}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+          <Card className="shadow-md border border-blue-100">
+            <CardHeader className="bg-blue-50">
+              <CardTitle className="text-lg font-semibold text-blue-800">Ledger Records</CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 sm:p-6">
+              {ledgerRecords.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-blue-200">
+                    <thead className="bg-blue-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                          Order ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                          Amount
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                          Transaction Type
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                          System Balance
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                          Vendor Balance
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                          Created At
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-blue-200">
+                      {ledgerRecords.map((record) => (
+                        <tr key={record.ledgerId} className="hover:bg-blue-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            {record.orderId}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            ₹{record.amount.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span
+                              className={
+                                record.transactionType === "CREDIT"
+                                  ? "text-green-600 font-semibold"
+                                  : "text-red-600 font-semibold"
+                              }
+                            >
+                              {record.transactionType}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            {record.description}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            ₹{record.systemBalance.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            ₹{record.vendorBalance.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                            {format(new Date(record.createdAt), "yyyy-MM-dd HH:mm:ss")}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-blue-500 text-center">
+                  No ledger records found for the selected vendor and date range.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
       {!vendorDetails && (
         <div className="flex flex-col items-center justify-center py-10">
           <h2 className="text-lg sm:text-xl font-semibold text-blue-600">Vendor Ledger Summary</h2>
           <p className="text-sm text-blue-500 mt-2">
-            Select a vendor and date range to view the ledger summary.
+            Select a vendor and date range to view the ledger summary and records.
           </p>
         </div>
       )}
