@@ -31,7 +31,7 @@ const QUICK_LINKS: FooterLink[] = [
 
 const CONTACT_INFO = {
   phone: '+91 70004 96695',
-  email: 'support@relswad.in', // Placeholder, can be customized per brand
+  email: 'support@happyjourneyy.com', // Placeholder, can be customized per brand
 };
 
 // Reusable Footer component
