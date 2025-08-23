@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, ChangeEvent } from "react";
 import api from "../utils/axios";
 import LoaderModal from "../components/LoaderModal";
 import { Edit, Eye, Plus, Search, Trash2, X, Leaf, Flame } from "lucide-react";
@@ -25,12 +25,15 @@ const style = {
 const Restaurant: FC = () => {
   const [listData, setListData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [refresh, setRefresh] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState(false);
   const [mode, setMode] = useState<"add" | "edit">("add");
+  const [searchName, setSearchName] = useState<string>("");
+  // Commented out unused state as it's not being used
+  // const [searchStationCode, setSearchStationCode] = useState<string>("");
   const navigate = useNavigate();
   const [page, setPage] = useState({
     current_page: 1,
@@ -102,11 +105,18 @@ const Restaurant: FC = () => {
     }
   };
 
-  const getData = async (pageNumber = 1, pageSize = 10) => {
+  const getData = async (pageNumber = 1, pageSize = 10, name = "") => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get(`/vendors?page=${pageNumber - 1}&size=${pageSize}`);
+      const params = new URLSearchParams({
+        page: (pageNumber - 1).toString(),
+        size: pageSize.toString(),
+      });
+      if (name) params.append("name", name);
+      // Removed unused stationCode parameter
+
+      const res = await api.get(`/vendors?${params.toString()}`);
       const vendors = res.data.content || [];
       setListData(vendors);
 
@@ -136,12 +146,22 @@ const Restaurant: FC = () => {
     }
   };
 
-  const handlePageClick = (e: any) => {
+  // Debounce search inputs
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setPage((prev) => ({ ...prev, current_page: 1 }));
+      getData(1, page.per_page, searchName);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchName, page.per_page, refresh]);
+
+  const handlePageClick = (e: { selected: number }) => {
     if (!loading) {
       const newPage = e.selected + 1;
       if (newPage !== page.current_page) {
         setPage((prev) => ({ ...prev, current_page: newPage }));
-        getData(newPage, page.per_page);
+        getData(newPage, page.per_page, searchName);
       }
     }
   };
@@ -150,13 +170,9 @@ const Restaurant: FC = () => {
     const newSize = parseInt(e.target.value, 10);
     if (newSize !== page.per_page) {
       setPage((prev) => ({ ...prev, per_page: newSize, current_page: 1 }));
-      getData(1, newSize);
+      getData(1, newSize, searchName);
     }
   };
-
-  useEffect(() => {
-    getData(page.current_page, page.per_page);
-  }, [refresh]);
 
   useEffect(() => {
     return () => {
@@ -168,17 +184,17 @@ const Restaurant: FC = () => {
     };
   }, [imageUrls]);
 
-  if (error) {
-    return (
-      <div className="min-h-screen w-full bg-gray-100 flex items-center justify-center">
-        <div className="text-red-600 text-lg">{error}</div>
-      </div>
-    );
-  }
+  const handleSearchNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchName(e.target.value);
+  };
+
+  // Commented out as it's not being used
+  // const handleSearchStationCodeChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   setSearchStationCode(e.target.value);
+  // };
 
   const formatTime = (time: string) => {
     if (!time) return "-";
-    // Remove seconds from HH:mm:ss format to display HH:mm
     return time.split(":").slice(0, 2).join(":");
   };
 
@@ -195,11 +211,26 @@ const Restaurant: FC = () => {
                 </div>
                 <input
                   type="text"
-                  id="searchQuery"
+                  id="searchName"
                   className="w-full p-2.5 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Search vendors..."
+                  placeholder="Search by business name..."
+                  value={searchName}
+                  onChange={handleSearchNameChange}
                 />
               </div>
+              {/* <div className="relative w-full sm:w-80">
+                <div className="absolute inset-y-0 left-1 flex items-center ps-3 pointer-events-none">
+                  <Search className="size-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="searchStationCode"
+                  className="w-full p-2.5 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Search by station code..."
+                  value={searchStationCode}
+                  onChange={handleSearchStationCodeChange}
+                />
+              </div> */}
               <select
                 value={page.per_page}
                 onChange={handlePageSizeChange}
@@ -246,7 +277,7 @@ const Restaurant: FC = () => {
                       <tr
                         key={item.vendorId || index}
                         className={`text-center bg-white shadow-sm hover:bg-gray-50 transition-colors ${
-                          item.veg
+                          item.isVeg
                             ? "shadow-[0_0_0_2px_rgba(34,197,94,0.3)]"
                             : "shadow-[0_0_0_2px_rgba(248,113,113,0.3)]"
                         }`}
@@ -278,6 +309,9 @@ const Restaurant: FC = () => {
                           {item.gstNumber || "-"}
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-900">
+                          {item.panNumber || "-"}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
                           {item.fssaiLicense || "-"}
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-900">
@@ -285,12 +319,12 @@ const Restaurant: FC = () => {
                         </td>
                         <td className="px-4 py-4 text-sm">
                           <div className="flex justify-center items-center gap-1">
-                            {item.veg ? (
+                            {item.isVeg ? (
                               <Leaf className="w-5 h-5 text-green-500" />
                             ) : (
                               <Flame className="w-5 h-5 text-orange-500" />
                             )}
-                            <span>{item.veg ? "Veg" : "Non-Veg"}</span>
+                            <span>{item.isVeg ? "Veg" : "Non-Veg"}</span>
                           </div>
                         </td>
                         <td className="px-4 py-4">
@@ -352,7 +386,7 @@ const Restaurant: FC = () => {
                   <div
                     key={item.vendorId || index}
                     className={`bg-white shadow-lg rounded-xl p-4 border border-gray-100 ${
-                      item.veg
+                      item.isVeg
                         ? "shadow-[0_0_0_2px_rgba(34,197,94,0.3)]"
                         : "shadow-[0_0_0_2px_rgba(248,113,113,0.3)]"
                     }`}
@@ -415,12 +449,12 @@ const Restaurant: FC = () => {
                             {item.businessName || "-"}
                           </span>
                           <div className="flex items-center gap-1 text-sm text-gray-600">
-                            {item.veg ? (
+                            {item.isVeg ? (
                               <Leaf className="w-4 h-4 text-green-500" />
                             ) : (
                               <Flame className="w-4 h-4 text-orange-500" />
                             )}
-                            <span>{item.veg ? "Veg" : "Non-Veg"}</span>
+                            <span>{item.isVeg ? "Veg" : "Non-Veg"}</span>
                           </div>
                         </div>
                       </div>
@@ -436,7 +470,7 @@ const Restaurant: FC = () => {
                         <div>
                           <span className="font-medium text-gray-700">GST Number:</span>
                           <p className="text-gray-600">{item.gstNumber || "-"}</p>
-                        </div>  
+                        </div>
                         <div>
                           <span className="font-medium text-gray-700">PAN Number:</span>
                           <p className="text-gray-600">{item.panNumber || "-"}</p>

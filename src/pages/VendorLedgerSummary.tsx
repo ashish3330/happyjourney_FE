@@ -97,6 +97,7 @@ const VendorLedgerSummary: FC = () => {
       const response = await api.get<StationDTO[]>("/stations/all", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
+      console.log("Fetched Stations:", response.data);
       setStations(response.data || []);
     } catch (err: any) {
       console.error("Failed to fetch stations:", err);
@@ -112,6 +113,8 @@ const VendorLedgerSummary: FC = () => {
       if (!stationId) {
         setVendors([]);
         setSelectedVendor("");
+        setVendorDetails(null);
+        setLedgerRecords([]);
         return;
       }
       setLoading(true);
@@ -125,7 +128,9 @@ const VendorLedgerSummary: FC = () => {
             params: { page: 0, size: 1000 },
           }
         );
+        console.log("Fetched Vendors:", response.data.content);
         setVendors(response.data.content || []);
+        setSelectedVendor(""); // Reset vendor when station changes
       } catch (err: any) {
         console.error("Failed to fetch vendors:", err);
         setError(err.response?.data?.message || "Failed to load vendors");
@@ -138,7 +143,7 @@ const VendorLedgerSummary: FC = () => {
   );
 
   const fetchVendorDetails = useCallback(async () => {
-    if (!selectedVendor) {
+    if (!selectedVendor || selectedVendor === "") {
       setVendorDetails(null);
       setLedgerRecords([]);
       return;
@@ -157,6 +162,7 @@ const VendorLedgerSummary: FC = () => {
       if (endDate)
         queryParams.append("endDate", format(endOfDay(endDate), "yyyy-MM-dd'T'HH:mm:ss"));
 
+      console.log("Fetching vendor details for:", selectedVendor, queryParams.toString());
       const [detailsResponse, recordsResponse] = await Promise.all([
         api.get<VendorDetailsDTO>(
           `/admin/vendor-ledger/${selectedVendor}/details?${queryParams.toString()}`,
@@ -173,6 +179,8 @@ const VendorLedgerSummary: FC = () => {
         ),
       ]);
 
+      console.log("Vendor Details:", detailsResponse.data);
+      console.log("Ledger Records:", recordsResponse.data.content);
       setVendorDetails(detailsResponse.data);
       setLedgerRecords(recordsResponse.data.content || []);
     } catch (err: any) {
@@ -185,7 +193,7 @@ const VendorLedgerSummary: FC = () => {
   }, [accessToken, selectedVendor, startDate, endDate, validateDates]);
 
   const handleExport = async () => {
-    if (!selectedVendor) {
+    if (!selectedVendor || selectedVendor === "") {
       setError("Please select a vendor");
       toast.error("Please select a vendor");
       return;
@@ -228,7 +236,7 @@ const VendorLedgerSummary: FC = () => {
   };
 
   const handlePdfExport = () => {
-    if (!selectedVendor || !vendorDetails) {
+    if (!selectedVendor || selectedVendor === "") {
       setError("Please select a vendor");
       toast.error("Please select a vendor");
       return;
@@ -236,7 +244,7 @@ const VendorLedgerSummary: FC = () => {
     if (!validateDates(startDate, endDate)) {
       return;
     }
-  
+
     setLoading(true);
     setError(null);
     try {
@@ -244,11 +252,11 @@ const VendorLedgerSummary: FC = () => {
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 10;
       let y = margin;
-  
-      // Header with gradient effect
-      doc.setFillColor(30, 136, 229); // Relswad Blue
+
+      // Header
+      doc.setFillColor(30, 136, 229);
       doc.rect(0, 0, pageWidth, 35, "F");
-      doc.setFillColor(255, 112, 67); // Orange accent
+      doc.setFillColor(255, 112, 67);
       doc.rect(0, 35, pageWidth, 2, "F");
       doc.setFontSize(20);
       doc.setTextColor(255, 255, 255);
@@ -262,7 +270,7 @@ const VendorLedgerSummary: FC = () => {
       doc.setFontSize(10);
       doc.text(`Invoice ID: INV-${selectedVendor}-${format(new Date(), "yyyyMMdd")}`, pageWidth - margin - 60, y + 22);
       y += 40;
-  
+
       // Company Details
       doc.setFontSize(10);
       doc.setTextColor(50, 50, 50);
@@ -272,7 +280,7 @@ const VendorLedgerSummary: FC = () => {
       doc.text("Email: support@relswad.com", margin, y + 10);
       doc.text("Phone: +91 123 456 7890", margin, y + 15);
       y += 25;
-  
+
       // Vendor Details
       doc.setFontSize(14);
       doc.setTextColor(30, 136, 229);
@@ -285,23 +293,22 @@ const VendorLedgerSummary: FC = () => {
       doc.setTextColor(50, 50, 50);
       doc.setFont("helvetica", "normal");
       const vendorInfo = [
-        { label: "Vendor Name", value: vendorDetails.vendorName || "N/A" },
-        { label: "Business Name", value: vendorDetails.businessName || "N/A" },
-        { label: "GST Number", value: vendorDetails.gstNumber || "N/A" },
-        { label: "Email", value: vendorDetails.email || "N/A" },
-        { label: "Phone", value: vendorDetails.phoneNumber || "N/A" },
-        { label: "Address", value: vendorDetails.address || "N/A" },
+        { label: "Vendor Name", value: vendorDetails?.vendorName || "N/A" },
+        { label: "Business Name", value: vendorDetails?.businessName || "N/A" },
+        { label: "GST Number", value: vendorDetails?.gstNumber || "N/A" },
+        { label: "Email", value: vendorDetails?.email || "N/A" },
+        { label: "Phone", value: vendorDetails?.phoneNumber || "N/A" },
+        { label: "Address", value: vendorDetails?.address || "N/A" },
       ];
-      
-      // Draw vendor info table
+
       doc.setFillColor(245, 247, 250);
       doc.rect(margin, y, pageWidth - 2 * margin, vendorInfo.length * 6, "F");
       vendorInfo.forEach((info, index) => {
-        doc.text(`${info.label}:`, margin + 2, y + 4 + (index * 6));
-        doc.text(info.value, margin + 30, y + 4 + (index * 6));
+        doc.text(`${info.label}:`, margin + 2, y + 4 + index * 6);
+        doc.text(info.value, margin + 30, y + 4 + index * 6);
       });
       y += vendorInfo.length * 6 + 10;
-  
+
       // Ledger Summary
       doc.setFontSize(14);
       doc.setTextColor(30, 136, 229);
@@ -309,35 +316,35 @@ const VendorLedgerSummary: FC = () => {
       doc.text("Ledger Summary", margin, y);
       doc.line(margin, y + 2, margin + 40, y + 2);
       y += 10;
-      
-      if (vendorDetails.ledgerSummary) {
+
+      if (vendorDetails?.ledgerSummary) {
         const summaryData = [
           ["Total Credits", `₹${vendorDetails.ledgerSummary.totalCredits.toFixed(2)}`],
           ["Total Debits", `₹${vendorDetails.ledgerSummary.totalDebits.toFixed(2)}`],
           ["Net Balance", `₹${vendorDetails.ledgerSummary.netBalance.toFixed(2)}`],
         ];
-        
+
         autoTable(doc, {
           startY: y,
-          head: [['Description', 'Amount']],
+          head: [["Description", "Amount"]],
           body: summaryData,
-          theme: 'grid',
+          theme: "grid",
           headStyles: {
             fillColor: [30, 136, 229],
             textColor: [255, 255, 255],
             fontSize: 10,
-            fontStyle: 'bold',
+            fontStyle: "bold",
           },
           bodyStyles: {
             fontSize: 10,
             textColor: [50, 50, 50],
           },
           margin: { left: margin },
-          tableWidth: 'wrap',
+          tableWidth: "wrap",
         });
         y = (doc as any).lastAutoTable.finalY + 10;
       }
-  
+
       // Ledger Records Table
       doc.setFontSize(14);
       doc.setTextColor(30, 136, 229);
@@ -345,9 +352,9 @@ const VendorLedgerSummary: FC = () => {
       doc.text("Ledger Records", margin, y);
       doc.line(margin, y + 2, margin + 40, y + 2);
       y += 10;
-  
+
       if (ledgerRecords.length > 0) {
-        const recordsData = ledgerRecords.map(record => {
+        const recordsData = ledgerRecords.map((record) => {
           let formattedDate = "Invalid Date";
           try {
             formattedDate = format(new Date(record.createdAt), "yyyy-MM-dd HH:mm:ss");
@@ -364,7 +371,7 @@ const VendorLedgerSummary: FC = () => {
             formattedDate,
           ];
         });
-  
+
         autoTable(doc, {
           startY: y,
           head: [["Order ID", "Amount", "Type", "Description", "System Balance", "Vendor Balance", "Created At"]],
@@ -381,23 +388,21 @@ const VendorLedgerSummary: FC = () => {
             textColor: [50, 50, 50],
           },
           margin: { left: margin, right: margin },
-          pageBreak: 'auto',
+          pageBreak: "auto",
           didDrawPage: (data) => {
-            // Footer
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
             const pageCount = doc.internal.pages.length;
             doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - margin - 20, doc.internal.pageSize.getHeight() - 10);
             doc.text("Relswad - Jhansi, India", margin, doc.internal.pageSize.getHeight() - 10);
-          }
+          },
         });
       } else {
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
         doc.text("No ledger records found for the selected vendor and date range.", margin, y + 5);
       }
-  
-      // Save PDF
+
       doc.save(`vendor_ledger_${selectedVendor}_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`);
       toast.success("Vendor ledger PDF exported successfully!");
     } catch (err: any) {
@@ -411,6 +416,11 @@ const VendorLedgerSummary: FC = () => {
 
   const handleFilterSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    if (!selectedVendor || selectedVendor === "") {
+      setError("Please select a vendor");
+      toast.error("Please select a vendor");
+      return;
+    }
     if (validateDates(startDate, endDate)) {
       fetchVendorDetails();
     }
@@ -423,6 +433,10 @@ const VendorLedgerSummary: FC = () => {
   useEffect(() => {
     fetchVendors(selectedStation);
   }, [selectedStation, fetchVendors]);
+
+  useEffect(() => {
+    console.log("Current selectedVendor:", selectedVendor);
+  }, [selectedVendor]);
 
   const stationOptions = useMemo(
     () =>
@@ -547,8 +561,12 @@ const VendorLedgerSummary: FC = () => {
                 options={stationOptions}
                 value={stationOptions.find((option) => option.value === selectedStation) || null}
                 onChange={(option) => {
-                  setSelectedStation(option?.value || "");
+                  const newValue = option?.value || "";
+                  console.log("Selected Station:", newValue);
+                  setSelectedStation(newValue);
                   setSelectedVendor("");
+                  setVendorDetails(null);
+                  setLedgerRecords([]);
                 }}
                 placeholder="Select a station"
                 styles={selectStyles}
@@ -563,7 +581,15 @@ const VendorLedgerSummary: FC = () => {
               <Select
                 options={vendorOptions}
                 value={vendorOptions.find((option) => option.value === selectedVendor) || null}
-                onChange={(option) => setSelectedVendor(option?.value || "")}
+                onChange={(option) => {
+                  const newValue = option?.value || "";
+                  console.log("Selected Vendor:", newValue);
+                  setSelectedVendor(newValue);
+                  if (!newValue) {
+                    setVendorDetails(null);
+                    setLedgerRecords([]);
+                  }
+                }}
                 placeholder="Select a vendor"
                 styles={selectStyles}
                 isClearable
@@ -626,7 +652,7 @@ const VendorLedgerSummary: FC = () => {
             <Button
               onClick={handleExport}
               className="bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
-              disabled={loading || !selectedVendor}
+              disabled={loading || !selectedVendor || selectedVendor === ""}
               aria-label="Export vendor ledger to Excel"
             >
               {loading ? (
@@ -639,7 +665,7 @@ const VendorLedgerSummary: FC = () => {
             <Button
               onClick={handlePdfExport}
               className="bg-orange-600 text-white hover:bg-orange-700 flex items-center gap-2"
-              disabled={loading || !selectedVendor}
+              disabled={loading || !selectedVendor || selectedVendor === ""}
               aria-label="Download vendor ledger as PDF"
             >
               {loading ? (

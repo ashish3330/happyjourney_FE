@@ -17,6 +17,7 @@ import {
   Train,
   Download,
   CreditCard,
+  FileCheck,
 } from "lucide-react";
 
 export type MenuItem = {
@@ -35,7 +36,8 @@ export const adminMenuItems: MenuItem[] = [
   { icon: Package, label: "Bulk Orders", path: "/bulkorder" },
   { icon: ShoppingCart, label: "All Orders", path: "/orders" },
   { icon: Download, label: "Orders Export", path: "/orders-export" },
-  { icon: Download, label: "Vendor Summary", path: "/vendor-summary" },
+  { icon: FileText, label: "Vendor Summary", path: "/vendor-summary" },
+  { icon: FileCheck, label: "Vendor Invoice", path: "/vendor-invoice" },
 ];
 
 // Vendor menu items (unchanged)

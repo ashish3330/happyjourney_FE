@@ -37,6 +37,7 @@ import { HappyJourneyFooter } from "./components/FooterConfigs";
 import UserPasswordlessLogin from "./pages/UserPasswordlessLogin";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import VendorLedgerSummary from "./pages/VendorLedgerSummary";
+import VendorInvoiceDashboard from "./pages/VendorInvoice";
 
 const FooterWrapper = () => {
   const { accessToken } = useAuth();
@@ -85,6 +86,8 @@ const App = () => {
             <Route path="/orders/" element={<AdminOrders />} />
             <Route path="/orders-export/" element={<OrdersExportDashboard />} />
             <Route path="/vendor-summary/" element={<VendorLedgerSummary />} />
+            <Route path="/vendor-invoice/" element={<VendorInvoiceDashboard />} />
+
 
           </Route>
 
