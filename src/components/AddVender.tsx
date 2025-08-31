@@ -697,15 +697,15 @@ export default function AddVendor({
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth size="small" error={!!errors.stationId}>
-                    <InputLabel>Station Location</InputLabel>
+                    <InputLabel>City Location</InputLabel>
                     <Select
                       {...field}
-                      label="Station Location"
+                      label="City Location"
                       value={field.value ?? ""}
                       onChange={(e) => handleSelectChange(field.onChange, e)}
                     >
                       <MenuItem value="" disabled>
-                        Select a station
+                        Select a city
                       </MenuItem>
                       {stationsList.map((station) => (
                         <MenuItem key={station.stationId} value={station.stationId}>

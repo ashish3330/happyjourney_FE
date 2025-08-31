@@ -146,7 +146,7 @@ const BulkOrderForm: React.FC = () => {
               htmlFor="deliveryStation"
               className="block text-sm font-medium text-gray-700"
             >
-              Delivery Station
+              Delivery City
             </label>
             <input
               type="text"
@@ -156,7 +156,7 @@ const BulkOrderForm: React.FC = () => {
               onChange={handleChange}
               required
               className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-              placeholder="Delivery station"
+              placeholder="Delivery city"
             />
           </div>
           <div>

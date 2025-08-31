@@ -97,7 +97,6 @@ const VendorLedgerSummary: FC = () => {
       const response = await api.get<StationDTO[]>("/stations/all", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      console.log("Fetched Stations:", response.data);
       setStations(response.data || []);
     } catch (err: any) {
       console.error("Failed to fetch stations:", err);
@@ -113,8 +112,6 @@ const VendorLedgerSummary: FC = () => {
       if (!stationId) {
         setVendors([]);
         setSelectedVendor("");
-        setVendorDetails(null);
-        setLedgerRecords([]);
         return;
       }
       setLoading(true);
@@ -128,9 +125,7 @@ const VendorLedgerSummary: FC = () => {
             params: { page: 0, size: 1000 },
           }
         );
-        console.log("Fetched Vendors:", response.data.content);
         setVendors(response.data.content || []);
-        setSelectedVendor(""); // Reset vendor when station changes
       } catch (err: any) {
         console.error("Failed to fetch vendors:", err);
         setError(err.response?.data?.message || "Failed to load vendors");
@@ -143,7 +138,7 @@ const VendorLedgerSummary: FC = () => {
   );
 
   const fetchVendorDetails = useCallback(async () => {
-    if (!selectedVendor || selectedVendor === "") {
+    if (!selectedVendor) {
       setVendorDetails(null);
       setLedgerRecords([]);
       return;
@@ -162,7 +157,6 @@ const VendorLedgerSummary: FC = () => {
       if (endDate)
         queryParams.append("endDate", format(endOfDay(endDate), "yyyy-MM-dd'T'HH:mm:ss"));
 
-      console.log("Fetching vendor details for:", selectedVendor, queryParams.toString());
       const [detailsResponse, recordsResponse] = await Promise.all([
         api.get<VendorDetailsDTO>(
           `/admin/vendor-ledger/${selectedVendor}/details?${queryParams.toString()}`,
@@ -179,8 +173,6 @@ const VendorLedgerSummary: FC = () => {
         ),
       ]);
 
-      console.log("Vendor Details:", detailsResponse.data);
-      console.log("Ledger Records:", recordsResponse.data.content);
       setVendorDetails(detailsResponse.data);
       setLedgerRecords(recordsResponse.data.content || []);
     } catch (err: any) {
@@ -193,7 +185,7 @@ const VendorLedgerSummary: FC = () => {
   }, [accessToken, selectedVendor, startDate, endDate, validateDates]);
 
   const handleExport = async () => {
-    if (!selectedVendor || selectedVendor === "") {
+    if (!selectedVendor) {
       setError("Please select a vendor");
       toast.error("Please select a vendor");
       return;
@@ -236,7 +228,7 @@ const VendorLedgerSummary: FC = () => {
   };
 
   const handlePdfExport = () => {
-    if (!selectedVendor || selectedVendor === "") {
+    if (!selectedVendor || !vendorDetails) {
       setError("Please select a vendor");
       toast.error("Please select a vendor");
       return;
@@ -244,157 +236,223 @@ const VendorLedgerSummary: FC = () => {
     if (!validateDates(startDate, endDate)) {
       return;
     }
-
+  
     setLoading(true);
     setError(null);
     try {
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 10;
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
       let y = margin;
-
+  
       // Header
-      doc.setFillColor(30, 136, 229);
-      doc.rect(0, 0, pageWidth, 35, "F");
-      doc.setFillColor(255, 112, 67);
-      doc.rect(0, 35, pageWidth, 2, "F");
-      doc.setFontSize(20);
+      doc.setFillColor(33, 150, 243);
+      doc.rect(0, 0, pageWidth, 30, "F");
+      doc.setFontSize(18);
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text("Relswad", margin, y + 15);
-      doc.setFontSize(12);
-      doc.text("Train Food Delivery Redefined", margin, y + 22);
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      doc.text("Vendor Ledger Invoice", pageWidth - margin - 60, y + 15);
+      doc.text("TheHappJjourney", margin, y + 10);
       doc.setFontSize(10);
-      doc.text(`Invoice ID: INV-${selectedVendor}-${format(new Date(), "yyyyMMdd")}`, pageWidth - margin - 60, y + 22);
-      y += 40;
-
+      doc.text("Train Food Delivery Redefined", margin, y + 18);
+      doc.setFontSize(12);
+      doc.text("Vendor Ledger Invoice", pageWidth - margin - 60, y + 10);
+      doc.setFontSize(8);
+      doc.text(`Invoice ID: INV-${selectedVendor}-${format(new Date(), "yyyyMMdd")}`, pageWidth - margin - 60, y + 18);
+      doc.setFillColor(255, 111, 0);
+      doc.rect(0, 30, pageWidth, 2, "F");
+      y += 35;
+  
       // Company Details
       doc.setFontSize(10);
       doc.setTextColor(50, 50, 50);
       doc.setFont("helvetica", "normal");
-      doc.text("Relswad", margin, y);
-      doc.text("Jhansi, India", margin, y + 5);
-      doc.text("Email: support@relswad.com", margin, y + 10);
-      doc.text("Phone: +91 123 456 7890", margin, y + 15);
+      doc.text("TheHappJjourney", margin, y);
+      doc.text("Railway Station Road Bhagwan Ganj Ward, Sagar  Madhya Pradesh-470002", margin, y + 5);
+      doc.text("Email: support@thehappyjourneyy.in", margin, y + 10);
+      doc.text("Phone: +91 9826262660", margin, y + 15);
       y += 25;
-
-      // Vendor Details
+  
+      // Timeframe (Period)
       doc.setFontSize(14);
-      doc.setTextColor(30, 136, 229);
+      doc.setTextColor(33, 150, 243);
       doc.setFont("helvetica", "bold");
-      doc.text("Vendor Details", margin, y);
-      doc.setDrawColor(30, 136, 229);
-      doc.line(margin, y + 2, margin + 40, y + 2);
+      doc.text("Period", margin, y);
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(33, 150, 243);
+      doc.line(margin, y + 2, margin + 50, y + 2);
       y += 10;
       doc.setFontSize(10);
       doc.setTextColor(50, 50, 50);
       doc.setFont("helvetica", "normal");
+      const periodText = `From: ${startDate ? format(startDate, "yyyy-MM-dd") : "N/A"} To: ${endDate ? format(endDate, "yyyy-MM-dd") : "N/A"}`;
+      doc.text(periodText, margin, y);
+      y += 15;
+  
+      // Vendor Details
+      doc.setFontSize(14);
+      doc.setTextColor(33, 150, 243);
+      doc.setFont("helvetica", "bold");
+      doc.text("Vendor Details", margin, y);
+      doc.line(margin, y + 2, margin + 50, y + 2);
+      y += 10;
+  
       const vendorInfo = [
-        { label: "Vendor Name", value: vendorDetails?.vendorName || "N/A" },
-        { label: "Business Name", value: vendorDetails?.businessName || "N/A" },
-        { label: "GST Number", value: vendorDetails?.gstNumber || "N/A" },
-        { label: "Email", value: vendorDetails?.email || "N/A" },
-        { label: "Phone", value: vendorDetails?.phoneNumber || "N/A" },
-        { label: "Address", value: vendorDetails?.address || "N/A" },
+        { label: "Vendor Name", value: vendorDetails.vendorName || "N/A" },
+        { label: "Business Name", value: vendorDetails.businessName || "N/A" },
+        { label: "GST Number", value: vendorDetails.gstNumber || "N/A" },
+        { label: "Email", value: vendorDetails.email || "N/A" },
+        { label: "Phone", value: vendorDetails.phoneNumber || "N/A" },
+        { label: "Address", value: vendorDetails.address || "N/A" },
       ];
-
-      doc.setFillColor(245, 247, 250);
-      doc.rect(margin, y, pageWidth - 2 * margin, vendorInfo.length * 6, "F");
-      vendorInfo.forEach((info, index) => {
-        doc.text(`${info.label}:`, margin + 2, y + 4 + index * 6);
-        doc.text(info.value, margin + 30, y + 4 + index * 6);
+  
+      const maxWidth = (pageWidth - 2 * margin) / 2 - 5;
+      const vendorInfoTable = vendorInfo.map((info) => {
+        const splitValue = doc.splitTextToSize(info.value, maxWidth);
+        return [info.label, splitValue];
       });
-      y += vendorInfo.length * 6 + 10;
-
+  
+      autoTable(doc, {
+        startY: y,
+        head: [['Field', 'Details']],
+        body: vendorInfoTable,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [33, 150, 243],
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          fontStyle: 'bold',
+          halign: 'left',
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: [50, 50, 50],
+          cellPadding: 3,
+          minCellHeight: 0,
+        },
+        columnStyles: {
+          0: { cellWidth: 40, halign: 'left', fontStyle: 'bold' },
+          1: { cellWidth: pageWidth - margin - 40 - 15, halign: 'left' },
+        },
+        margin: { left: margin, right: margin },
+        didDrawPage: (data: any) => {
+          // Footer on each page
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          // Use doc.internal.getNumberOfPages() directly
+          const pageCount = (doc as any).internal.getNumberOfPages();
+          // Access pageNumber from data (provided by autoTable)
+          doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - margin - 30, pageHeight - 10);
+          doc.text("TheHappJjourney - Jhansi, India", margin, pageHeight - 10);
+        },
+      });
+      y = (doc as any).lastAutoTable.finalY + 15;
+  
       // Ledger Summary
       doc.setFontSize(14);
-      doc.setTextColor(30, 136, 229);
+      doc.setTextColor(33, 150, 243);
       doc.setFont("helvetica", "bold");
       doc.text("Ledger Summary", margin, y);
-      doc.line(margin, y + 2, margin + 40, y + 2);
+      doc.line(margin, y + 2, margin + 50, y + 2);
       y += 10;
-
-      if (vendorDetails?.ledgerSummary) {
+  
+      if (vendorDetails.ledgerSummary) {
         const summaryData = [
           ["Total Credits", `₹${vendorDetails.ledgerSummary.totalCredits.toFixed(2)}`],
           ["Total Debits", `₹${vendorDetails.ledgerSummary.totalDebits.toFixed(2)}`],
           ["Net Balance", `₹${vendorDetails.ledgerSummary.netBalance.toFixed(2)}`],
         ];
-
+  
         autoTable(doc, {
           startY: y,
-          head: [["Description", "Amount"]],
+          head: [['Description', 'Amount']],
           body: summaryData,
-          theme: "grid",
+          theme: 'grid',
           headStyles: {
-            fillColor: [30, 136, 229],
+            fillColor: [33, 150, 243],
             textColor: [255, 255, 255],
             fontSize: 10,
-            fontStyle: "bold",
+            fontStyle: 'bold',
+            halign: 'left',
           },
           bodyStyles: {
-            fontSize: 10,
+            fontSize: 9,
             textColor: [50, 50, 50],
+            cellPadding: 3,
           },
-          margin: { left: margin },
-          tableWidth: "wrap",
+          columnStyles: {
+            0: { cellWidth: 60, halign: 'left' },
+            1: { cellWidth: 60, halign: 'right' },
+          },
+          margin: { left: margin, right: margin },
         });
-        y = (doc as any).lastAutoTable.finalY + 10;
+        y = (doc as any).lastAutoTable.finalY + 15;
       }
-
-      // Ledger Records Table
+  
+      // Ledger Records
       doc.setFontSize(14);
-      doc.setTextColor(30, 136, 229);
+      doc.setTextColor(33, 150, 243);
       doc.setFont("helvetica", "bold");
       doc.text("Ledger Records", margin, y);
-      doc.line(margin, y + 2, margin + 40, y + 2);
+      doc.line(margin, y + 2, margin + 50, y + 2);
       y += 10;
-
+  
       if (ledgerRecords.length > 0) {
-        const recordsData = ledgerRecords.map((record) => {
+        const recordsData = ledgerRecords.map(record => {
           let formattedDate = "Invalid Date";
           try {
             formattedDate = format(new Date(record.createdAt), "yyyy-MM-dd HH:mm:ss");
           } catch (e) {
             console.warn(`Invalid date format for record ${record.ledgerId}: ${record.createdAt}`);
           }
+          const description = doc.splitTextToSize(record.description || "N/A", 50);
           return [
             record.orderId || "N/A",
             `₹${(record.amount || 0).toFixed(2)}`,
             record.transactionType || "N/A",
-            record.description || "N/A",
+            description,
             `₹${(record.systemBalance || 0).toFixed(2)}`,
             `₹${(record.vendorBalance || 0).toFixed(2)}`,
             formattedDate,
           ];
         });
-
+  
         autoTable(doc, {
           startY: y,
           head: [["Order ID", "Amount", "Type", "Description", "System Balance", "Vendor Balance", "Created At"]],
           body: recordsData,
           theme: "striped",
           headStyles: {
-            fillColor: [30, 136, 229],
+            fillColor: [33, 150, 243],
             textColor: [255, 255, 255],
             fontSize: 10,
             fontStyle: "bold",
+            halign: "left",
           },
           bodyStyles: {
             fontSize: 9,
             textColor: [50, 50, 50],
+            cellPadding: 3,
+            minCellHeight: 0,
+          },
+          columnStyles: {
+            0: { cellWidth: 25, halign: 'left' },
+            1: { cellWidth: 25, halign: 'right' },
+            2: { cellWidth: 20, halign: 'left' },
+            3: { cellWidth: 50, halign: 'left' },
+            4: { cellWidth: 25, halign: 'right' },
+            5: { cellWidth: 25, halign: 'right' },
+            6: { cellWidth: 30, halign: 'left' },
           },
           margin: { left: margin, right: margin },
-          pageBreak: "auto",
-          didDrawPage: (data) => {
+          pageBreak: 'auto',
+          didDrawPage: (data: any) => {
+            // Footer
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
-            const pageCount = doc.internal.pages.length;
-            doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - margin - 20, doc.internal.pageSize.getHeight() - 10);
-            doc.text("Relswad - Jhansi, India", margin, doc.internal.pageSize.getHeight() - 10);
+            const pageCount = (doc as any).internal.getNumberOfPages();
+            doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - margin - 30, pageHeight - 10);
+            doc.text("TheHappJjourney - Jhansi, India", margin, pageHeight - 10);
           },
         });
       } else {
@@ -402,7 +460,8 @@ const VendorLedgerSummary: FC = () => {
         doc.setTextColor(100, 100, 100);
         doc.text("No ledger records found for the selected vendor and date range.", margin, y + 5);
       }
-
+  
+      // Save PDF
       doc.save(`vendor_ledger_${selectedVendor}_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`);
       toast.success("Vendor ledger PDF exported successfully!");
     } catch (err: any) {
@@ -416,11 +475,6 @@ const VendorLedgerSummary: FC = () => {
 
   const handleFilterSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (!selectedVendor || selectedVendor === "") {
-      setError("Please select a vendor");
-      toast.error("Please select a vendor");
-      return;
-    }
     if (validateDates(startDate, endDate)) {
       fetchVendorDetails();
     }
@@ -433,10 +487,6 @@ const VendorLedgerSummary: FC = () => {
   useEffect(() => {
     fetchVendors(selectedStation);
   }, [selectedStation, fetchVendors]);
-
-  useEffect(() => {
-    console.log("Current selectedVendor:", selectedVendor);
-  }, [selectedVendor]);
 
   const stationOptions = useMemo(
     () =>
@@ -561,12 +611,8 @@ const VendorLedgerSummary: FC = () => {
                 options={stationOptions}
                 value={stationOptions.find((option) => option.value === selectedStation) || null}
                 onChange={(option) => {
-                  const newValue = option?.value || "";
-                  console.log("Selected Station:", newValue);
-                  setSelectedStation(newValue);
+                  setSelectedStation(option?.value || "");
                   setSelectedVendor("");
-                  setVendorDetails(null);
-                  setLedgerRecords([]);
                 }}
                 placeholder="Select a station"
                 styles={selectStyles}
@@ -581,15 +627,7 @@ const VendorLedgerSummary: FC = () => {
               <Select
                 options={vendorOptions}
                 value={vendorOptions.find((option) => option.value === selectedVendor) || null}
-                onChange={(option) => {
-                  const newValue = option?.value || "";
-                  console.log("Selected Vendor:", newValue);
-                  setSelectedVendor(newValue);
-                  if (!newValue) {
-                    setVendorDetails(null);
-                    setLedgerRecords([]);
-                  }
-                }}
+                onChange={(option) => setSelectedVendor(option?.value || "")}
                 placeholder="Select a vendor"
                 styles={selectStyles}
                 isClearable
@@ -652,7 +690,7 @@ const VendorLedgerSummary: FC = () => {
             <Button
               onClick={handleExport}
               className="bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
-              disabled={loading || !selectedVendor || selectedVendor === ""}
+              disabled={loading || !selectedVendor}
               aria-label="Export vendor ledger to Excel"
             >
               {loading ? (
@@ -665,7 +703,7 @@ const VendorLedgerSummary: FC = () => {
             <Button
               onClick={handlePdfExport}
               className="bg-orange-600 text-white hover:bg-orange-700 flex items-center gap-2"
-              disabled={loading || !selectedVendor || selectedVendor === ""}
+              disabled={loading || !selectedVendor}
               aria-label="Download vendor ledger as PDF"
             >
               {loading ? (

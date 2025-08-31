@@ -145,7 +145,7 @@ const PaymentConfirmation: React.FC = () => {
           <div className="border-t border-gray-200 pt-4">
             <h3 className="text-lg font-medium text-gray-900">Order Details</h3>
             <p className="text-gray-600">Vendor: {order.vendorName}</p>
-            <p className="text-gray-600">Delivery Station: {order.deliveryStation}</p>
+            <p className="text-gray-600">Delivery City: {order.deliveryStation}</p>
             <p className="text-gray-600">Estimated Delivery: {order.deliveryTime}</p>
             <p className="text-gray-600">Payment Method: {order.paymentMethod}</p>
             <p className="text-gray-600">Payment Status: {order.paymentStatus}</p>

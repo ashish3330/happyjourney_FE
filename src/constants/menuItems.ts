@@ -30,7 +30,7 @@ export type MenuItem = {
 export const adminMenuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: UtensilsCrossed, label: "Restaurant", path: "/restaurant" },
-  { icon: Train, label: "Stations", path: "/stations" },
+  { icon: Train, label: "Cities", path: "/stations" },
   { icon: PhoneIncoming, label: "Callback Requests", path: "/contactrequests" },
   { icon: AlertTriangle, label: "Complaints", path: "/complaints" },
   { icon: Package, label: "Bulk Orders", path: "/bulkorder" },
@@ -66,6 +66,7 @@ export const guestMenuItems: MenuItem[] = [
   { icon: Home, label: "Home", path: "/home" },
   // { icon: History, label: "Order History", path: "/order-history" },
   { icon: History, label: "Shipping Policy", path: "/shipping-policy" },
+  { icon: History, label: "Order History", path: "/order-history" },
   { icon: AlertCircle, label: "Complaint", path: "/createcomplaint" },
   { icon: Shield, label: "Privacy Policy", path: "/privacy-policy" },
   { icon: XCircle, label: "Cancellation Policy", path: "/cancellation-policy" },

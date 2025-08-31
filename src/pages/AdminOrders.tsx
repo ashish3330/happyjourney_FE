@@ -984,7 +984,7 @@ const AdminOrders: React.FC = () => {
                     </div>
                     <div></div>
                     <p><strong>Station:</strong> {stationData[selectedOrder.deliveryStationId]?.stationName || `Station #${selectedOrder.deliveryStationId}`}</p>
-                    <p><strong>Train:</strong> {selectedOrder.trainNumber || `Train #${selectedOrder.trainId}`}</p>
+                    <p><strong>Doorstep:</strong> {selectedOrder.trainNumber || `Doorstep #${selectedOrder.trainId}`}</p>
                     <p><strong>Coach/Seat:</strong> {selectedOrder.coachNumber || "N/A"}/{selectedOrder.seatNumber || "N/A"}</p>
                     <p><strong>Vendor:</strong> {selectedOrder.vendorName || "Unknown"}</p>
                     <p><strong>Delivery:</strong> {formatDate(selectedOrder.deliveryTime)}</p>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { Button } from "@/components/ui/button";
 import { Search, Star, Clock } from "lucide-react";
 import api from "@/utils/axios";
@@ -144,7 +143,7 @@ const OrderFood = () => {
     setLoading(true);
     try {
       const res = await api.get<{
-        content: Vendor[];
+        content: any[];
         pageable: { offset: number; pageSize: number };
         numberOfElements: number;
         totalElements: number;
@@ -152,11 +151,14 @@ const OrderFood = () => {
       }>(`/vendors/stations/${stationId}?page=${pageNumber - 1}&size=${pageSize}`);
 
       const vendorsData = res.data.content || [];
-      
-      setVendors(vendorsData.map(vendor => ({
-        ...vendor,
-        categories: []
-      })));
+
+      setVendors(
+        vendorsData.map((vendor) => ({
+          ...vendor,
+          veg: vendor.isVeg ?? true,
+          categories: [],
+        }))
+      );
 
       vendorsData.forEach((vendor) => {
         if (vendor.logoUrl) {
@@ -170,13 +172,18 @@ const OrderFood = () => {
             const categoriesRes = await api.get<{
               content: Category[];
             }>(`/menu/vendors/${vendor.vendorId}/categories`);
-            return { 
-              ...vendor, 
-              categories: categoriesRes.data.content || [] 
+            return {
+              ...vendor,
+              veg: vendor.isVeg ?? true,
+              categories: categoriesRes.data.content || [],
             };
           } catch (error) {
             console.error(`Failed to fetch categories for vendor ${vendor.vendorId}:`, error);
-            return { ...vendor, categories: [] };
+            return {
+              ...vendor,
+              veg: vendor.isVeg ?? true,
+              categories: [],
+            };
           }
         })
       );
@@ -235,8 +242,6 @@ const OrderFood = () => {
     };
   }, [imageUrls]);
 
-
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="flex-1 p-4 md:p-6">
@@ -244,8 +249,8 @@ const OrderFood = () => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-8">
           <div className="w-full lg:w-1/2 flex flex-col space-y-4">
             <div className="flex flex-col">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Find Food on Your Train Journey</h1>
-              <p className="text-gray-600">Order from top restaurants and get delivery at your station</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Find Food on Your Doorstep</h1>
+              <p className="text-gray-600">Order from top restaurants and get delivery in your city</p>
             </div>
             
             <div className="flex items-center gap-2">
@@ -257,7 +262,7 @@ const OrderFood = () => {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Station Code
+                City Code
               </Button>
               <Button
                 onClick={() => setSearchType("city")}
@@ -279,7 +284,7 @@ const OrderFood = () => {
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
-                placeholder={`Search by ${searchType === "stationCode" ? "station code (e.g. NDLS)" : "city (e.g. Delhi)"}`}
+                placeholder={`Search by ${searchType === "stationCode" ? "city code (e.g. NDLS)" : "city (e.g. Delhi)"}`}
                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -289,8 +294,8 @@ const OrderFood = () => {
           <div className="w-full lg:w-1/2 h-full">
             <div className="relative w-full h-48 md:h-64 lg:h-80 rounded-xl overflow-hidden shadow-lg">
               <img
-                src="https://media.istockphoto.com/id/1158623408/photo/indian-hindu-veg-thali-food-platter-selective-focus.jpg?s=2048x2048&w=is&k=20&c=8TokrDFU7l0NCqcEng6hHp6EqYn1dcwyH7uc9tbIN3U="
-                alt="Delicious food on train"
+                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+                alt="Delicious food on your doorstep"
                 className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
@@ -328,7 +333,7 @@ const OrderFood = () => {
                 <div
                   key={vendor.vendorId}
                   className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200"
-                  onClick={() => navigate(`/order/${vendor.vendorId}`)}
+                  onClick={() => navigate(`/user-order/${vendor.vendorId}`)} // Changed to /user-order/
                 >
                   <div className="relative h-48 w-full">
                     {vendor.logoUrl && imageUrls[vendor.logoUrl] ? (
@@ -397,7 +402,7 @@ const OrderFood = () => {
                     <Button
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium transition-colors"
                       onClick={(e) => {
-                        e.stopPropagation();
+                        e.stopPropagation(); // Prevent card's onClick from firing
                         navigate(`/user-order/${vendor.vendorId}`);
                       }}
                     >
@@ -429,12 +434,13 @@ const OrderFood = () => {
             </div>
             <h2 className="text-xl font-semibold text-gray-700">No restaurants found</h2>
             <p className="text-gray-500 mt-2">
-              Try searching for a different {searchType === "stationCode" ? "station" : "city"}
+              Try searching for a different {searchType === "stationCode" ? "city" : "city"}
             </p>
           </div>
         )}
 
-    <WhyChoose config={HappyJourneyConfig} />      </div>
+        <WhyChoose config={HappyJourneyConfig} />
+      </div>
     </div>
   );
 };
