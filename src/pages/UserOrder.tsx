@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/utils/axios";
 import { useAuth } from "@/contexts/AuthContext";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Vendor {
@@ -71,8 +72,8 @@ const UserOrder: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isClearCartOpen, setIsClearCartOpen] = useState(false);
   const [isAddingItem, setIsAddingItem] = useState<number | null>(null);
-  const [quantities, setQuantities] = useState<{ [key: number]: number }>({}); // For menu
-  const [cartQuantities, setCartQuantities] = useState<{ [key: number]: number }>({}); // For cart local updates
+  const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
+  const [cartQuantities, setCartQuantities] = useState<{ [key: number]: number }>({});
   const [isCartExpanded, setIsCartExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const cartRef = useRef<HTMLDivElement>(null);
@@ -158,7 +159,6 @@ const UserOrder: React.FC = () => {
       }));
       setCartSummary({ ...summary, items: enrichedItems });
 
-      // Sync cart quantities with cart items
       const newCartQuantities = { ...cartQuantities };
       enrichedItems.forEach((item) => {
         newCartQuantities[item.itemId] = item.quantity;
@@ -172,6 +172,13 @@ const UserOrder: React.FC = () => {
 
   const addItemToCart = async (itemId: number, quantity: number) => {
     if (quantity < 1) return;
+
+    if (!accessToken) {
+      const returnUrl = `/order/${effectiveVendorId}?addItem=${itemId}&quantity=${quantity}`;
+      navigate(`/login?returnTo=${encodeURIComponent(returnUrl)}`);
+      return;
+    }
+
     setIsAddingItem(itemId);
     try {
       const request = {
@@ -183,7 +190,7 @@ const UserOrder: React.FC = () => {
       };
       await api.post(`/cart/add-item`, request);
       await fetchCartSummary();
-      setQuantities((prev) => ({ ...prev, [itemId]: 0 })); // Reset menu quantity
+      setQuantities((prev) => ({ ...prev, [itemId]: 0 }));
     } catch (error: any) {
       console.error("Error adding item to cart:", error);
       setError(error.response?.data?.message || "Failed to add item to cart");
@@ -197,14 +204,14 @@ const UserOrder: React.FC = () => {
     const currentItem = cartSummary?.items.find((item) => item.itemId === itemId);
     if (!currentItem) return;
     const currentQuantity = currentItem.quantity;
-    const delta = newQuantity - currentQuantity; // Calculate the difference
-    if (delta === 0) return; // No change needed
+    const delta = newQuantity - currentQuantity;
+    if (delta === 0) return;
     setIsAddingItem(itemId);
     try {
       const request = {
         itemId,
         vendorId: effectiveVendorId,
-        quantity: delta, // Send only the difference
+        quantity: delta,
         specialInstructions: "",
         deliveryStationId: vendor?.stationId || null,
       };
@@ -235,7 +242,7 @@ const UserOrder: React.FC = () => {
       setCartSummary(null);
       setIsClearCartOpen(false);
       setIsCartExpanded(false);
-      setCartQuantities({}); // Reset all cart quantities
+      setCartQuantities({});
     } catch (error: any) {
       console.error("Error clearing cart:", error);
       setError(error.response?.data?.message || "Failed to clear cart");
@@ -275,7 +282,6 @@ const UserOrder: React.FC = () => {
 
   const handleCheckout = () => {
     if (!accessToken) {
-      // Redirect to login with return URL for checkout
       navigate(`/login?returnTo=/checkout/${effectiveVendorId}`);
     } else {
       navigate(`/checkout/${effectiveVendorId}`);
