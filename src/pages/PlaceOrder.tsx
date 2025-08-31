@@ -158,7 +158,7 @@ const OrderItem: React.FC<{ item: CartItem }> = ({ item }) => (
 );
 
 const PlaceOrder: React.FC = () => {
-  const { userId, role, user } = useAuth(); // Added user to get name, email, contact
+  const { userId, role, username } = useAuth();
   const navigate = useNavigate();
   const { vendorId } = useParams<{ vendorId: string }>();
   const effectiveVendorId = Number(vendorId);
@@ -433,7 +433,7 @@ const PlaceOrder: React.FC = () => {
           key: razorpayKey,
           amount: order.amountInPaise,
           currency: "INR",
-          name: "SwadExpress",
+          name: "HappyJourney",
           description: `Food Order #${orderId}`,
           order_id: order.razorpayOrderID,
           handler: async function (response: any) {
@@ -475,9 +475,9 @@ const PlaceOrder: React.FC = () => {
             }
           },
           prefill: {
-            name: user?.name || "Customer Name",
-            email: user?.email || "customer@example.com",
-            contact: user?.contact || "9999999999",
+            name: username || "Customer Name",
+            email: "", // Email is not available in auth context
+            contact: "", // Contact is not available in auth context
           },
           notes: {
             orderId,
@@ -610,13 +610,13 @@ const PlaceOrder: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <FormField
-                  label="Delivery City"
+                  label="Delivery Station"
                   id="deliveryStationId"
                   name="deliveryStationId"
                   value={stationDisplay}
                   error={errors.deliveryStationId}
                   disabled={true}
-                  placeholder="City not available"
+                  placeholder="Station not available"
                 />
               </div>
               <FormField
@@ -630,7 +630,7 @@ const PlaceOrder: React.FC = () => {
                 maxLength={10}
               />
               <FormField
-                label="Doorstep Number"
+                label="Train Number"
                 id="trainNumber"
                 name="trainNumber"
                 value={formData.trainNumber}
