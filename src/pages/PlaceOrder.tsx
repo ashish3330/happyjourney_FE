@@ -48,7 +48,7 @@ interface Station {
 }
 
 interface VendorDetails {
-  preparationTime: number;
+  preparationTimeMin: number;
   vendorName: string;
   stationId?: number;
 }
@@ -174,7 +174,7 @@ const PlaceOrder: React.FC = () => {
     seatNumber: "",
     deliveryStationId: "",
     deliveryInstructions: "",
-    paymentMethod: "COD" as const,
+    paymentMethod: "COD" as "COD" | "ONLINE",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -310,15 +310,15 @@ const PlaceOrder: React.FC = () => {
 
   // Set estimated delivery time
   useEffect(() => {
-    if (vendorDetails?.preparationTime) {
+    if (vendorDetails?.preparationTimeMin && Number.isInteger(vendorDetails.preparationTimeMin) && vendorDetails.preparationTimeMin > 0) {
       const now = new Date();
-      const deliveryTime = new Date(now.getTime() + vendorDetails.preparationTime * 60 * 1000);
-      const formattedTime = deliveryTime.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
+      const deliveryTime = new Date(now.getTime() + vendorDetails.preparationTimeMin * 60 * 1000);
+      const formattedTime = deliveryTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
         hour12: true,
       });
-      setEstimatedDeliveryTime(`${formattedTime} (${vendorDetails.preparationTime} mins)`);
+      setEstimatedDeliveryTime(`${formattedTime} (${vendorDetails.preparationTimeMin} mins)`);
     } else {
       setEstimatedDeliveryTime("Preparation time unavailable");
     }
@@ -391,7 +391,7 @@ const PlaceOrder: React.FC = () => {
     const orderPayload = {
       vendorId: effectiveVendorId,
       paymentMethod: formData.paymentMethod === "ONLINE" ? "RAZORPAY" : "COD",
-      deliveryTime: new Date(new Date().getTime() + (vendorDetails?.preparationTime || 30) * 60 * 1000).toISOString(),
+      deliveryTime: new Date(new Date().getTime() + (vendorDetails?.preparationTimeMin || 30) * 60 * 1000).toISOString(),
       pnrNumber: formData.pnrNumber,
       trainId: Number(formData.trainNumber),
       coachNumber: formData.coachNumber,
@@ -433,7 +433,7 @@ const PlaceOrder: React.FC = () => {
           key: razorpayKey,
           amount: order.amountInPaise,
           currency: "INR",
-          name: "HappyJourney",
+          name: "SwadExpress",
           description: `Food Order #${orderId}`,
           order_id: order.razorpayOrderID,
           handler: async function (response: any) {
