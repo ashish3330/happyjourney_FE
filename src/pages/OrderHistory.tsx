@@ -752,8 +752,8 @@ const OrderHistory: React.FC = () => {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Doorstep</span>
-                            <span className="text-sm font-medium">{order.trainNumber || `Doorstep #${order.trainId}`}</span>
+                            <span className="text-sm text-gray-500">Train</span>
+                            <span className="text-sm font-medium">{order.trainNumber || `Train #${order.trainId}`}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-500">Coach/Seat</span>

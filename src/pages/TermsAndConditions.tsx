@@ -38,7 +38,7 @@ const TermsAndConditions = () => {
                 <li><strong>Restaurants/Vendors</strong>: Entities preparing and delivering ordered products.</li>
                 <li><strong>Customer/You</strong>: The person ordering products or services.</li>
                 <li><strong>Food Delivery</strong>: Perishable goods and delivery by selected restaurants.</li>
-                <li><strong>e-Catering</strong>: Pre-ordered meal delivery on trains via IRCTC services.</li>
+                <li><strong>e-Catering</strong>: Pre-ordered meal delivery to your doorstep via our services.</li>
                 <li><strong>Charges</strong>: Fees for e-Catering, including taxes and delivery fees.</li>
                 <li><strong>IRCTC</strong>: Indian Railways Catering and Tourism Corporation.</li>
               </ul>
@@ -64,7 +64,7 @@ const TermsAndConditions = () => {
             <div>
               <h3 className="text-lg font-medium text-gray-800 mb-2">D. e-Catering Services</h3>
               <p className="text-gray-600 mb-3">
-                Meal descriptions and images on our website or apps are indicative and may not match delivered items. We strive to deliver pre-ordered meals to your train but may cancel orders for technical reasons, with refunds at our discretion. We may share your information with restaurant partners for seamless delivery.
+                Meal descriptions and images on our website or apps are indicative and may not match delivered items. We strive to deliver pre-ordered meals to your doorstep but may cancel orders for technical reasons, with refunds at our discretion. We may share your information with restaurant partners for seamless delivery.
               </p>
             </div>
           </div>
@@ -80,8 +80,8 @@ const TermsAndConditions = () => {
                 <li>Be a bona fide rail passenger with a valid ticket.</li>
                 <li>Be present at the confirmed seat/berth during the doorstep's stop at the selected city.</li>
                 <li>Avoid abusive behavior toward delivery personnel to ensure delivery.</li>
-                <li>No delivery to alternate cities if you detrain early.</li>
-                <li>No refunds for "No-Show" customers or if you do not board the doorstep.</li>
+                <li>No delivery to alternate cities if you change your location.</li>
+                <li>No refunds for "No-Show" customers or if you are not available at the delivery address.</li>
               </ul>
             </div>
           </div>
@@ -132,7 +132,7 @@ const TermsAndConditions = () => {
             <div>
               <h3 className="text-lg font-medium text-gray-800 mb-2">I. Delivery</h3>
               <p className="text-gray-600 mb-3">
-                Restaurants handle delivery with proper packaging and hygiene. We coordinate but are not liable for failed deliveries. Contact us if delivery fails, and we’ll attempt delivery at the next station. No refunds for unavailability at the specified seat or for late deliveries.
+                Restaurants handle delivery with proper packaging and hygiene. We coordinate but are not liable for failed deliveries. Contact us if delivery fails, and we'll attempt delivery as soon as possible. No refunds for unavailability at the specified address or for late deliveries.
               </p>
             </div>
           </div>
@@ -147,7 +147,7 @@ const TermsAndConditions = () => {
                 <li>Cancel orders up to 2 hours before delivery; bulk orders require 12 hours or by 6 PM the previous day.</li>
                 <li>Cancellations require registered mobile number/user ID verification.</li>
                 <li>No refunds for "No-Show" customers or cancellations within 2 hours.</li>
-                <li>Refunds for train cancellations within 72 hours; claim non-delivery refunds within 5 days.</li>
+                <li>Refunds for order cancellations within 72 hours; claim non-delivery refunds within 5 days.</li>
                 <li>Delivery not guaranteed post-10:00 PM; full refunds if undelivered.</li>
                 <li>Contact our helpline for cancellation confirmations.</li>
               </ul>

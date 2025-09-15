@@ -4,7 +4,7 @@ import Footer from './Footer';
 // Brand-specific configurations
 const relswadConfig = {
   brandName: 'Relswad',
-  description: 'Train Food Delivery Redefined. Enjoy delicious meals on your journey with Relswad.',
+  description: 'Doorstep Food Delivery Redefined. Enjoy delicious meals on your journey with Relswad.',
   socialMedia: {
     facebook: 'https://facebook.com/relswad', // Placeholder, replace with actual
     twitter: 'https://twitter.com/relswad',
@@ -14,7 +14,7 @@ const relswadConfig = {
 
 const happyJourneyConfig = {
   brandName: 'HappyJourney',
-  description: 'Savor the Journey. Delicious train meals delivered with HappyJourney.',
+  description: 'Savor the Journey. Delicious doorstep meals delivered with HappyJourney.',
   socialMedia: {
     facebook: 'https://facebook.com/happyjourney', // Placeholder, replace with actual
     twitter: 'https://twitter.com/happyjourney',
@@ -24,7 +24,7 @@ const happyJourneyConfig = {
 
 const bhCateringConfig = {
   brandName: 'BHCatering',
-  description: 'Taste the Difference. Premium train dining with BHCatering.',
+  description: 'Taste the Difference. Premium doorstep dining with BHCatering.',
   socialMedia: {
     facebook: 'https://facebook.com/bhcatering', // Placeholder, replace with actual
     twitter: 'https://twitter.com/bhcatering',
@@ -34,7 +34,7 @@ const bhCateringConfig = {
 
 const swadExpressConfig = {
   brandName: 'SwadExpress',
-  description: 'Fast. Fresh. Flavorful. Train meals delivered by SwadExpress.',
+  description: 'Fast. Fresh. Flavorful. Doorstep meals delivered by SwadExpress.',
   socialMedia: {
     facebook: 'https://facebook.com/swadexpress', // Placeholder, replace with actual
     twitter: 'https://twitter.com/swadexpress',

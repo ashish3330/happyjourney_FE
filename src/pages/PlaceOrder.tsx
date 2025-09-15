@@ -174,7 +174,7 @@ const PlaceOrder: React.FC = () => {
     seatNumber: "",
     deliveryStationId: "",
     deliveryInstructions: "",
-    paymentMethod: "COD" as "COD" | "ONLINE",
+    paymentMethod: "COD" as const,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);

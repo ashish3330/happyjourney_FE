@@ -225,7 +225,7 @@ const Station: FC = () => {
                     id="stationCodeFilter"
                     ref={stationCodeInputRef}
                     className="w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-3xl outline-none"
-                    placeholder="Station Code"
+                    placeholder="City Code"
                     value={stationCodeInput}
                     onChange={handleStationCodeChange}
                     onFocus={() => (activeInputRef.current = "stationCode")}
@@ -240,7 +240,7 @@ const Station: FC = () => {
                     id="cityFilter"
                     ref={cityInputRef}
                     className="w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-3xl outline-none"
-                    placeholder="Staion Name"
+                    placeholder="City Name"
                     value={cityInput}
                     onChange={handleCityChange}
                     onFocus={() => (activeInputRef.current = "city")}
@@ -264,7 +264,7 @@ const Station: FC = () => {
                   className="w-full sm:w-auto flex justify-center items-center gap-2 bg-[#303fe8] hover:bg-[#303fe8]/90 text-white"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Add Station</span>
+                  <span>Add City</span>
                 </Button>
                 <Button
                   onClick={() => {
@@ -273,7 +273,7 @@ const Station: FC = () => {
                   className="w-full sm:w-auto flex justify-center items-center gap-2 bg-[#303fe8] hover:bg-[#303fe8]/90 text-white"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Upload File</span>
+                  <span>Import Cities</span>
                 </Button>
               </div>
             </div>
@@ -302,7 +302,7 @@ const Station: FC = () => {
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">
-                              Station Code
+                              City Code
                             </p>
                             <p className="font-medium text-sm">
                               {item.stationCode}
@@ -310,7 +310,7 @@ const Station: FC = () => {
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">
-                              Station Name
+                              City Name
                             </p>
                             <p className="font-medium text-sm">
                               {item.stationName}
@@ -358,16 +358,16 @@ const Station: FC = () => {
                           Sr. No.
                         </th>
                         <th className="px-2 text-sm py-3 font-medium text-black tracking-wider">
-                          Station Code
-                        </th>
-                        <th className="px-2 text-sm py-3 font-medium text-black tracking-wider">
-                          Station Name
+                          City Code
                         </th>
                         <th className="px-2 text-sm py-3 font-medium text-black tracking-wider">
                           City Name
                         </th>
                         <th className="px-2 text-sm py-3 font-medium text-black tracking-wider">
-                          State Name
+                          City
+                        </th>
+                        <th className="px-2 text-sm py-3 font-medium text-black tracking-wider">
+                          State
                         </th>
                         <th className="px-2 text-sm py-3 text-center font-medium text-black tracking-wider">
                           Action
@@ -441,7 +441,7 @@ const Station: FC = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center mt-12">
-                <h2 className="text-xl font-semibold mb-4">No Data Found</h2>
+                <h1 className="text-2xl font-bold mb-6">Cities</h1>
               </div>
             )}
           </div>
@@ -462,11 +462,11 @@ const Station: FC = () => {
           </IconButton>
 
           <Typography variant="h6" component="h2" mb={2} fontFamily={"Nunito"}>
-            Delete Station
+            Delete City
           </Typography>
 
           <Typography variant="body1" mb={4} fontFamily={"Nunito"}>
-            Are you sure you want to delete this record?
+            <p className="mb-4">Are you sure you want to delete this city? This action cannot be undone.</p>
           </Typography>
 
           <Box display="flex" justifyContent="flex-end" gap={2}>

@@ -104,9 +104,7 @@ export default function AddCSVStation({
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <div className="font-medium text-lg sm:text-xl mb-4">
-          Upload Station File
-        </div>
+        <div className="font-medium text-lg sm:text-xl mb-4">Upload Cities via CSV/Excel</div>
         <IconButton
           onClick={handleClose}
           sx={{
@@ -127,6 +125,7 @@ export default function AddCSVStation({
             >
               Upload CSV or Excel File
             </label>
+            
             <Controller
               name="file"
               control={control}
@@ -144,7 +143,7 @@ export default function AddCSVStation({
                     } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
                   />
                   {errors.file && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">
+                    <p className="text-sm text-gray-500">
                       {errors.file.message}
                     </p>
                   )}

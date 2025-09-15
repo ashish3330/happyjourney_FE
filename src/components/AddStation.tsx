@@ -55,8 +55,8 @@ interface IndiProps {
 }
 
 const validationSchema = yup.object().shape({
-  stationCode: yup.string().required("Station code is required"),
-  stationName: yup.string().required("Station name is required"),
+  stationCode: yup.string().required("City code is required"),
+  stationName: yup.string().required("City name is required"),
   city: yup.string().required("City is required"),
   state: yup.string().required("State is required"),
   pincode: yup
@@ -178,21 +178,10 @@ export default function AddStation({
     }
   };
 
-  const getTitle = () => {
-    switch (mode) {
-      case "add":
-        return "Add Station";
-      case "edit":
-        return "Update Station";
-      default:
-        return "";
-    }
-  };
-
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <div className="font-medium text-lg sm:text-xl mb-4">{getTitle()}</div>
+        <div className="font-medium text-lg sm:text-xl mb-4">{title}</div>
         <IconButton
           onClick={handleClose}
           sx={{
@@ -209,10 +198,9 @@ export default function AddStation({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
             <div className="mb-4 w-full">
               <label
-                className="block text-sm font-medium text-gray-700"
-                htmlFor="stationCode"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Station Code
+                City Code <span className="text-red-500">*</span>
               </label>
               <Controller
                 name="stationCode"
@@ -228,7 +216,7 @@ export default function AddStation({
                           ? "border-red-500"
                           : "border-gray-300"
                       } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
-                      placeholder="Enter station code"
+                      placeholder="Enter city code"
                     />
                     {errors.stationCode && (
                       <p className="mt-1 text-xs sm:text-sm text-red-600">
@@ -242,10 +230,9 @@ export default function AddStation({
 
             <div className="mb-4 w-full">
               <label
-                className="block text-sm font-medium text-gray-700"
-                htmlFor="stationName"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Station Name
+                City Name <span className="text-red-500">*</span>
               </label>
               <Controller
                 name="stationName"

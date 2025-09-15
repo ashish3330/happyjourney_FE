@@ -133,8 +133,19 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
 
         {/* Bottom Bar */}
         <div className="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
-          <p>© {currentYear} {config.brandName}, Jhansi City. All rights reserved.</p>
-        </div>
+  <p>
+    S/o Sachchanand Rajpoot Laxmandas Marg, Haryana Dairy, Bhagwanganj Ward Saugor, PO:Saugor City Dist: Saugor Madhya Pradesh - 470002 | &copy; {currentYear}{' '}
+    <a 
+      href="https://www.thehappyjourneyy.com" 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      className="text-blue-400 hover:text-blue-300 transition-colors duration-200"
+    >
+      www.thehappyjourneyy.com
+    </a>{' '}
+    | All Rights Reserved. The Chintoo's Restaurant
+  </p>
+</div>
       </div>
     </footer>
   );

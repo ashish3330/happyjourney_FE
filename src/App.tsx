@@ -14,11 +14,12 @@ import VendorHome from "./pages/VendorHome";
 import PaymentPolicy from "./pages/PaymentPolicy";
 import OrderFood from "./pages/OrderFood";
 import VendorOrders from "./pages/VendorOrders";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import PrivateRoute from "./layout/PrivateRoute";
 import BulkOrderForm from "./pages/BulkOrderForm";
 import WalletPage from "./pages/WalletPage";
 import CancellationPolicy from "./pages/CancellationPolicy";
+import VendorInvoiceDashboard from "./pages/VendorInvoice";
 import HelpAndSupport from "./pages/HelpAndSupport ";
 import OrderHistory from "./pages/OrderHistory";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -33,15 +34,13 @@ import BulkOrdersDashboard from "./pages/BulkOrderDashboard";
 import ComplaintsDashboard from "./pages/ComplaintsDashboard";
 import CallbacksDashboard from "./pages/CallbacksDashboard";
 import OrdersExportDashboard from "./pages/OrdersExportDashboard";
-import { HappyJourneyFooter } from "./components/FooterConfigs";
 import UserPasswordlessLogin from "./pages/UserPasswordlessLogin";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import VendorLedgerSummary from "./pages/VendorLedgerSummary";
-import VendorInvoiceDashboard from "./pages/VendorInvoice";
+import { HappyJourneyFooter } from "./components/FooterConfigs";
 
 const FooterWrapper = () => {
-  const { accessToken } = useAuth();
-  return accessToken ? <HappyJourneyFooter /> : null;
+  return <HappyJourneyFooter /> 
 };
 
 const App = () => {
@@ -87,8 +86,6 @@ const App = () => {
             <Route path="/orders-export/" element={<OrdersExportDashboard />} />
             <Route path="/vendor-summary/" element={<VendorLedgerSummary />} />
             <Route path="/vendor-invoice/" element={<VendorInvoiceDashboard />} />
-
-
           </Route>
 
           {/* Vendor protected routes */}
@@ -132,5 +129,4 @@ const App = () => {
     </AuthProvider>
   );
 };
-
 export default App;
