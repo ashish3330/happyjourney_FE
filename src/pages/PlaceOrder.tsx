@@ -433,7 +433,7 @@ const PlaceOrder: React.FC = () => {
           key: razorpayKey,
           amount: order.amountInPaise,
           currency: "INR",
-          name: "SwadExpress",
+          name: "TheHappyJourneyy",
           description: `Food Order #${orderId}`,
           order_id: order.razorpayOrderID,
           handler: async function (response: any) {
@@ -606,60 +606,59 @@ const PlaceOrder: React.FC = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-8">Delivery Details</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-8">Delivery Address</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <FormField
-                  label="Delivery Station"
+                  label="Delivery City"
                   id="deliveryStationId"
                   name="deliveryStationId"
                   value={stationDisplay}
                   error={errors.deliveryStationId}
                   disabled={true}
-                  placeholder="Station not available"
+                  placeholder="City not available"
                 />
               </div>
               <FormField
-                label="PNR Number"
+                label="Order Reference"
                 id="pnrNumber"
                 name="pnrNumber"
                 value={formData.pnrNumber}
                 onChange={handleInputChange}
                 error={errors.pnrNumber}
-                placeholder="Enter 10-digit PNR"
-                maxLength={10}
+                placeholder="Enter order reference"
               />
               <FormField
-                label="Train Number"
+                label="House Number"
                 id="trainNumber"
                 name="trainNumber"
                 value={formData.trainNumber}
                 onChange={handleInputChange}
                 error={errors.trainNumber}
-                placeholder="e.g., 12345"
+                placeholder="e.g., 42"
               />
               <FormField
-                label="Coach Number"
+                label="Floor Number"
                 id="coachNumber"
                 name="coachNumber"
                 value={formData.coachNumber}
                 onChange={handleInputChange}
                 error={errors.coachNumber}
-                placeholder="e.g., A1"
+                placeholder="e.g., 2"
               />
               <FormField
-                label="Seat Number"
+                label="Unit/Apartment"
                 id="seatNumber"
                 name="seatNumber"
                 value={formData.seatNumber}
                 onChange={handleInputChange}
                 error={errors.seatNumber}
-                placeholder="e.g., 12"
+                placeholder="e.g., 4B"
               />
               <div className="md:col-span-2">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <p className="text-blue-800 font-medium">Estimated delivery: {estimatedDeliveryTime}</p>
-                  <p className="text-sm text-blue-600 mt-1">Based on vendor's preparation time</p>
+                  <p className="text-sm text-blue-600 mt-1">Based on distance and vendor's preparation time</p>
                 </div>
               </div>
               <div className="md:col-span-2">
