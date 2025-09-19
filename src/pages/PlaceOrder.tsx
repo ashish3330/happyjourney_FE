@@ -81,16 +81,7 @@ interface OrderResponse {
   paymentStatus: string;
 }
 
-// Form validation schema using zod
-const formSchema = z.object({
-  pnrNumber: z.string().regex(/^\d{10}$/, "PNR number must be exactly 10 digits"),
-  trainNumber: z.string().min(1, "Valid train number is required").regex(/^\d+$/, "Train number must be numeric"),
-  coachNumber: z.string().min(1, "Coach number is required"),
-  seatNumber: z.string().min(1, "Seat number is required"),
-  deliveryStationId: z.string().min(1, "Delivery station is required"),
-  paymentMethod: z.enum(["COD", "ONLINE"], { message: "Please select a payment method" }),
-  deliveryInstructions: z.string().optional(),
-});
+// No form validation schema - all fields are optional
 
 // Mock logger
 const logger = {
@@ -176,7 +167,7 @@ const PlaceOrder: React.FC = () => {
     deliveryInstructions: "",
     paymentMethod: "COD" as "COD" | "ONLINE",
   });
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({}); // Keeping for compatibility but won't be used
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -331,30 +322,17 @@ const PlaceOrder: React.FC = () => {
   }, [station]);
 
   // Form validation
-  const validateForm = useCallback(() => {
-    try {
-      formSchema.parse(formData);
-      setErrors({});
-      return true;
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const newErrors: FormErrors = {};
-        err.errors.forEach((error) => {
-          newErrors[error.path[0] as keyof FormErrors] = error.message;
-        });
-        setErrors(newErrors);
-        logger.warn("Form validation failed", { errors: newErrors });
-        return false;
-      }
-      return false;
-    }
-  }, [formData]);
+  const validateForm = useCallback((): boolean => {
+    return true;
+  }, []);
 
   // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   // Handle select changes
