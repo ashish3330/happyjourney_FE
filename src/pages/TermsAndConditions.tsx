@@ -52,7 +52,7 @@ const TermsAndConditions = () => {
             <div>
               <h3 className="text-lg font-medium text-gray-800 mb-2">C. Formation of Contract</h3>
               <p className="text-gray-600 mb-3">
-                HappyJourney provides e-Catering as an authorized IRCTC aggregator. By booking and paying for services, you accept these terms. No representative can modify these terms, and they supersede any customer-proposed terms.
+                HappyJourney provides e-Catering services. By booking and paying for services, you accept these terms. No representative can modify these terms, and they supersede any customer-proposed terms.
               </p>
             </div>
           </div>
