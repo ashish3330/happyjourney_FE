@@ -966,7 +966,7 @@ const VendorOrders: React.FC = () => {
                         </h3>
                         <div className="space-y-3">
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Station</span>
+                            <span className="text-sm text-gray-500">City</span>
                             <span className="text-sm font-medium text-right">
                               {stationData[order.deliveryStationId] ? (
                                 <Tooltip>

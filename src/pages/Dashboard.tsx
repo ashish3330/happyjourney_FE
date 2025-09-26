@@ -674,7 +674,7 @@ const AdminDashboard: React.FC = () => {
             <table className="w-full text-sm text-left text-gray-500">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
-                  <th className="px-3 sm:px-6 py-3">Station</th>
+                  <th className="px-3 sm:px-6 py-3">City</th>
                   <th className="px-3 sm:px-6 py-3">Orders</th>
                   <th className="px-3 sm:px-6 py-3">Revenue (₹)</th>
                 </tr>

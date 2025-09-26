@@ -247,7 +247,7 @@ const BulkOrdersDashboard: FC = () => {
                             <p className="font-medium text-sm truncate">{item.phone}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-blue-600">Delivery Station</p>
+                            <p className="text-xs text-blue-600">Delivery City</p>
                             <p className="font-medium text-sm truncate">{item.deliveryStation}</p>
                           </div>
                           <div className="col-span-2">
@@ -282,7 +282,7 @@ const BulkOrdersDashboard: FC = () => {
                         <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Name</th>
                         <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Email</th>
                         <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Phone</th>
-                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Delivery Station</th>
+                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Delivery City</th>
                         <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Order Details</th>
                         <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Quantity</th>
                         <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Created At</th>
