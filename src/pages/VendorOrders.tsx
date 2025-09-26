@@ -321,7 +321,7 @@ const VendorOrders: React.FC = () => {
       const transformedOrders = allOrders.map((order) => ({
         ...order,
         vendorName: vendors[order.vendorId]?.businessName || `Vendor #${order.vendorId}`,
-        trainNumber: order.trainNumber || `Train #${order.trainId}`,
+        trainNumber: order.trainNumber || `${order.trainId}`,
         items: order.items.map((item) => ({
           ...item,
           itemName: items[item.itemId]?.itemName || `Item #${item.itemId}`,

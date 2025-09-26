@@ -223,7 +223,7 @@ const OrderHistory: React.FC = () => {
             specialInstructions: item.specialInstructions || "No special instructions",
           })),
           vendorName: vendorsData[order.vendorId]?.businessName || `Vendor #${order.vendorId}`,
-          trainNumber: order.trainNumber || `Train #${order.trainId}`,
+          trainNumber: order.trainNumber || `${order.trainId}`,
         }));
 
         setActiveOrders(
