@@ -51,7 +51,7 @@ const WhyChooseHappyJourney: React.FC = () => {
               title: "Extensive Reach",
               description: "Order meals at over 500+ cities across India, available round-the-clock.",
               highlights: [
-                "Coverage across all railway zones",
+                "Coverage across all City",
                 "Live order tracking",
                 "Support in multiple languages"
               ],

@@ -21,7 +21,7 @@ export const HappyJourneyConfig = {
       title: 'Serving Pan-India',
       description: 'We deliver food at 500+ cities across India — anytime, anywhere, while you travel.',
       highlights: [
-        'Covers all 17 railway zones',
+        'Covers all 17 City',
         'Track your order live via GPS',
         'Support in multiple Indian languages',
         'Get food delivered in under 30 minutes',
