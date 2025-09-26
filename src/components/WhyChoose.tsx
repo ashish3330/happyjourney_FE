@@ -229,7 +229,7 @@ const WhyChoose: React.FC<WhyChooseProps> = React.memo(({ config }) => {
             Loved by Millions
           </h2>
           <p className="text-lg sm:text-xl lg:text-2xl text-gray-700 max-w-4xl mx-auto">
-            Join over 1.5 million travelers who trust {config.brandName} for exceptional dining.
+            Join over 1.5 million Customers who trust {config.brandName} for exceptional dining.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 place-content-center mx-auto max-w-6xl">

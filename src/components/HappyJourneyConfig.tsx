@@ -103,13 +103,13 @@ export const HappyJourneyConfig = {
     {
       quote: 'Happy Journey made our trip so much better! Fresh, hot food delivered right to our seat.',
       author: 'Rajesh K.',
-      role: 'Frequent Traveler',
+      role: 'Frequent Customer',
       rating: 5,
     },
     {
       quote: 'Great experience during my business trips — always clean, always on time.',
       author: 'Priya M.',
-      role: 'Corporate Traveler',
+      role: 'Corporate Customer',
       rating: 5,
     },
     {

@@ -223,7 +223,7 @@ const WhyChooseHappyJourney: React.FC = () => {
             Loved by Our Customers
           </h2>
           <p className="text-lg sm:text-xl lg:text-2xl text-gray-700 max-w-3xl mx-auto">
-            More than 1 million travelers trust our meal delivery service.
+            More than 1 million Customers trust our meal delivery service.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 place-content-center mx-auto max-w-6xl">
