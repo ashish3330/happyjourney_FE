@@ -56,7 +56,7 @@ const CancellationPolicy = () => {
             <p className="text-gray-600">
               Refunds for cancelled orders are processed within 3-5 business days. The refund will be 
               credited to your original payment method. For wallet payments, the amount will be 
-              credited back to your Relswad wallet immediately.
+              credited back to your HappyJourney Walletallet immediately.
             </p>
           </div>
 

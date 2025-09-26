@@ -401,7 +401,7 @@ const OrderHistory: React.FC = () => {
     currentY += 4;
     doc.text(`Street Num: ${order.trainNumber || `Street Num #${order.trainId}`}`, marginLeft, currentY);
     currentY += 4;
-    doc.text(`House Num/Seat: ${order.coachNumber}/${order.seatNumber}`, marginLeft, currentY);
+    doc.text(`House Num/Floor: ${order.coachNumber}/${order.seatNumber}`, marginLeft, currentY);
     currentY += 4;
     doc.text(`Delivery Time: ${formatDate(order.deliveryTime, true)}`, marginLeft, currentY);
     currentY += 4;
@@ -756,7 +756,7 @@ const OrderHistory: React.FC = () => {
                             <span className="text-sm font-medium">{order.trainNumber || `Street Num #${order.trainId}`}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">House Num/Seat</span>
+                            <span className="text-sm text-gray-500">House Num/Floor</span>
                             <span className="text-sm font-medium">
                               {order.coachNumber}/{order.seatNumber}
                             </span>

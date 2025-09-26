@@ -515,7 +515,7 @@ const VendorOrders: React.FC = () => {
       72
     );
     doc.text(
-      `House Num/Seat: ${order.coachNumber}/${order.seatNumber}`,
+      `House Num/Floor: ${order.coachNumber}/${order.seatNumber}`,
       14,
       76
     );
@@ -1006,7 +1006,7 @@ const VendorOrders: React.FC = () => {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-500">
-                              House Num/Seat
+                              House Num/Floor
                             </span>
                             <span className="text-sm font-medium">
                               {order.coachNumber}/{order.seatNumber}
