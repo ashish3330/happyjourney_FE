@@ -19,10 +19,10 @@ const WhyChooseHappyJourney: React.FC = () => {
             WHY US
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-6 leading-snug">
-            Elevate Your Train Dining Experience
+            Elevate Your Street Num Dining Experience
           </h1>
           <p className="text-lg sm:text-xl lg:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto">
-            Savor high-quality meals delivered directly to your train seat with ease and excellence.
+            Savor high-quality meals delivered directly to your street num with ease and excellence.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-6">
             <button
@@ -49,7 +49,7 @@ const WhyChooseHappyJourney: React.FC = () => {
             {
               icon: <FaTrain className="w-6 h-6 text-amber-600 mr-2" />,
               title: "Extensive Reach",
-              description: "Order meals at over 500+ stations across India, available round-the-clock.",
+              description: "Order meals at over 500+ cities across India, available round-the-clock.",
               highlights: [
                 "Coverage across all railway zones",
                 "Live order tracking",
@@ -75,7 +75,7 @@ const WhyChooseHappyJourney: React.FC = () => {
               highlights: [
                 "No-contact delivery",
                 "Temperature-regulated packaging",
-                "Trained delivery personnel"
+                "Street Numed delivery personnel"
               ],
               color: "bg-blue-50"
             }

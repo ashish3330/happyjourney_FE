@@ -91,7 +91,7 @@ const Customer: FC = () => {
                         Sr. No.
                       </th>
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
-                        Training Name
+                        Street Num Name
                       </th>
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
                         Skill Type
@@ -100,7 +100,7 @@ const Customer: FC = () => {
                         Category
                       </th>
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
-                        Training Type
+                        Street Num Type
                       </th>
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
                         Employee Count
@@ -109,22 +109,22 @@ const Customer: FC = () => {
                         Staff Count
                       </th>
                       {/* <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
-                        Trainer Count
+                        Street Num Count
                       </th> */}
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
-                        Trainer Type
+                        Street Num Type
                       </th>
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
-                        Trainer Department
+                        Street Num Department
                       </th>
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
                         Process
                       </th>
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
-                        Training Date
+                        Street Num Date
                       </th>
                       {/* <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
-                        Training Time
+                        Street Num Time
                       </th> */}
                       <th className="px-2 text-sm py-3  font-medium text-black tracking-wider ">
                         Status

@@ -394,14 +394,14 @@ const OrderHistory: React.FC = () => {
     doc.setTextColor(0, 0, 0);
     const station = stationData[order.deliveryStationId];
     doc.text(
-      `Station: ${station ? `${station.stationName} (${station.stationCode})` : `Station #${order.deliveryStationId}`}`,
+      `City: ${station ? `${station.stationName} (${station.stationCode})` : `City #${order.deliveryStationId}`}`,
       marginLeft,
       currentY
     );
     currentY += 4;
-    doc.text(`Train: ${order.trainNumber || `Train #${order.trainId}`}`, marginLeft, currentY);
+    doc.text(`Street Num: ${order.trainNumber || `Street Num #${order.trainId}`}`, marginLeft, currentY);
     currentY += 4;
-    doc.text(`Coach/Seat: ${order.coachNumber}/${order.seatNumber}`, marginLeft, currentY);
+    doc.text(`House Num/Seat: ${order.coachNumber}/${order.seatNumber}`, marginLeft, currentY);
     currentY += 4;
     doc.text(`Delivery Time: ${formatDate(order.deliveryTime, true)}`, marginLeft, currentY);
     currentY += 4;
@@ -678,7 +678,7 @@ const OrderHistory: React.FC = () => {
                       <FaMapMarkerAlt className="mr-1.5" />
                       {stationData[order.deliveryStationId]
                         ? `${stationData[order.deliveryStationId].stationName} (${stationData[order.deliveryStationId].stationCode})`
-                        : `Station #${order.deliveryStationId}`}
+                        : `City #${order.deliveryStationId}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -747,16 +747,16 @@ const OrderHistory: React.FC = () => {
                                   </TooltipContent>
                                 </Tooltip>
                               ) : (
-                                `Station #${order.deliveryStationId}`
+                                `City #${order.deliveryStationId}`
                               )}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Train</span>
-                            <span className="text-sm font-medium">{order.trainNumber || `Train #${order.trainId}`}</span>
+                            <span className="text-sm text-gray-500">Street Num</span>
+                            <span className="text-sm font-medium">{order.trainNumber || `Street Num #${order.trainId}`}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Coach/Seat</span>
+                            <span className="text-sm text-gray-500">House Num/Seat</span>
                             <span className="text-sm font-medium">
                               {order.coachNumber}/{order.seatNumber}
                             </span>

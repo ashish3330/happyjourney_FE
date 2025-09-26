@@ -56,10 +56,10 @@ export const HappyJourneyConfig = {
   steps: [
     {
       icon: <FaMapMarkerAlt className="w-6 h-6 text-amber-600 mr-2" />,
-      title: 'Choose Your Station',
-      description: 'Pick your boarding station and explore restaurants and meals available for your route.',
+      title: 'Choose Your City',
+      description: 'Pick your boarding city and explore restaurants and meals available for your route.',
       highlights: [
-        'Search by station name or code',
+        'Search by city name or code',
         'Photos and reviews of every dish',
         'Filter by cuisine or dietary needs',
       ],

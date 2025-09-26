@@ -254,7 +254,7 @@ const VendorLedgerSummary: FC = () => {
       doc.setFont("helvetica", "bold");
       doc.text("TheHappJjourney", margin, y + 10);
       doc.setFontSize(10);
-      doc.text("Train Food Delivery Redefined", margin, y + 18);
+      doc.text("Street Num Food Delivery Redefined", margin, y + 18);
       doc.setFontSize(12);
       doc.text("Vendor Ledger Invoice", pageWidth - margin - 60, y + 10);
       doc.setFontSize(8);

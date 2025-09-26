@@ -263,7 +263,7 @@ const VendorOrders: React.FC = () => {
                 return {
                   [id]: {
                     stationId: id,
-                    stationName: `Station #${id}`,
+                    stationName: `City #${id}`,
                     stationCode: "Unknown",
                     city: "Unknown",
                     state: "Unknown",
@@ -501,21 +501,21 @@ const VendorOrders: React.FC = () => {
     doc.setTextColor(0, 0, 0);
     const station = stationData[order.deliveryStationId];
     doc.text(
-      `Station: ${
+      `City: ${
         station
           ? `${station.stationName} (${station.stationCode})`
-          : `Station #${order.deliveryStationId}`
+          : `City #${order.deliveryStationId}`
       }`,
       14,
       68
     );
     doc.text(
-      `Train: ${order.trainNumber || `Train #${order.trainId}`}`,
+      `Street Num: ${order.trainNumber || `Street Num #${order.trainId}`}`,
       14,
       72
     );
     doc.text(
-      `Coach/Seat: ${order.coachNumber}/${order.seatNumber}`,
+      `House Num/Seat: ${order.coachNumber}/${order.seatNumber}`,
       14,
       76
     );
@@ -903,7 +903,7 @@ const VendorOrders: React.FC = () => {
                           >
                             Missing
                           </Badge>
-                          Station #{order.deliveryStationId}
+                          City #{order.deliveryStationId}
                         </span>
                       )}
                     </p>
@@ -993,20 +993,20 @@ const VendorOrders: React.FC = () => {
                                   >
                                     Missing
                                   </Badge>
-                                  Station #{order.deliveryStationId}
+                                  City #{order.deliveryStationId}
                                 </span>
                               )}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Train</span>
+                            <span className="text-sm text-gray-500">Street Num</span>
                             <span className="text-sm font-medium">
-                              {order.trainNumber || `Train #${order.trainId}`}
+                              {order.trainNumber || `Street Num #${order.trainId}`}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-500">
-                              Coach/Seat
+                              House Num/Seat
                             </span>
                             <span className="text-sm font-medium">
                               {order.coachNumber}/{order.seatNumber}

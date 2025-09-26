@@ -711,7 +711,7 @@ const AdminOrders: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div>
                 <Label htmlFor="station" className="text-sm font-medium text-blue-700">
-                  Select Station
+                  Select City
                 </Label>
                 <Select
                   options={stationOptions}
@@ -720,7 +720,7 @@ const AdminOrders: React.FC = () => {
                     setSelectedStation(option?.value || "");
                     setSelectedVendor("");
                   }}
-                  placeholder="Select a station"
+                  placeholder="Select a city"
                   styles={selectStyles}
                   isClearable
                   className="mt-1"
@@ -864,7 +864,7 @@ const AdminOrders: React.FC = () => {
                       <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Sr. No.</th>
                       <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Order ID</th>
                       <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Customer ID</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Station</th>
+                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">City</th>
                       <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Vendor</th>
                       <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Delivery Time</th>
                       <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Status</th>
@@ -879,7 +879,7 @@ const AdminOrders: React.FC = () => {
                         <td className="px-3 py-3 text-sm truncate max-w-[100px]">{order.orderId}</td>
                         <td className="px-3 py-3 text-sm truncate max-w-[100px]">{order.customerId}</td>
                         <td className="px-3 py-3 text-sm truncate max-w-[150px]">
-                          {stationData[order.deliveryStationId]?.stationName || `Station #${order.deliveryStationId}`}
+                          {stationData[order.deliveryStationId]?.stationName || `City #${order.deliveryStationId}`}
                         </td>
                         <td className="px-3 py-3 text-sm truncate max-w-[150px]">{order.vendorName || "Unknown"}</td>
                         <td className="px-3 py-3 text-sm truncate max-w-[150px]">{formatDate(order.deliveryTime)}</td>
@@ -923,9 +923,9 @@ const AdminOrders: React.FC = () => {
                         <p className="font-medium text-sm truncate">{order.customerId}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-blue-600">Station</p>
+                        <p className="text-xs text-blue-600">City</p>
                         <p className="font-medium text-sm truncate">
-                          {stationData[order.deliveryStationId]?.stationName || `Station #${order.deliveryStationId}`}
+                          {stationData[order.deliveryStationId]?.stationName || `City #${order.deliveryStationId}`}
                         </p>
                       </div>
                       <div>
@@ -983,9 +983,9 @@ const AdminOrders: React.FC = () => {
                       <FaMapMarkerAlt className="w-3 h-3" /> Delivery Info
                     </div>
                     <div></div>
-                    <p><strong>Station:</strong> {stationData[selectedOrder.deliveryStationId]?.stationName || `Station #${selectedOrder.deliveryStationId}`}</p>
-                    <p><strong>Doorstep:</strong> {selectedOrder.trainNumber || `Doorstep #${selectedOrder.trainId}`}</p>
-                    <p><strong>Coach/Seat:</strong> {selectedOrder.coachNumber || "N/A"}/{selectedOrder.seatNumber || "N/A"}</p>
+                    <p><strong>City:</strong> {stationData[selectedOrder.deliveryStationId]?.stationName || `City #${selectedOrder.deliveryStationId}`}</p>
+                    <p><strong>Street Num:</strong> {selectedOrder.trainNumber || `Street Num #${selectedOrder.trainId}`}</p>
+                    <p><strong>House Num/Seat:</strong> {selectedOrder.coachNumber || "N/A"}/{selectedOrder.seatNumber || "N/A"}</p>
                     <p><strong>Vendor:</strong> {selectedOrder.vendorName || "Unknown"}</p>
                     <p><strong>Delivery:</strong> {formatDate(selectedOrder.deliveryTime)}</p>
                     {selectedOrder.deliveryInstructions && (

@@ -236,7 +236,7 @@ const UserPasswordlessLogin: React.FC = () => {
           <h2 className="text-3xl font-bold text-white">Happy Journey</h2>
         </div>
         <p className="text-center text-blue-100 mb-8 text-sm">
-          Sizzling Meals, Delivered to Your Train Seat!
+          Sizzling Meals, Delivered to Your Street Num!
         </p>
 
         <form
