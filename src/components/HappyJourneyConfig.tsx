@@ -13,7 +13,7 @@ export const HappyJourneyConfig = {
   brandName: 'Happy Journey',
   tagline: 'Delicious Meals, Delivered Onboard',
   heroDescription:
-    'Enjoy fresh, hygienic meals delivered right to your doorstep seat. With Happy Journey, your trip becomes tastier, safer, and more convenient — making every mile memorable.',
+    'Enjoy fresh, hygienic meals delivered right to your doorstep. With Happy Journey, your trip becomes tastier, safer, and more convenient — making every mile memorable.',
   heroImage: 'https://images.unsplash.com/photo-1516108317508-a8a590b68d3e?auto=format&fit=crop&w=1200&q=80',
   benefits: [
     {
@@ -79,9 +79,9 @@ export const HappyJourneyConfig = {
     {
       icon: <FaUser className="w-6 h-6 text-blue-600 mr-2" />,
       title: 'Enjoy Onboard Delivery',
-      description: 'Sit back and relax — your meal will be delivered hot and fresh to your doorstep seat.',
+      description: 'Sit back and relax — your meal will be delivered hot and fresh to your doorstep.',
       highlights: [
-        'Live tracking from kitchen to seat',
+        'Live tracking from kitchen your doorstep',
         'Safe and hygienic handover',
         '24/7 support if you need help',
       ],

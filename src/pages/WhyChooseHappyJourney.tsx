@@ -140,7 +140,7 @@ const WhyChooseHappyJourney: React.FC = () => {
               {
                 icon: <FaUser className="w-6 h-6 text-blue-600 mr-2" />,
                 title: "Dine on Your Journey",
-                description: "Get your meal delivered to your seat with tracking.",
+                description: "Get your meal delivered to your doorstep with tracking.",
                 highlights: [
                   "Live delivery updates",
                   "Hygienic, contactless service",

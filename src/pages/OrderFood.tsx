@@ -300,7 +300,7 @@ const OrderFood = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
                 <div>
-                  <h2 className="text-xl font-bold text-white">Fresh Meals Delivered to Your Seat</h2>
+                  <h2 className="text-xl font-bold text-white">Fresh Meals Delivered to your doorstep</h2>
                   <p className="text-gray-200 mt-1">Enjoy restaurant-quality food during your journey</p>
                 </div>
               </div>
