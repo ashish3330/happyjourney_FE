@@ -13,13 +13,13 @@ export const HappyJourneyConfig = {
   brandName: 'Happy Journey',
   tagline: 'Delicious Meals, Delivered Onboard',
   heroDescription:
-    'Enjoy fresh, hygienic meals delivered right to your train seat. With Happy Journey, your trip becomes tastier, safer, and more convenient — making every mile memorable.',
+    'Enjoy fresh, hygienic meals delivered right to your doorstep seat. With Happy Journey, your trip becomes tastier, safer, and more convenient — making every mile memorable.',
   heroImage: 'https://images.unsplash.com/photo-1516108317508-a8a590b68d3e?auto=format&fit=crop&w=1200&q=80',
   benefits: [
     {
       icon: <FaTrain className="w-6 h-6 text-amber-600 mr-2" />,
       title: 'Serving Pan-India',
-      description: 'We deliver food at 500+ stations across India — anytime, anywhere, while you travel.',
+      description: 'We deliver food at 500+ cities across India — anytime, anywhere, while you travel.',
       highlights: [
         'Covers all 17 railway zones',
         'Track your order live via GPS',
@@ -79,7 +79,7 @@ export const HappyJourneyConfig = {
     {
       icon: <FaUser className="w-6 h-6 text-blue-600 mr-2" />,
       title: 'Enjoy Onboard Delivery',
-      description: 'Sit back and relax — your meal will be delivered hot and fresh to your train seat.',
+      description: 'Sit back and relax — your meal will be delivered hot and fresh to your doorstep seat.',
       highlights: [
         'Live tracking from kitchen to seat',
         'Safe and hygienic handover',

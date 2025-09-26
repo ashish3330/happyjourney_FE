@@ -11,7 +11,7 @@ const HelpAndSupport = () => {
     },
     {
       question: "What if my train is delayed?",
-      answer: "If your train is delayed by more than 30 minutes, please contact our customer support immediately. We'll coordinate with the restaurant to adjust delivery timing."
+      answer: "If your doorstep is delayed by more than 30 minutes, please contact our customer support immediately. We'll coordinate with the restaurant to adjust delivery timing."
     },
     {
       question: "Can I modify my order after placing it?",

@@ -99,9 +99,9 @@ const VendorLedgerSummary: FC = () => {
       });
       setStations(response.data || []);
     } catch (err: any) {
-      console.error("Failed to fetch stations:", err);
-      setError(err.response?.data?.message || "Failed to load stations");
-      toast.error("Failed to load stations.");
+      console.error("Failed to fetch cities:", err);
+      setError(err.response?.data?.message || "Failed to load cities");
+      toast.error("Failed to load cities.");
     } finally {
       setLoading(false);
     }

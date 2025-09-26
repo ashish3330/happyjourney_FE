@@ -269,7 +269,7 @@ const OrderHistory: React.FC = () => {
 
         return { ...stationData, ...newStations };
       } catch (err) {
-        console.error("Failed to fetch some stations:", err);
+        console.error("Failed to fetch some cities:", err);
         return stationData;
       }
     };

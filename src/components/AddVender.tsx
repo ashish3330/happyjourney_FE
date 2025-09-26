@@ -212,7 +212,7 @@ export default function AddVendor({
           setValue("stationId", stations[0].stationId, { shouldDirty: true });
         }
       } catch (error) {
-        console.error("Failed to fetch stations:", error);
+        console.error("Failed to fetch cities:", error);
       } finally {
         setIsLoading(false);
       }

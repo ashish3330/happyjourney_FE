@@ -104,7 +104,7 @@ const WhyChoose: React.FC<WhyChooseProps> = React.memo(({ config }) => {
             Why {config.brandName} Stands Out
           </h2>
           <p className="text-lg sm:text-xl lg:text-2xl text-gray-700 max-w-4xl mx-auto">
-            Discover unparalleled convenience, quality, and reliability for your train dining needs.
+            Discover unparalleled convenience, quality, and reliability for your doorstep dining needs.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 place-content-center mx-auto max-w-6xl">
