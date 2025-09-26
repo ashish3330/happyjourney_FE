@@ -40,7 +40,7 @@ const TermsAndConditions = () => {
                 <li><strong>Food Delivery</strong>: Perishable goods and delivery by selected restaurants.</li>
                 <li><strong>e-Catering</strong>: Pre-ordered meal delivery to your doorstep via our services.</li>
                 <li><strong>Charges</strong>: Fees for e-Catering, including taxes and delivery fees.</li>
-                <li><strong>IRCTC</strong>: Indian Railways Catering and Tourism Corporation.</li>
+                {/* <li><strong>IRCTC</strong>: Indian Railways Catering and Tourism Corporation.</li> */}
               </ul>
             </div>
           </div>
