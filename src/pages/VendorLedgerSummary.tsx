@@ -269,7 +269,7 @@ const VendorLedgerSummary: FC = () => {
       doc.setFont("helvetica", "normal");
       doc.text("TheHappJjourney", margin, y);
       doc.text("Railway Station Road Bhagwan Ganj Ward, Sagar  Madhya Pradesh-470002", margin, y + 5);
-      doc.text("Email: support@thehappyjourneyy.in", margin, y + 10);
+      doc.text("Email: support@thehappyjourneyy.com", margin, y + 10);
       doc.text("Phone: +91 9826262660", margin, y + 15);
       y += 25;
   
