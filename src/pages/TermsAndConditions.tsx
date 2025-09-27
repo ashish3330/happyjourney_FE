@@ -76,9 +76,9 @@ const TermsAndConditions = () => {
             <div>
               <h3 className="text-lg font-medium text-gray-800 mb-2">E. Customer Obligations</h3>
               <ul className="list-disc pl-5 space-y-2 text-gray-600">
-                <li>Pre-order meals up to 2 hours before doorstep arrival, ensuring accurate details (e.g., PNR, seat/berth).</li>
+                {/* <li>Pre-order meals up to 2 hours before doorstep arrival, ensuring accurate details (e.g., PNR, seat/berth).</li>
                 <li>Be a bona fide rail passenger with a valid ticket.</li>
-                <li>Be present at the confirmed seat/berth during the doorstep's stop at the selected city.</li>
+                <li>Be present at the confirmed seat/berth during the doorstep's stop at the selected city.</li> */}
                 <li>Avoid abusive behavior toward delivery personnel to ensure delivery.</li>
                 <li>No delivery to alternate cities if you change your location.</li>
                 <li>No refunds for "No-Show" customers or if you are not available at the delivery address.</li>
