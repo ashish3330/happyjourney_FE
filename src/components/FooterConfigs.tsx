@@ -18,7 +18,7 @@ const happyJourneyConfig = {
   socialMedia: {
     facebook: 'https://facebook.com/happyjourney', // Placeholder, replace with actual
     twitter: 'https://twitter.com/happyjourney',
-    instagram: 'https://instagram.com/happyjourney',
+    instagram: 'https://www.instagram.com/happyjourney2026?igsh=MTdzbXVhOHc0N3c2dg==',
   },
 };
 
