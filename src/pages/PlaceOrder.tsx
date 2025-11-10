@@ -63,15 +63,6 @@ interface MenuItem {
   available: boolean;
 }
 
-interface FormErrors {
-  pnrNumber?: string;
-  trainNumber?: string;
-  coachNumber?: string;
-  seatNumber?: string;
-  deliveryStationId?: string;
-  paymentMethod?: string;
-}
-
 interface OrderResponse {
   orderId: string;
   razorpayOrderID?: string;
@@ -79,8 +70,6 @@ interface OrderResponse {
   paymentMethod: string;
   paymentStatus: string;
 }
-
-// No form validation schema - all fields are optional
 
 // Mock logger
 const logger = {
@@ -166,7 +155,6 @@ const PlaceOrder: React.FC = () => {
     deliveryInstructions: "",
     paymentMethod: "COD" as "COD" | "ONLINE",
   });
-  const [errors, setErrors] = useState<FormErrors>({}); // Keeping for compatibility but won't be used
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -223,7 +211,7 @@ const PlaceOrder: React.FC = () => {
     try {
       logger.info("Fetching initial data", { vendorId: effectiveVendorId, userId });
 
-      // Fetch cart summary
+      // Fetch cart summary - using the correct endpoint from your CartService
       const cartResponse = await api.get(`/cart/summary?vendorId=${effectiveVendorId}`);
       const cartData = cartResponse.data;
       logger.info("Cart summary fetched", { cartId: cartData.cartId, itemCount: cartData.items?.length });
@@ -241,7 +229,7 @@ const PlaceOrder: React.FC = () => {
         return;
       }
 
-      // Fetch menu items
+      // Fetch menu items to enrich cart items with names
       const menuItemsResponse = await api.get(`/menu/vendors/${effectiveVendorId}/items`);
       const fetchedMenuItems = menuItemsResponse.data || [];
 
@@ -320,11 +308,6 @@ const PlaceOrder: React.FC = () => {
     return `${station.stationName} (${station.stationCode})`;
   }, [station]);
 
-  // Form validation
-  const validateForm = useCallback((): boolean => {
-    return true;
-  }, []);
-
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -337,17 +320,21 @@ const PlaceOrder: React.FC = () => {
   // Handle select changes
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Place order handler with retry logic for payment verification
-  const handlePlaceOrder = async () => {
-    if (!validateForm()) {
-      toast.error("Please correct the form errors");
-      logger.warn("Order placement aborted due to form errors");
-      return;
+  // Get Razorpay key
+  const getRazorpayKey = async (): Promise<string> => {
+    try {
+      const response = await api.get("/api/payments/key");
+      return response.data.key;
+    } catch (error: any) {
+      logger.error("Failed to get Razorpay key", { error: error.message });
+      throw new Error("Failed to initialize payment gateway");
     }
+  };
 
+  // Place order handler
+  const handlePlaceOrder = async () => {
     if (!cartSummary || !cartSummary.items.length) {
       setError("Your cart is empty. Add items to proceed.");
       toast.error("Your cart is empty");
@@ -369,19 +356,20 @@ const PlaceOrder: React.FC = () => {
       vendorId: effectiveVendorId,
       paymentMethod: formData.paymentMethod === "ONLINE" ? "RAZORPAY" : "COD",
       deliveryTime: new Date(new Date().getTime() + (vendorDetails?.preparationTimeMin || 30) * 60 * 1000).toISOString(),
-      pnrNumber: formData.pnrNumber,
-      trainId: Number(formData.trainNumber),
-      coachNumber: formData.coachNumber,
-      seatNumber: formData.seatNumber,
-      deliveryStationId: Number(formData.deliveryStationId),
-      deliveryInstructions: formData.deliveryInstructions,
-      cartId: cartSummary.cartId,
+      pnrNumber: formData.pnrNumber || undefined,
+      trainId: formData.trainNumber ? Number(formData.trainNumber) : undefined,
+      coachNumber: formData.coachNumber || undefined,
+      seatNumber: formData.seatNumber || undefined,
+      deliveryStationId: formData.deliveryStationId ? Number(formData.deliveryStationId) : undefined,
+      deliveryInstructions: formData.deliveryInstructions || undefined,
     };
 
     let orderId: string | null = null;
     try {
       logger.info(`Creating ${formData.paymentMethod} order`, { vendorId: effectiveVendorId });
-      const orderResponse = await api.post("/orders", orderPayload);
+      
+      // Call the correct endpoint from OrderController
+      const orderResponse = await api.post("/api/orders", orderPayload);
       const order: OrderResponse = orderResponse.data;
       orderId = order.orderId;
       logger.info(`${formData.paymentMethod} order created`, { orderId });
@@ -391,10 +379,8 @@ const PlaceOrder: React.FC = () => {
         toast.success("🎉 Order placed successfully! You'll receive it soon!", { duration: 3000 });
         navigate("/order-history");
       } else {
-        const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-        if (!razorpayKey) {
-          throw new Error("Razorpay key not configured");
-        }
+        // For online payment, use Razorpay
+        const razorpayKey = await getRazorpayKey();
         if (!order.razorpayOrderID || !order.amountInPaise) {
           throw new Error("Invalid Razorpay order details from server");
         }
@@ -414,41 +400,23 @@ const PlaceOrder: React.FC = () => {
           description: `Food Order #${orderId}`,
           order_id: order.razorpayOrderID,
           handler: async function (response: any) {
-            let verificationAttempts = 0;
-            const maxVerificationRetries = 3;
-            while (verificationAttempts < maxVerificationRetries) {
-              try {
-                logger.info("Verifying payment", { orderId, attempt: verificationAttempts + 1 });
-                await api.post(`/orders/verify`, {
-                  orderId,
-                  paymentId: response.razorpay_payment_id,
-                  razorpayOrderId: response.razorpay_order_id,
-                  signature: response.razorpay_signature,
-                });
-                logger.info("Payment verified successfully", { orderId });
-                setCartSummary(null);
-                toast.success("🎉 Payment successful! Your order is confirmed!", { duration: 3000 });
-                navigate(`/order-confirmation/${orderId}`);
-                return;
-              } catch (error: any) {
-                verificationAttempts++;
-                logger.error("Payment verification failed", {
-                  error: error.message,
-                  attempt: verificationAttempts,
-                });
-                if (verificationAttempts >= maxVerificationRetries) {
-                  toast.error(error.response?.data?.message || "Payment verification failed after retries");
-                  try {
-                    await api.delete(`/orders/cancel/${orderId}`);
-                    logger.info("Temporary order deleted due to verification failure", { orderId });
-                  } catch (cancelError: any) {
-                    logger.error("Failed to delete temporary order", { error: cancelError.message });
-                  }
-                  setIsLoading(false);
-                  return;
-                }
-                await new Promise((resolve) => setTimeout(resolve, 1000 * verificationAttempts));
-              }
+            try {
+              logger.info("Verifying payment", { orderId });
+              // Call the correct payment verification endpoint
+              await api.post(`/api/payments/verify/${orderId}`, {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+              logger.info("Payment verified successfully", { orderId });
+              setCartSummary(null);
+              toast.success("🎉 Payment successful! Your order is confirmed!", { duration: 3000 });
+              navigate(`/order-confirmation/${orderId}`);
+            } catch (error: any) {
+              logger.error("Payment verification failed", { error: error.message });
+              toast.error(error.response?.data?.message || "Payment verification failed");
+              // Note: Your backend doesn't have cancel endpoint, so we skip cancellation
+              setIsLoading(false);
             }
           },
           prefill: {
@@ -466,12 +434,7 @@ const PlaceOrder: React.FC = () => {
             ondismiss: async () => {
               toast.error("Payment cancelled");
               logger.warn("Payment cancelled by user", { orderId });
-              try {
-                await api.delete(`/orders/cancel/${orderId}`);
-                logger.info("Temporary order deleted due to payment cancellation", { orderId });
-              } catch (cancelError: any) {
-                logger.error("Failed to delete temporary order", { error: cancelError.message });
-              }
+              // Note: Your backend doesn't have cancel endpoint, so we skip cancellation
               setIsLoading(false);
             },
           },
@@ -481,12 +444,7 @@ const PlaceOrder: React.FC = () => {
         razorpay.on("payment.failed", async (response: any) => {
           toast.error(`Payment failed: ${response.error.description}`);
           logger.error("Payment failed", { orderId, description: response.error.description });
-          try {
-            await api.delete(`/orders/cancel/${orderId}`);
-            logger.info("Temporary order deleted due to payment failure", { orderId });
-          } catch (cancelError: any) {
-            logger.error("Failed to delete temporary order", { error: cancelError.message });
-          }
+          // Note: Your backend doesn't have cancel endpoint, so we skip cancellation
           setIsLoading(false);
         });
         razorpay.open();
@@ -499,14 +457,6 @@ const PlaceOrder: React.FC = () => {
       const errorMessage = err.response?.data?.message || "Failed to process your order. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
-      if (orderId) {
-        try {
-          await api.delete(`/orders/cancel/${orderId}`);
-          logger.info("Temporary order deleted due to order creation failure", { orderId });
-        } catch (cancelError: any) {
-          logger.error("Failed to delete temporary order", { error: cancelError.message });
-        }
-      }
       setIsLoading(false);
     }
   };
@@ -573,7 +523,7 @@ const PlaceOrder: React.FC = () => {
             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path
                 fillRule="evenodd"
-                d="10 18a8 8 0 100-16 8 8 0 000 16zM8.732 6.732a1 1 0 011.414 0L10 7.586l.854-.854a1 1 0 111.414 1.414L11.414 9l.854.854a1 1 0 11-1.414 1.414L10 10.414l-.854.854a1 1 0 11-1.414-1.414L8.586 9l-.854-.854a1 1 0 010-1.414z"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.732 6.732a1 1 0 011.414 0L10 7.586l.854-.854a1 1 0 111.414 1.414L11.414 9l.854.854a1 1 0 11-1.414 1.414L10 10.414l-.854.854a1 1 0 11-1.414-1.414L8.586 9l-.854-.854a1 1 0 010-1.414z"
                 clipRule="evenodd"
               />
             </svg>
@@ -583,59 +533,54 @@ const PlaceOrder: React.FC = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-8">Delivery Address</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-8">Delivery Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <FormField
-                  label="Delivery City"
+                  label="Delivery Station"
                   id="deliveryStationId"
                   name="deliveryStationId"
                   value={stationDisplay}
-                  error={errors.deliveryStationId}
                   disabled={true}
-                  placeholder="City not available"
+                  placeholder="Station not available"
                 />
               </div>
               <FormField
-                label="Order Reference"
+                label="PNR Number"
                 id="pnrNumber"
                 name="pnrNumber"
                 value={formData.pnrNumber}
                 onChange={handleInputChange}
-                error={errors.pnrNumber}
-                placeholder="Enter order reference"
+                placeholder="Enter PNR number"
               />
               <FormField
-                label="House Number"
+                label="Train Number"
                 id="trainNumber"
                 name="trainNumber"
                 value={formData.trainNumber}
                 onChange={handleInputChange}
-                error={errors.trainNumber}
-                placeholder="e.g., 42"
+                placeholder="e.g., 12951"
               />
               <FormField
-                label="Floor Number"
+                label="Coach Number"
                 id="coachNumber"
                 name="coachNumber"
                 value={formData.coachNumber}
                 onChange={handleInputChange}
-                error={errors.coachNumber}
-                placeholder="e.g., 2"
+                placeholder="e.g., A1"
               />
               <FormField
-                label="Unit/Apartment"
+                label="Seat Number"
                 id="seatNumber"
                 name="seatNumber"
                 value={formData.seatNumber}
                 onChange={handleInputChange}
-                error={errors.seatNumber}
-                placeholder="e.g., 4B"
+                placeholder="e.g., 42"
               />
               <div className="md:col-span-2">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <p className="text-blue-800 font-medium">Estimated delivery: {estimatedDeliveryTime}</p>
-                  <p className="text-sm text-blue-600 mt-1">Based on distance and vendor's preparation time</p>
+                  <p className="text-sm text-blue-600 mt-1">Based on vendor's preparation time</p>
                 </div>
               </div>
               <div className="md:col-span-2">
@@ -647,7 +592,7 @@ const PlaceOrder: React.FC = () => {
                   name="deliveryInstructions"
                   value={formData.deliveryInstructions}
                   onChange={handleInputChange}
-                  placeholder="e.g., Call before delivery"
+                  placeholder="e.g., Call before delivery, special instructions"
                   className="mt-1 rounded-lg h-24 focus:ring-blue-500"
                   aria-describedby="deliveryInstructions-desc"
                 />
@@ -663,11 +608,7 @@ const PlaceOrder: React.FC = () => {
                   onValueChange={(value) => handleSelectChange("paymentMethod", value)}
                   value={formData.paymentMethod}
                 >
-                  <SelectTrigger
-                    className={`mt-1 rounded-lg ${errors.paymentMethod ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"}`}
-                    aria-invalid={!!errors.paymentMethod}
-                    aria-describedby={errors.paymentMethod ? "paymentMethod-error" : undefined}
-                  >
+                  <SelectTrigger className="mt-1 rounded-lg focus:ring-blue-500">
                     <SelectValue placeholder="Select Payment Method" />
                   </SelectTrigger>
                   <SelectContent className="bg-white rounded-lg shadow-lg">
@@ -679,11 +620,6 @@ const PlaceOrder: React.FC = () => {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.paymentMethod && (
-                  <p id="paymentMethod-error" className="text-red-600 text-sm mt-1">
-                    {errors.paymentMethod}
-                  </p>
-                )}
               </div>
             </div>
           </div>
