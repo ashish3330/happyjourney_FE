@@ -447,7 +447,8 @@ const PlaceOrder: React.FC = () => {
   }, []);
 
   // Success handler - common function for both payment methods
-  const handlePaymentSuccess = useCallback((orderId: string) => {
+  // orderId parameter is kept for consistency with the callback signature
+  const handlePaymentSuccess = useCallback((_orderId: string) => {
     updatePaymentStatus(PaymentStatus.SUCCESS);
     setCartSummary(null);
     setPendingOrderId(null);
@@ -593,8 +594,9 @@ const PlaceOrder: React.FC = () => {
             // Only cancel if payment is still pending
             updatePaymentStatus(PaymentStatus.CANCELLED);
             if (orderId) {
+              const orderIdToCancel = orderId; // Create a local constant to ensure type safety
               setTimeout(async () => {
-                await cancelPendingOrder(orderId, "Razorpay popup closed");
+                await cancelPendingOrder(orderIdToCancel, "Razorpay popup closed");
                 setIsLoading(false);
               }, 1000);
             }
