@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +69,14 @@ interface OrderResponse {
   amountInPaise?: number;
   paymentMethod: string;
   paymentStatus: string;
+}
+
+// Payment status enum
+enum PaymentStatus {
+  PENDING = "PENDING",
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+  CANCELLED = "CANCELLED"
 }
 
 // Mock logger
@@ -159,7 +167,14 @@ const PlaceOrder: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const maxRetries = 3;
+
+  // Refs to track payment status and prevent unwanted cancellations
+  const paymentStatusRef = useRef<PaymentStatus>(PaymentStatus.PENDING);
+  const isUnmountingRef = useRef(false);
+  const razorpayInstanceRef = useRef<any>(null);
+  const isPaymentCompleteRef = useRef(false);
 
   // Load Razorpay script
   useEffect(() => {
@@ -180,6 +195,92 @@ const PlaceOrder: React.FC = () => {
       document.body.removeChild(script);
     };
   }, []);
+
+  // Update payment status function
+  const updatePaymentStatus = useCallback((status: PaymentStatus) => {
+    paymentStatusRef.current = status;
+    if (status === PaymentStatus.SUCCESS) {
+      isPaymentCompleteRef.current = true;
+    }
+    logger.info("Payment status updated", { status });
+  }, []);
+
+  // Cancel pending order function - only call if payment is still pending
+  const cancelPendingOrder = useCallback(async (orderId: string, reason: string) => {
+    // Don't cancel if payment was successful or already cancelled
+    if (paymentStatusRef.current === PaymentStatus.SUCCESS || isPaymentCompleteRef.current) {
+      logger.info("Skipping cancellation - payment was successful", { orderId });
+      return;
+    }
+
+    if (paymentStatusRef.current === PaymentStatus.CANCELLED) {
+      logger.info("Skipping cancellation - already cancelled", { orderId });
+      return;
+    }
+
+    try {
+      logger.info("Cancelling pending order", { orderId, reason });
+      updatePaymentStatus(PaymentStatus.CANCELLED);
+      
+      // Try the payment cancellation endpoint first
+      try {
+        await api.post(`/payments/cancel/${orderId}`);
+        logger.info("Payment order cancelled successfully", { orderId });
+      } catch (paymentError: any) {
+        // If payment cancellation fails, try regular order cancellation
+        logger.warn("Payment cancellation failed, trying regular cancellation", { orderId });
+        await api.delete(`/orders/cancel/${orderId}`);
+        logger.info("Regular order cancelled successfully", { orderId });
+      }
+      
+      setPendingOrderId(null);
+    } catch (error: any) {
+      logger.error("Failed to cancel pending order", { 
+        orderId, 
+        reason, 
+        error: error.message 
+      });
+      // Don't throw error here to prevent blocking navigation
+    }
+  }, [updatePaymentStatus]);
+
+  // Auto-cancel pending order when component unmounts or browser closes
+  useEffect(() => {
+    const handleBeforeUnload = async (event: BeforeUnloadEvent) => {
+      if (pendingOrderId && paymentStatusRef.current === PaymentStatus.PENDING && !isPaymentCompleteRef.current) {
+        event.preventDefault();
+        event.returnValue = "You have a pending payment. Are you sure you want to leave?";
+        
+        // Only cancel if we're actually leaving the page and payment is still pending
+        if (!isUnmountingRef.current) {
+          isUnmountingRef.current = true;
+          await cancelPendingOrder(pendingOrderId, "Browser closed/tab refreshed");
+        }
+      }
+    };
+
+    const handleVisibilityChange = async () => {
+      if (document.hidden && pendingOrderId && paymentStatusRef.current === PaymentStatus.PENDING && !isPaymentCompleteRef.current) {
+        logger.warn("Page hidden with pending order", { pendingOrderId });
+        // We don't cancel here as user might come back, but we log it
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      
+      // Cancel pending order when component unmounts only if payment is still pending
+      if (pendingOrderId && paymentStatusRef.current === PaymentStatus.PENDING && !isPaymentCompleteRef.current) {
+        isUnmountingRef.current = true;
+        cancelPendingOrder(pendingOrderId, "Component unmounted")
+          .catch(error => logger.error("Failed to cancel order on unmount", { error }));
+      }
+    };
+  }, [pendingOrderId, cancelPendingOrder]);
 
   // Validate vendorId
   if (isNaN(effectiveVendorId) || effectiveVendorId <= 0) {
@@ -325,13 +426,35 @@ const PlaceOrder: React.FC = () => {
   // Get Razorpay key
   const getRazorpayKey = async (): Promise<string> => {
     try {
-      const response = await api.get("/api/payments/key");
+      const response = await api.get("/payments/key");
       return response.data.key;
     } catch (error: any) {
       logger.error("Failed to get Razorpay key", { error: error.message });
       throw new Error("Failed to initialize payment gateway");
     }
   };
+
+  // Cleanup razorpay instance
+  const cleanupRazorpay = useCallback(() => {
+    if (razorpayInstanceRef.current) {
+      try {
+        razorpayInstanceRef.current.close();
+        razorpayInstanceRef.current = null;
+      } catch (error) {
+        logger.warn("Error closing Razorpay instance", { error });
+      }
+    }
+  }, []);
+
+  // Success handler - common function for both payment methods
+  const handlePaymentSuccess = useCallback((orderId: string) => {
+    updatePaymentStatus(PaymentStatus.SUCCESS);
+    setCartSummary(null);
+    setPendingOrderId(null);
+    cleanupRazorpay();
+    toast.success("🎉 Payment successful! Your order is confirmed!", { duration: 3000 });
+    navigate("/order-history");
+  }, [updatePaymentStatus, cleanupRazorpay, navigate]);
 
   // Place order handler
   const handlePlaceOrder = async () => {
@@ -351,6 +474,9 @@ const PlaceOrder: React.FC = () => {
 
     setIsLoading(true);
     setError(null);
+    // Reset payment status when starting new order
+    updatePaymentStatus(PaymentStatus.PENDING);
+    isPaymentCompleteRef.current = false;
 
     const orderPayload = {
       vendorId: effectiveVendorId,
@@ -369,21 +495,22 @@ const PlaceOrder: React.FC = () => {
       logger.info(`Creating ${formData.paymentMethod} order`, { vendorId: effectiveVendorId });
       
       // Call the correct endpoint from OrderController
-      const orderResponse = await api.post("/api/orders", orderPayload);
+      const orderResponse = await api.post("/orders", orderPayload);
       const order: OrderResponse = orderResponse.data;
       orderId = order.orderId;
       logger.info(`${formData.paymentMethod} order created`, { orderId });
 
       if (formData.paymentMethod === "COD") {
-        setCartSummary(null);
-        toast.success("🎉 Order placed successfully! You'll receive it soon!", { duration: 3000 });
-        navigate("/order-history");
+        handlePaymentSuccess(orderId);
       } else {
         // For online payment, use Razorpay
         const razorpayKey = await getRazorpayKey();
         if (!order.razorpayOrderID || !order.amountInPaise) {
           throw new Error("Invalid Razorpay order details from server");
         }
+
+        // Set pending order ID for auto-cancellation
+        setPendingOrderId(orderId);
 
         logger.info("Initializing Razorpay checkout", { 
           orderId, 
@@ -402,21 +529,32 @@ const PlaceOrder: React.FC = () => {
           handler: async function (response: any) {
             try {
               logger.info("Verifying payment", { orderId });
+              
               // Call the correct payment verification endpoint
-              await api.post(`/api/payments/verify/${orderId}`, {
+              await api.post(`/payments/verify/${orderId}`, {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
               });
+              
               logger.info("Payment verified successfully", { orderId });
-              setCartSummary(null);
-              toast.success("🎉 Payment successful! Your order is confirmed!", { duration: 3000 });
-              navigate(`/order-confirmation/${orderId}`);
+              handlePaymentSuccess(orderId!);
             } catch (error: any) {
-              logger.error("Payment verification failed", { error: error.message });
-              toast.error(error.response?.data?.message || "Payment verification failed");
-              // Note: Your backend doesn't have cancel endpoint, so we skip cancellation
-              setIsLoading(false);
+              // Handle "already captured" error gracefully
+              if (error.response?.data?.includes("already been captured") || 
+                  error.response?.data?.includes("already processed")) {
+                logger.warn("Payment already captured, proceeding with success", { orderId });
+                handlePaymentSuccess(orderId!);
+              } else {
+                logger.error("Payment verification failed", { error: error.message });
+                updatePaymentStatus(PaymentStatus.FAILED);
+                toast.error(error.response?.data?.message || "Payment verification failed");
+                // Cancel the order since payment failed
+                if (orderId) {
+                  await cancelPendingOrder(orderId, "Payment verification failed");
+                }
+                setIsLoading(false);
+              }
             }
           },
           prefill: {
@@ -429,24 +567,40 @@ const PlaceOrder: React.FC = () => {
           },
           theme: {
             color: "#3399cc",
-          },
-          modal: {
-            ondismiss: async () => {
-              toast.error("Payment cancelled");
-              logger.warn("Payment cancelled by user", { orderId });
-              // Note: Your backend doesn't have cancel endpoint, so we skip cancellation
-              setIsLoading(false);
-            },
-          },
+          }
         };
 
         const razorpay = new (window as any).Razorpay(options);
+        razorpayInstanceRef.current = razorpay;
+
         razorpay.on("payment.failed", async (response: any) => {
-          toast.error(`Payment failed: ${response.error.description}`);
-          logger.error("Payment failed", { orderId, description: response.error.description });
-          // Note: Your backend doesn't have cancel endpoint, so we skip cancellation
-          setIsLoading(false);
+          if (paymentStatusRef.current !== PaymentStatus.SUCCESS && !isPaymentCompleteRef.current) {
+            toast.error(`Payment failed: ${response.error.description}`);
+            logger.error("Payment failed", { orderId, description: response.error.description });
+            updatePaymentStatus(PaymentStatus.FAILED);
+            // Cancel the order on payment failure only if not successful
+            if (orderId) {
+              await cancelPendingOrder(orderId, `Payment failed: ${response.error.description}`);
+            }
+            setIsLoading(false);
+          }
         });
+
+        // Additional event listeners for Razorpay
+        razorpay.on("close", async () => {
+          if (paymentStatusRef.current === PaymentStatus.PENDING && !isPaymentCompleteRef.current) {
+            logger.warn("Razorpay popup closed by user", { orderId });
+            // Only cancel if payment is still pending
+            updatePaymentStatus(PaymentStatus.CANCELLED);
+            if (orderId) {
+              setTimeout(async () => {
+                await cancelPendingOrder(orderId, "Razorpay popup closed");
+                setIsLoading(false);
+              }, 1000);
+            }
+          }
+        });
+
         razorpay.open();
       }
     } catch (err: any) {

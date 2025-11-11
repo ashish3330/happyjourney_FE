@@ -48,7 +48,7 @@ interface OrderDTO {
   discountAmount: number | null;
   finalAmount: number;
   paymentStatus: "COMPLETED" | "PENDING" | "FAILED";
-  paymentMethod: "COD" | "UPI" | "CARD" | "NETBANKING";
+  paymentMethod: "COD" | "UPI" | "CARD" | "NETBANKING" | "RAZORPAY";
   razorpayOrderID: string | null;
   deliveryInstructions: string | null;
   items: OrderItemDTO[];
@@ -88,11 +88,17 @@ interface PageResponse<T> {
 }
 
 const statusConfig = {
-  PLACED: {
+
+  AWAITING_PAYMENT: {
     color: "bg-blue-50 text-blue-800",
     icon: <Clock className="w-4 h-4" />,
     label: "Order Placed",
   },
+    PLACED: {
+      color: "bg-blue-50 text-blue-800",
+      icon: <Clock className="w-4 h-4" />,
+      label: "Order Placed",
+    },
   PENDING: {
     color: "bg-amber-50 text-amber-800",
     icon: <Clock className="w-4 h-4" />,
@@ -158,6 +164,11 @@ const paymentMethodConfig = {
     color: "text-green-600",
     icon: <MdPayment className="w-5 h-5" />,
     label: "Net Banking",
+  },
+   RAZORPAY: {
+    color: "text-green-600",
+    icon: <MdPayment className="w-5 h-5" />,
+    label: "Razorpay",
   },
 };
 
@@ -360,7 +371,7 @@ const OrderHistory: React.FC = () => {
     doc.setFontSize(22);
     doc.setTextColor(30, 64, 175);
     doc.setFont("helvetica", "bold");
-    doc.text("RelSwad", pageWidth / 2, currentY, { align: "center" });
+    doc.text("HappyJourney", pageWidth / 2, currentY, { align: "center" });
     currentY += 6;
 
     doc.setFontSize(10);
