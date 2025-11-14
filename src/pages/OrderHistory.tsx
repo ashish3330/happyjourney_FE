@@ -88,17 +88,11 @@ interface PageResponse<T> {
 }
 
 const statusConfig = {
-
-  AWAITING_PAYMENT: {
+  PLACED: {
     color: "bg-blue-50 text-blue-800",
     icon: <Clock className="w-4 h-4" />,
     label: "Order Placed",
   },
-    PLACED: {
-      color: "bg-blue-50 text-blue-800",
-      icon: <Clock className="w-4 h-4" />,
-      label: "Order Placed",
-    },
   PENDING: {
     color: "bg-amber-50 text-amber-800",
     icon: <Clock className="w-4 h-4" />,
@@ -165,7 +159,7 @@ const paymentMethodConfig = {
     icon: <MdPayment className="w-5 h-5" />,
     label: "Net Banking",
   },
-   RAZORPAY: {
+  RAZORPAY: {
     color: "text-green-600",
     icon: <MdPayment className="w-5 h-5" />,
     label: "Razorpay",
@@ -184,344 +178,387 @@ const OrderHistory: React.FC = () => {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
 
-  useEffect(() => {
-    const fetchOrdersAndData = async () => {
-      if (!userId || !accessToken) {
-        setError("Authentication required. Please log in.");
+  // Safe data access functions
+  const getStatusConfig = (status: OrderDTO["orderStatus"]) => {
+    return statusConfig[status] || statusConfig.PLACED;
+  };
+
+  const getPaymentConfig = (status: OrderDTO["paymentStatus"]) => {
+    return paymentConfig[status] || paymentConfig.PENDING;
+  };
+
+  const getPaymentMethodConfig = (method: OrderDTO["paymentMethod"]) => {
+    return paymentMethodConfig[method] || paymentMethodConfig.COD;
+  };
+
+  // Format date safely
+  const formatDate = (dateString: string, forPdf = false): string => {
+    try {
+      if (!dateString) return "N/A";
+      
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+      
+      if (forPdf) {
+        return format(date, "dd MMM yyyy, hh:mm a");
+      }
+      return format(date, "PPPp");
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Date Error";
+    }
+  };
+
+  const fetchOrdersAndData = async () => {
+    if (!userId || !accessToken) {
+      setError("Authentication required. Please log in.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [activeResponse, historicalResponse] = await Promise.all([
+        api.get<PageResponse<OrderDTO>>("/orders/user/active", {
+          params: { page: 0, size: 100 },
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }),
+        api.get<PageResponse<OrderDTO>>("/orders/user/historical", {
+          params: { page: 0, size: 100 },
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }),
+      ]);
+
+      const activeOrdersData = activeResponse.data?.content || [];
+      const historicalOrdersData = historicalResponse.data?.content || [];
+      const allOrders = [...activeOrdersData, ...historicalOrdersData];
+
+      if (allOrders.length === 0) {
+        setActiveOrders([]);
+        setHistoricalOrders([]);
         setLoading(false);
         return;
       }
 
-      setLoading(true);
-      setError(null);
+      const [stationsData, itemsData, vendorsData] = await Promise.all([
+        fetchStationData(allOrders),
+        fetchItemData(allOrders),
+        fetchVendorData(allOrders),
+      ]);
 
-      try {
-        const [activeResponse, historicalResponse] = await Promise.all([
-          api.get<PageResponse<OrderDTO>>("/orders/user/active", {
-            params: { page: 0, size: 100 },
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }),
-          api.get<PageResponse<OrderDTO>>("/orders/user/historical", {
-            params: { page: 0, size: 100 },
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }),
-        ]);
+      const transformedOrders = allOrders.map((order) => ({
+        ...order,
+        items: (order.items || []).map((item) => ({
+          ...item,
+          itemName: itemsData[item.itemId]?.itemName || `Item #${item.itemId}`,
+          category: itemsData[item.itemId]?.category,
+          imageUrl: itemsData[item.itemId]?.imageUrl,
+          specialInstructions: item.specialInstructions || "No special instructions",
+        })),
+        vendorName: vendorsData[order.vendorId]?.businessName || `Vendor #${order.vendorId}`,
+        trainNumber: order.trainNumber || `${order.trainId}`,
+      }));
 
-        const activeOrdersData = activeResponse.data.content || [];
-        const historicalOrdersData = historicalResponse.data.content || [];
-        const allOrders = [...activeOrdersData, ...historicalOrdersData];
+      setActiveOrders(
+        transformedOrders.filter((o) => ["PLACED", "PENDING", "PREPARING", "DISPATCHED"].includes(o.orderStatus))
+      );
+      setHistoricalOrders(transformedOrders.filter((o) => ["DELIVERED", "CANCELLED"].includes(o.orderStatus)));
 
-        if (allOrders.length === 0) {
-          setActiveOrders([]);
-          setHistoricalOrders([]);
-          setLoading(false);
-          return;
+      setStationData(stationsData);
+      setItemData(itemsData);
+      setVendorData(vendorsData);
+    } catch (err: any) {
+      console.error("Order fetch error:", err);
+      setError(err.response?.data?.message || "Failed to fetch orders. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStationData = async (orders: OrderDTO[]) => {
+    if (!accessToken) return stationData;
+    
+    const stationIds = [...new Set(orders.map((o) => o.deliveryStationId))];
+    const existingStations = Object.keys(stationData).map(Number);
+    const newStationIds = stationIds.filter((id) => !existingStations.includes(id));
+
+    if (newStationIds.length === 0) return stationData;
+
+    try {
+      const responses = await Promise.all(
+        newStationIds.map((id) =>
+          api
+            .get<StationDTO>(`/stations/${id}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+            .catch(() => null)
+        )
+      );
+
+      const newStations = responses.reduce((acc, res, index) => {
+        if (res && res.data) {
+          acc[newStationIds[index]] = res.data;
         }
+        return acc;
+      }, {} as { [key: number]: StationDTO });
 
-        const [stationsData, itemsData, vendorsData] = await Promise.all([
-          fetchStationData(allOrders),
-          fetchItemData(allOrders),
-          fetchVendorData(allOrders),
-        ]);
+      return { ...stationData, ...newStations };
+    } catch (err) {
+      console.error("Failed to fetch some cities:", err);
+      return stationData;
+    }
+  };
 
-        const transformedOrders = allOrders.map((order) => ({
-          ...order,
-          items: order.items.map((item) => ({
-            ...item,
-            itemName: itemsData[item.itemId]?.itemName || `Item #${item.itemId}`,
-            category: itemsData[item.itemId]?.category,
-            imageUrl: itemsData[item.itemId]?.imageUrl,
-            specialInstructions: item.specialInstructions || "No special instructions",
-          })),
-          vendorName: vendorsData[order.vendorId]?.businessName || `Vendor #${order.vendorId}`,
-          trainNumber: order.trainNumber || `${order.trainId}`,
-        }));
+  const fetchItemData = async (orders: OrderDTO[]) => {
+    if (!accessToken) return itemData;
+    
+    const itemIds = [...new Set(orders.flatMap((o) => (o.items || []).map((i) => i.itemId)))];
+    const existingItems = Object.keys(itemData).map(Number);
+    const newItemIds = itemIds.filter((id) => !existingItems.includes(id));
 
-        setActiveOrders(
-          transformedOrders.filter((o) => ["PLACED", "PENDING", "PREPARING", "DISPATCHED"].includes(o.orderStatus))
-        );
-        setHistoricalOrders(transformedOrders.filter((o) => ["DELIVERED", "CANCELLED"].includes(o.orderStatus)));
+    if (newItemIds.length === 0) return itemData;
 
-        setStationData(stationsData);
-        setItemData(itemsData);
-        setVendorData(vendorsData);
-      } catch (err: any) {
-        console.error("Order fetch error:", err);
-        setError(err.response?.data?.message || "Failed to fetch orders. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const responses = await Promise.all(
+        newItemIds.map((id) =>
+          api
+            .get<MenuItemDTO>(`/menu/items/${id}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+            .catch(() => null)
+        )
+      );
 
-    const fetchStationData = async (orders: OrderDTO[]) => {
-      const stationIds = [...new Set(orders.map((o) => o.deliveryStationId))];
-      const existingStations = Object.keys(stationData).map(Number);
-      const newStationIds = stationIds.filter((id) => !existingStations.includes(id));
+      const newItems = responses.reduce((acc, res, index) => {
+        if (res && res.data) {
+          acc[newItemIds[index]] = res.data;
+        }
+        return acc;
+      }, {} as { [key: number]: MenuItemDTO });
 
-      if (newStationIds.length === 0) return stationData;
+      return { ...itemData, ...newItems };
+    } catch (err) {
+      console.error("Failed to fetch some items:", err);
+      return itemData;
+    }
+  };
 
-      try {
-        const responses = await Promise.all(
-          newStationIds.map((id) =>
-            api
-              .get<StationDTO>(`/stations/${id}`, {
-                headers: { Authorization: `Bearer ${accessToken}` },
-              })
-              .catch(() => null)
+  const fetchVendorData = async (orders: OrderDTO[]) => {
+    if (!accessToken) return vendorData;
+    
+    const vendorIds = [...new Set(orders.map((o) => o.vendorId))];
+    const existingVendors = Object.keys(vendorData).map(Number);
+    const newVendorIds = vendorIds.filter((id) => !existingVendors.includes(id));
+
+    if (newVendorIds.length === 0) return vendorData;
+
+    try {
+      const responses = await Promise.all(
+        newVendorIds.map((id) =>
+          api
+            .get<VendorDTO>(`/vendors/${id}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+            .catch(() => null)
           )
-        );
+      );
 
-        const newStations = responses.reduce((acc, res, index) => {
-          if (res && res.data) {
-            acc[newStationIds[index]] = res.data;
-          }
-          return acc;
-        }, {} as { [key: number]: StationDTO });
+      const newVendors = responses.reduce((acc, res, index) => {
+        if (res && res.data) {
+          acc[newVendorIds[index]] = res.data;
+        }
+        return acc;
+      }, {} as { [key: number]: VendorDTO });
 
-        return { ...stationData, ...newStations };
-      } catch (err) {
-        console.error("Failed to fetch some cities:", err);
-        return stationData;
-      }
-    };
+      return { ...vendorData, ...newVendors };
+    } catch (err) {
+      console.error("Failed to fetch vendors:", err);
+      return vendorData;
+    }
+  };
 
-    const fetchItemData = async (orders: OrderDTO[]) => {
-      const itemIds = [...new Set(orders.flatMap((o) => o.items.map((i) => i.itemId)))];
-      const existingItems = Object.keys(itemData).map(Number);
-      const newItemIds = itemIds.filter((id) => !existingItems.includes(id));
-
-      if (newItemIds.length === 0) return itemData;
-
-      try {
-        const responses = await Promise.all(
-          newItemIds.map((id) =>
-            api
-              .get<MenuItemDTO>(`/menu/items/${id}`, {
-                headers: { Authorization: `Bearer ${accessToken}` },
-              })
-              .catch(() => null)
-          )
-        );
-
-        const newItems = responses.reduce((acc, res, index) => {
-          if (res && res.data) {
-            acc[newItemIds[index]] = res.data;
-          }
-          return acc;
-        }, {} as { [key: number]: MenuItemDTO });
-
-        return { ...itemData, ...newItems };
-      } catch (err) {
-        console.error("Failed to fetch some items:", err);
-        return itemData;
-      }
-    };
-
-    const fetchVendorData = async (orders: OrderDTO[]) => {
-      const vendorIds = [...new Set(orders.map((o) => o.vendorId))];
-      const existingVendors = Object.keys(vendorData).map(Number);
-      const newVendorIds = vendorIds.filter((id) => !existingVendors.includes(id));
-
-      if (newVendorIds.length === 0) return vendorData;
-
-      try {
-        const responses = await Promise.all(
-          newVendorIds.map((id) =>
-            api
-              .get<VendorDTO>(`/vendors/${id}`, {
-                headers: { Authorization: `Bearer ${accessToken}` },
-              })
-              .catch(() => null)
-          )
-        );
-
-        const newVendors = responses.reduce((acc, res, index) => {
-          if (res && res.data) {
-            acc[newVendorIds[index]] = res.data;
-          }
-          return acc;
-        }, {} as { [key: number]: VendorDTO });
-
-        return { ...vendorData, ...newVendors };
-      } catch (err) {
-        console.error("Failed to fetch vendors:", err);
-        return vendorData;
-      }
-    };
-
+  useEffect(() => {
     fetchOrdersAndData();
   }, [userId, accessToken]);
 
   const generateInvoice = (order: OrderDTO) => {
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
+    try {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
 
-    // Setting up fonts and margins
-    doc.setFont("helvetica", "normal");
-    const marginLeft = 14;
-    const marginRight = 14;
-    const pageWidth = doc.internal.pageSize.width;
-    const labelColumnWidth = 100; // Width for labels (e.g., "Subtotal")
-    let currentY = 20;
+      // Setting up fonts and margins
+      doc.setFont("helvetica", "normal");
+      const marginLeft = 14;
+      const marginRight = 14;
+      const pageWidth = doc.internal.pageSize.width;
+      const labelColumnWidth = 100;
+      let currentY = 20;
 
-    // Header
-    doc.setFontSize(22);
-    doc.setTextColor(30, 64, 175);
-    doc.setFont("helvetica", "bold");
-    doc.text("HappyJourney", pageWidth / 2, currentY, { align: "center" });
-    currentY += 6;
-
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139);
-    doc.text("Food Delivery On The Go", pageWidth / 2, currentY, { align: "center" });
-    currentY += 10;
-
-    // Order Information
-    doc.setFontSize(16);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`ORDER #${order.orderId}`, marginLeft, currentY);
-    currentY += 8;
-
-    doc.setFontSize(10);
-    doc.text(`Date: ${formatDate(order.deliveryTime, true)}`, marginLeft, currentY);
-    currentY += 4;
-    doc.text(`Customer ID: ${order.customerId}`, marginLeft, currentY);
-    currentY += 4;
-    doc.text(`Customer Name: ${username || "N/A"}`, marginLeft, currentY);
-    currentY += 4;
-    doc.text(`PNR: ${order.pnrNumber || "N/A"}`, marginLeft, currentY);
-    currentY += 10;
-
-    // Delivery Information
-    doc.setFontSize(12);
-    doc.setTextColor(30, 64, 175);
-    doc.text("Delivery Information", marginLeft, currentY);
-    currentY += 6;
-
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    const station = stationData[order.deliveryStationId];
-    doc.text(
-      `City: ${station ? `${station.stationName} (${station.stationCode})` : `City #${order.deliveryStationId}`}`,
-      marginLeft,
-      currentY
-    );
-    currentY += 4;
-    doc.text(`Street Num: ${order.trainNumber || `Street Num #${order.trainId}`}`, marginLeft, currentY);
-    currentY += 4;
-    doc.text(`House Num/Floor: ${order.coachNumber}/${order.seatNumber}`, marginLeft, currentY);
-    currentY += 4;
-    doc.text(`Delivery Time: ${formatDate(order.deliveryTime, true)}`, marginLeft, currentY);
-    currentY += 4;
-    doc.text(`Vendor: ${order.vendorName || `Vendor #${order.vendorId}`}`, marginLeft, currentY);
-    currentY += 4;
-    if (order.deliveryInstructions) {
-      doc.text(`Instructions: ${order.deliveryInstructions}`, marginLeft, currentY, { maxWidth: 170 });
-      currentY += 6 + Math.ceil(doc.getTextWidth(`Instructions: ${order.deliveryInstructions}`) / 170) * 5;
-    } else {
-      currentY += 2;
-    }
-
-    // Order Items
-    doc.setFontSize(12);
-    doc.setTextColor(30, 64, 175);
-    doc.text("Order Items", marginLeft, currentY);
-    currentY += 6;
-
-    const headers = [["No.", "Item", "Qty", "Unit Price", "Total", "Notes"]];
-    const data = order.items.map((item, index) => [
-      index + 1,
-      item.itemName || `Item #${item.itemId}`,
-      item.quantity,
-      `₹${item.unitPrice.toFixed(2)}`,
-      `₹${(item.quantity * item.unitPrice).toFixed(2)}`,
-      item.specialInstructions || "-",
-    ]);
-
-    autoTable(doc, {
-      startY: currentY,
-      head: headers,
-      body: data,
-      theme: "grid",
-      headStyles: {
-        fillColor: [30, 64, 175],
-        textColor: 255,
-        fontStyle: "bold",
-        fontSize: 9,
-      },
-      columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 60 },
-        2: { cellWidth: 15 },
-        3: { cellWidth: 25 },
-        4: { cellWidth: 25 },
-        5: { cellWidth: 55 },
-      },
-      styles: {
-        fontSize: 9,
-        cellPadding: 3,
-        overflow: "linebreak",
-      },
-    });
-
-    currentY = (doc as any).lastAutoTable.finalY + 10;
-
-    // Order Summary
-    doc.setFontSize(12);
-    doc.setTextColor(30, 64, 175);
-    doc.text("Order Summary", marginLeft, currentY);
-    currentY += 6;
-
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    // Label column (left-aligned)
-    doc.text("Subtotal:", pageWidth - marginRight - labelColumnWidth, currentY);
-    doc.text(`₹${order.totalAmount.toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
-    currentY += 6;
-    doc.text("Delivery Charges:", pageWidth - marginRight - labelColumnWidth, currentY);
-    doc.text(`₹${order.deliveryCharges.toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
-    currentY += 6;
-    doc.text(`IGST (${order.taxPercentage || 5}%):`, pageWidth - marginRight - labelColumnWidth, currentY);
-    doc.text(`₹${order.taxAmount.toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
-    currentY += 6;
-    if (order.discountAmount && order.discountAmount > 0) {
-      doc.text("Discount:", pageWidth - marginRight - labelColumnWidth, currentY);
-      doc.text(`-₹${order.discountAmount.toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
+      // Header
+      doc.setFontSize(22);
+      doc.setTextColor(30, 64, 175);
+      doc.setFont("helvetica", "bold");
+      doc.text("HappyJourney", pageWidth / 2, currentY, { align: "center" });
       currentY += 6;
-    }
-    doc.setFont("helvetica", "bold");
-    doc.text("Total Amount:", pageWidth - marginRight - labelColumnWidth, currentY);
-    doc.text(`₹${order.finalAmount.toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
-    currentY += 10;
 
-    // Payment Information
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.setTextColor(30, 64, 175);
-    doc.text("Payment Information", marginLeft, currentY);
-    currentY += 6;
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Food Delivery On The Go", pageWidth / 2, currentY, { align: "center" });
+      currentY += 10;
 
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Method: ${paymentMethodConfig[order.paymentMethod].label}`, marginLeft, currentY);
-    currentY += 4;
-    doc.text(`Status: ${paymentConfig[order.paymentStatus].label}`, marginLeft, currentY);
-    currentY += 4;
-    if (order.razorpayOrderID) {
-      doc.text(`Transaction ID: ${order.razorpayOrderID}`, marginLeft, currentY);
+      // Order Information
+      doc.setFontSize(16);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`ORDER #${order.orderId}`, marginLeft, currentY);
+      currentY += 8;
+
+      doc.setFontSize(10);
+      doc.text(`Date: ${formatDate(order.deliveryTime, true)}`, marginLeft, currentY);
       currentY += 4;
+      doc.text(`Customer ID: ${order.customerId}`, marginLeft, currentY);
+      currentY += 4;
+      doc.text(`Customer Name: ${username || "N/A"}`, marginLeft, currentY);
+      currentY += 4;
+      doc.text(`PNR: ${order.pnrNumber || "N/A"}`, marginLeft, currentY);
+      currentY += 10;
+
+      // Delivery Information
+      doc.setFontSize(12);
+      doc.setTextColor(30, 64, 175);
+      doc.text("Delivery Information", marginLeft, currentY);
+      currentY += 6;
+
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      const station = stationData[order.deliveryStationId];
+      doc.text(
+        `City: ${station ? `${station.stationName} (${station.stationCode})` : `City #${order.deliveryStationId}`}`,
+        marginLeft,
+        currentY
+      );
+      currentY += 4;
+      doc.text(`Street Num: ${order.trainNumber || `Street Num #${order.trainId}`}`, marginLeft, currentY);
+      currentY += 4;
+      doc.text(`House Num/Floor: ${order.coachNumber}/${order.seatNumber}`, marginLeft, currentY);
+      currentY += 4;
+      doc.text(`Delivery Time: ${formatDate(order.deliveryTime, true)}`, marginLeft, currentY);
+      currentY += 4;
+      doc.text(`Vendor: ${order.vendorName || `Vendor #${order.vendorId}`}`, marginLeft, currentY);
+      currentY += 4;
+      if (order.deliveryInstructions) {
+        doc.text(`Instructions: ${order.deliveryInstructions}`, marginLeft, currentY, { maxWidth: 170 });
+        currentY += 6 + Math.ceil(doc.getTextWidth(`Instructions: ${order.deliveryInstructions}`) / 170) * 5;
+      } else {
+        currentY += 2;
+      }
+
+      // Order Items
+      doc.setFontSize(12);
+      doc.setTextColor(30, 64, 175);
+      doc.text("Order Items", marginLeft, currentY);
+      currentY += 6;
+
+      const headers = [["No.", "Item", "Qty", "Unit Price", "Total", "Notes"]];
+      const data = (order.items || []).map((item, index) => [
+        index + 1,
+        item.itemName || `Item #${item.itemId}`,
+        item.quantity,
+        `₹${(item.unitPrice || 0).toFixed(2)}`,
+        `₹${((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}`,
+        item.specialInstructions || "-",
+      ]);
+
+      autoTable(doc, {
+        startY: currentY,
+        head: headers,
+        body: data,
+        theme: "grid",
+        headStyles: {
+          fillColor: [30, 64, 175],
+          textColor: 255,
+          fontStyle: "bold",
+          fontSize: 9,
+        },
+        columnStyles: {
+          0: { cellWidth: 10 },
+          1: { cellWidth: 60 },
+          2: { cellWidth: 15 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 25 },
+          5: { cellWidth: 55 },
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          overflow: "linebreak",
+        },
+      });
+
+      currentY = (doc as any).lastAutoTable.finalY + 10;
+
+      // Order Summary
+      doc.setFontSize(12);
+      doc.setTextColor(30, 64, 175);
+      doc.text("Order Summary", marginLeft, currentY);
+      currentY += 6;
+
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text("Subtotal:", pageWidth - marginRight - labelColumnWidth, currentY);
+      doc.text(`₹${(order.totalAmount || 0).toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
+      currentY += 6;
+      doc.text("Delivery Charges:", pageWidth - marginRight - labelColumnWidth, currentY);
+      doc.text(`₹${(order.deliveryCharges || 0).toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
+      currentY += 6;
+      doc.text(`IGST (${order.taxPercentage || 5}%):`, pageWidth - marginRight - labelColumnWidth, currentY);
+      doc.text(`₹${(order.taxAmount || 0).toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
+      currentY += 6;
+      if (order.discountAmount && order.discountAmount > 0) {
+        doc.text("Discount:", pageWidth - marginRight - labelColumnWidth, currentY);
+        doc.text(`-₹${order.discountAmount.toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
+        currentY += 6;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text("Total Amount:", pageWidth - marginRight - labelColumnWidth, currentY);
+      doc.text(`₹${(order.finalAmount || 0).toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
+      currentY += 10;
+
+      // Payment Information
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+      doc.setTextColor(30, 64, 175);
+      doc.text("Payment Information", marginLeft, currentY);
+      currentY += 6;
+
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      const paymentMethod = getPaymentMethodConfig(order.paymentMethod);
+      doc.text(`Method: ${paymentMethod.label}`, marginLeft, currentY);
+      currentY += 4;
+      const paymentStatus = getPaymentConfig(order.paymentStatus);
+      doc.text(`Status: ${paymentStatus.label}`, marginLeft, currentY);
+      currentY += 4;
+      if (order.razorpayOrderID) {
+        doc.text(`Transaction ID: ${order.razorpayOrderID}`, marginLeft, currentY);
+        currentY += 4;
+      }
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Thank you for choosing RelSwad!", pageWidth / 2, 280, { align: "center" });
+      doc.text("For any queries, please contact support@railway.com", pageWidth / 2, 284, { align: "center" });
+
+      doc.save(`RelSwad_Invoice_${order.orderId}.pdf`);
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      alert("Failed to generate invoice. Please try again.");
     }
-
-    // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text("Thank you for choosing RelSwad!", pageWidth / 2, 280, { align: "center" });
-    doc.text("For any queries, please contact support@railway.com", pageWidth / 2, 284, { align: "center" });
-
-    doc.save(`RelSwad_Invoice_${order.orderId}.pdf`);
   };
 
   const currentOrders = useMemo(
@@ -531,14 +568,6 @@ const OrderHistory: React.FC = () => {
 
   const toggleOrderDetails = (orderId: number) => {
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
-  };
-
-  const formatDate = (dateString: string, forPdf = false) => {
-    const date = new Date(dateString);
-    if (forPdf) {
-      return format(date, "dd MMM yyyy, hh:mm a");
-    }
-    return format(date, "PPPp");
   };
 
   const getOrderProgress = (status: OrderDTO["orderStatus"]) => {
@@ -604,11 +633,16 @@ const OrderHistory: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Orders</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {activeTab === "active" ? "Your current and upcoming orders" : "Your completed order"}
+            {activeTab === "active" ? "Your current and upcoming orders" : "Your completed orders"}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => { /* fetchOrdersAndData is not defined */ }} disabled={loading}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchOrdersAndData} 
+            disabled={loading}
+          >
             {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Refresh"}
           </Button>
           <div className="inline-flex rounded-lg border border-gray-200 bg-white">
@@ -643,7 +677,7 @@ const OrderHistory: React.FC = () => {
           </div>
           <h3 className="mt-3 text-lg font-medium text-gray-900">Error loading orders</h3>
           <p className="mt-2 text-sm text-gray-500">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={() => { /* fetchOrdersAndData is not defined */ }} disabled={loading}>
+          <Button variant="outline" className="mt-4" onClick={fetchOrdersAndData} disabled={loading}>
             {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Try Again"}
           </Button>
         </div>
@@ -661,250 +695,256 @@ const OrderHistory: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {currentOrders.map((order) => (
-            <motion.div
-              key={order.orderId}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
-            >
-              <div className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-lg font-semibold text-gray-900">Order #{order.orderId}</h2>
-                      <Badge variant="outline" className={`${statusConfig[order.orderStatus].color} py-1 px-2.5`}>
-                        <div className="flex items-center gap-1.5">
-                          {statusConfig[order.orderStatus].icon}
-                          <span>{statusConfig[order.orderStatus].label}</span>
-                        </div>
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1 flex items-center">
-                      <IoTime className="mr-1.5" />
-                      {formatDate(order.deliveryTime)}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1 flex items-center">
-                      <FaMapMarkerAlt className="mr-1.5" />
-                      {stationData[order.deliveryStationId]
-                        ? `${stationData[order.deliveryStationId].stationName} (${stationData[order.deliveryStationId].stationCode})`
-                        : `City #${order.deliveryStationId}`}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Total Amount</p>
-                      <p className="text-lg font-semibold flex items-center justify-end">
-                        <FaRupeeSign className="mr-1" size={14} />
-                        {order.finalAmount.toFixed(2)}
+          {currentOrders.map((order) => {
+            const statusConfig = getStatusConfig(order.orderStatus);
+            const paymentConfig = getPaymentConfig(order.paymentStatus);
+            const paymentMethodConfig = getPaymentMethodConfig(order.paymentMethod);
+            
+            return (
+              <motion.div
+                key={order.orderId}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+              >
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-lg font-semibold text-gray-900">Order #{order.orderId}</h2>
+                        <Badge variant="outline" className={`${statusConfig.color} py-1 px-2.5`}>
+                          <div className="flex items-center gap-1.5">
+                            {statusConfig.icon}
+                            <span>{statusConfig.label}</span>
+                          </div>
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1 flex items-center">
+                        <IoTime className="mr-1.5" />
+                        {formatDate(order.deliveryTime)}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1 flex items-center">
+                        <FaMapMarkerAlt className="mr-1.5" />
+                        {stationData[order.deliveryStationId]
+                          ? `${stationData[order.deliveryStationId].stationName} (${stationData[order.deliveryStationId].stationCode})`
+                          : `City #${order.deliveryStationId}`}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => toggleOrderDetails(order.orderId)}
-                      className="rounded-full"
-                    >
-                      {expandedOrderId === order.orderId ? (
-                        <IoChevronUp className="w-5 h-5" />
-                      ) : (
-                        <IoChevronDown className="w-5 h-5" />
-                      )}
-                    </Button>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Total Amount</p>
+                        <p className="text-lg font-semibold flex items-center justify-end">
+                          <FaRupeeSign className="mr-1" size={14} />
+                          {(order.finalAmount || 0).toFixed(2)}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleOrderDetails(order.orderId)}
+                        className="rounded-full"
+                      >
+                        {expandedOrderId === order.orderId ? (
+                          <IoChevronUp className="w-5 h-5" />
+                        ) : (
+                          <IoChevronDown className="w-5 h-5" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
+                  {activeTab === "active" && order.orderStatus !== "CANCELLED" && (
+                    <div className="mt-4">
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Order Placed</span>
+                        <span>{order.orderStatus === "DELIVERED" ? "Delivered" : "In Progress"}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${getOrderProgress(order.orderStatus)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                {activeTab === "active" && order.orderStatus !== "CANCELLED" && (
-                  <div className="mt-4">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
-                      <span>Order Placed</span>
-                      <span>{order.orderStatus === "DELIVERED" ? "Delivered" : "In Progress"}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${getOrderProgress(order.orderStatus)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <AnimatePresence>
-                {expandedOrderId === order.orderId && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="border-t border-gray-100 overflow-hidden"
-                  >
-                    <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <Truck className="w-5 h-5 text-blue-600" />
-                          Delivery Information
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">City</span>
-                            <span className="text-sm font-medium text-right">
-                              {stationData[order.deliveryStationId] ? (
-                                <Tooltip>
-                                  <TooltipTrigger className="text-left">
-                                    {stationData[order.deliveryStationId].stationName}
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    {stationData[order.deliveryStationId].city}, {stationData[order.deliveryStationId].state}
-                                  </TooltipContent>
-                                </Tooltip>
-                              ) : (
-                                `City #${order.deliveryStationId}`
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Street Num</span>
-                            <span className="text-sm font-medium">{order.trainNumber || `Street Num #${order.trainId}`}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">House Num/Floor</span>
-                            <span className="text-sm font-medium">
-                              {order.coachNumber}/{order.seatNumber}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Vendor</span>
-                            <span className="text-sm font-medium">{order.vendorName || `Vendor #${order.vendorId}`}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Delivery Time</span>
-                            <span className="text-sm font-medium">{formatDate(order.deliveryTime)}</span>
-                          </div>
-                          {order.deliveryInstructions && (
+                <AnimatePresence>
+                  {expandedOrderId === order.orderId && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="border-t border-gray-100 overflow-hidden"
+                    >
+                      <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                            <Truck className="w-5 h-5 text-blue-600" />
+                            Delivery Information
+                          </h3>
+                          <div className="space-y-3">
                             <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Instructions</span>
-                              <span className="text-sm font-medium text-right max-w-xs">{order.deliveryInstructions}</span>
+                              <span className="text-sm text-gray-500">City</span>
+                              <span className="text-sm font-medium text-right">
+                                {stationData[order.deliveryStationId] ? (
+                                  <Tooltip>
+                                    <TooltipTrigger className="text-left">
+                                      {stationData[order.deliveryStationId].stationName}
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      {stationData[order.deliveryStationId].city}, {stationData[order.deliveryStationId].state}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ) : (
+                                  `City #${order.deliveryStationId}`
+                                )}
+                              </span>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <MdFastfood className="w-5 h-5 text-blue-600" />
-                          Order Items ({order.items.length})
-                        </h3>
-                        <div className="border rounded-lg divide-y">
-                          {order.items.map((item) => (
-                            <div key={`${order.orderId}-${item.itemId}`} className="p-3">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Street Num</span>
+                              <span className="text-sm font-medium">{order.trainNumber || `Street Num #${order.trainId}`}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">House Num/Floor</span>
+                              <span className="text-sm font-medium">
+                                {order.coachNumber}/{order.seatNumber}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Vendor</span>
+                              <span className="text-sm font-medium">{order.vendorName || `Vendor #${order.vendorId}`}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Delivery Time</span>
+                              <span className="text-sm font-medium">{formatDate(order.deliveryTime)}</span>
+                            </div>
+                            {order.deliveryInstructions && (
                               <div className="flex justify-between">
-                                <div>
-                                  <p className="font-medium">
-                                    {item.itemName}
-                                    {item.category && (
-                                      <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                        {item.category}
-                                      </span>
+                                <span className="text-sm text-gray-500">Instructions</span>
+                                <span className="text-sm font-medium text-right max-w-xs">{order.deliveryInstructions}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                            <MdFastfood className="w-5 h-5 text-blue-600" />
+                            Order Items ({order.items?.length || 0})
+                          </h3>
+                          <div className="border rounded-lg divide-y">
+                            {(order.items || []).map((item) => (
+                              <div key={`${order.orderId}-${item.itemId}`} className="p-3">
+                                <div className="flex justify-between">
+                                  <div>
+                                    <p className="font-medium">
+                                      {item.itemName}
+                                      {item.category && (
+                                        <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                          {item.category}
+                                        </span>
+                                      )}
+                                    </p>
+                                    {item.specialInstructions && item.specialInstructions !== "No special instructions" && (
+                                      <p className="text-xs text-gray-500 mt-1">Note: {item.specialInstructions}</p>
                                     )}
-                                  </p>
-                                  {item.specialInstructions && (
-                                    <p className="text-xs text-gray-500 mt-1">Note: {item.specialInstructions}</p>
-                                  )}
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-medium flex items-center justify-end">
-                                    <FaRupeeSign className="mr-1" size={10} />
-                                    {(item.quantity * item.unitPrice).toFixed(2)}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {item.quantity} × ₹{item.unitPrice.toFixed(2)}
-                                  </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-medium flex items-center justify-end">
+                                      <FaRupeeSign className="mr-1" size={10} />
+                                      {((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {item.quantity} × ₹{(item.unitPrice || 0).toFixed(2)}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <MdPayment className="w-5 h-5 text-blue-600" />
-                          Payment Information
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Method</span>
-                            <span className="text-sm font-medium flex items-center gap-1.5">
-                              <span className={paymentMethodConfig[order.paymentMethod].color}>
-                                {paymentMethodConfig[order.paymentMethod].icon}
-                              </span>
-                              {paymentMethodConfig[order.paymentMethod].label}
-                            </span>
+                            ))}
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Status</span>
-                            <Badge variant="outline" className={`${paymentConfig[order.paymentStatus].color} py-1 px-2.5`}>
-                              <div className="flex items-center gap-1.5">
-                                {paymentConfig[order.paymentStatus].icon}
-                                <span>{paymentConfig[order.paymentStatus].label}</span>
+                        </div>
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                            <MdPayment className="w-5 h-5 text-blue-600" />
+                            Payment Information
+                          </h3>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Method</span>
+                              <span className="text-sm font-medium flex items-center gap-1.5">
+                                <span className={paymentMethodConfig.color}>
+                                  {paymentMethodConfig.icon}
+                                </span>
+                                {paymentMethodConfig.label}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Status</span>
+                              <Badge variant="outline" className={`${paymentConfig.color} py-1 px-2.5`}>
+                                <div className="flex items-center gap-1.5">
+                                  {paymentConfig.icon}
+                                  <span>{paymentConfig.label}</span>
+                                </div>
+                              </Badge>
+                            </div>
+                            {order.razorpayOrderID && (
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-500">Transaction ID</span>
+                                <span className="text-sm font-medium font-mono">{order.razorpayOrderID}</span>
                               </div>
-                            </Badge>
-                          </div>
-                          {order.razorpayOrderID && (
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Transaction ID</span>
-                              <span className="text-sm font-medium font-mono">{order.razorpayOrderID}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <FaReceipt className="w-5 h-5 text-blue-600" />
-                          Order Summary
-                        </h3>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Subtotal</span>
-                            <span className="text-sm font-medium">₹{order.totalAmount.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Delivery Charges</span>
-                            <span className="text-sm font-medium">₹{order.deliveryCharges.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Tax ({order.taxPercentage || 5}%)</span>
-                            <span className="text-sm font-medium">₹{order.taxAmount.toFixed(2)}</span>
-                          </div>
-                          {order.discountAmount && order.discountAmount > 0 && (
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Discount</span>
-                              <span className="text-sm font-medium text-green-600">
-                                -₹{order.discountAmount.toFixed(2)}
-                              </span>
-                            </div>
-                          )}
-                          <div className="pt-2 border-t border-gray-200 flex justify-between">
-                            <span className="text-base font-semibold">Total Amount</span>
-                            <span className="text-base font-semibold">₹{order.finalAmount.toFixed(2)}</span>
+                            )}
                           </div>
                         </div>
-                        <div className="pt-4 flex justify-end gap-3">
-                          <Button variant="outline" onClick={() => toggleOrderDetails(order.orderId)}>
-                            Close Details
-                          </Button>
-                          {canDownloadInvoice(order) && (
-                            <Button onClick={() => generateInvoice(order)} className="gap-2">
-                              <FaDownload className="w-4 h-4" />
-                              Download Invoice
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                            <FaReceipt className="w-5 h-5 text-blue-600" />
+                            Order Summary
+                          </h3>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Subtotal</span>
+                              <span className="text-sm font-medium">₹{(order.totalAmount || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Delivery Charges</span>
+                              <span className="text-sm font-medium">₹{(order.deliveryCharges || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">Tax ({order.taxPercentage || 5}%)</span>
+                              <span className="text-sm font-medium">₹{(order.taxAmount || 0).toFixed(2)}</span>
+                            </div>
+                            {order.discountAmount && order.discountAmount > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-500">Discount</span>
+                                <span className="text-sm font-medium text-green-600">
+                                  -₹{order.discountAmount.toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+                            <div className="pt-2 border-t border-gray-200 flex justify-between">
+                              <span className="text-base font-semibold">Total Amount</span>
+                              <span className="text-base font-semibold">₹{(order.finalAmount || 0).toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <div className="pt-4 flex justify-end gap-3">
+                            <Button variant="outline" onClick={() => toggleOrderDetails(order.orderId)}>
+                              Close Details
                             </Button>
-                          )}
+                            {canDownloadInvoice(order) && (
+                              <Button onClick={() => generateInvoice(order)} className="gap-2">
+                                <FaDownload className="w-4 h-4" />
+                                Download Invoice
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </div>
