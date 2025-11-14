@@ -693,7 +693,7 @@ const PlaceOrder: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <FormField
-                  label="Delivery Station"
+                  label="Delivery City"
                   id="deliveryStationId"
                   name="deliveryStationId"
                   value={stationDisplay}
@@ -702,7 +702,7 @@ const PlaceOrder: React.FC = () => {
                 />
               </div>
               <FormField
-                label="PNR Number"
+                label="House Number"
                 id="pnrNumber"
                 name="pnrNumber"
                 value={formData.pnrNumber}
@@ -710,7 +710,7 @@ const PlaceOrder: React.FC = () => {
                 placeholder="Enter PNR number"
               />
               <FormField
-                label="Train Number"
+                label="Floor Number"
                 id="trainNumber"
                 name="trainNumber"
                 value={formData.trainNumber}
@@ -718,7 +718,7 @@ const PlaceOrder: React.FC = () => {
                 placeholder="e.g., 12951"
               />
               <FormField
-                label="Coach Number"
+                label="Street Number"
                 id="coachNumber"
                 name="coachNumber"
                 value={formData.coachNumber}
@@ -726,7 +726,7 @@ const PlaceOrder: React.FC = () => {
                 placeholder="e.g., A1"
               />
               <FormField
-                label="Seat Number"
+                label="Pincode"
                 id="seatNumber"
                 name="seatNumber"
                 value={formData.seatNumber}
