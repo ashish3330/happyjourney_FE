@@ -554,7 +554,7 @@ const OrderHistory: React.FC = () => {
       doc.text("Thank you for choosing RelSwad!", pageWidth / 2, 280, { align: "center" });
       doc.text("For any queries, please contact support@railway.com", pageWidth / 2, 284, { align: "center" });
 
-      doc.save(`RelSwad_Invoice_${order.orderId}.pdf`);
+      doc.save(`HappyJourney_Invoice_${order.orderId}.pdf`);
     } catch (error) {
       console.error("Error generating invoice:", error);
       alert("Failed to generate invoice. Please try again.");
