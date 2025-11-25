@@ -424,7 +424,7 @@ const OrderHistory: React.FC = () => {
       currentY += 4;
       doc.text(`Customer Name: ${username || "N/A"}`, marginLeft, currentY);
       currentY += 4;
-      doc.text(`PNR: ${order.pnrNumber || "N/A"}`, marginLeft, currentY);
+      doc.text(`House Number: ${order.pnrNumber || "N/A"}`, marginLeft, currentY);
       currentY += 10;
 
       // Delivery Information
