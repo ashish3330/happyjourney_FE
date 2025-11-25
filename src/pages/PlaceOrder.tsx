@@ -707,7 +707,7 @@ const PlaceOrder: React.FC = () => {
                 name="pnrNumber"
                 value={formData.pnrNumber}
                 onChange={handleInputChange}
-                placeholder="Enter PNR number"
+                placeholder="Enter House Number"
               />
               <FormField
                 label="Floor Number"
