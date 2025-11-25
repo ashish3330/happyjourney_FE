@@ -515,7 +515,7 @@ const OrderHistory: React.FC = () => {
       doc.text("Delivery Charges:", pageWidth - marginRight - labelColumnWidth, currentY);
       doc.text(`₹${(order.deliveryCharges || 0).toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
       currentY += 6;
-      doc.text(`IGST (${order.taxPercentage || 5}%):`, pageWidth - marginRight - labelColumnWidth, currentY);
+      doc.text(`GST (${order.taxPercentage || 5}%):`, pageWidth - marginRight - labelColumnWidth, currentY);
       doc.text(`₹${(order.taxAmount || 0).toFixed(2)}`, pageWidth - marginRight, currentY, { align: "right" });
       currentY += 6;
       if (order.discountAmount && order.discountAmount > 0) {
