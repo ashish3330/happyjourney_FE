@@ -715,7 +715,7 @@ const PlaceOrder: React.FC = () => {
                 name="trainNumber"
                 value={formData.trainNumber}
                 onChange={handleInputChange}
-                placeholder="e.g., 12951"
+                placeholder="Enter Floor Number"
               />
               <FormField
                 label="Street Number"
@@ -723,7 +723,7 @@ const PlaceOrder: React.FC = () => {
                 name="coachNumber"
                 value={formData.coachNumber}
                 onChange={handleInputChange}
-                placeholder="e.g., A1"
+                placeholder="Enter Street Number"
               />
               <FormField
                 label="Pincode"
@@ -731,7 +731,7 @@ const PlaceOrder: React.FC = () => {
                 name="seatNumber"
                 value={formData.seatNumber}
                 onChange={handleInputChange}
-                placeholder="e.g., 42"
+                placeholder="Enter Pincode"
               />
               <div className="md:col-span-2">
                 <div className="p-4 bg-blue-50 rounded-lg">
