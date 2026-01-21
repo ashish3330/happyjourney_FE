@@ -68,7 +68,7 @@ const RestaurantDetail: React.FC<RestaurantDetailProps> = ({ vendorId, isViewOnl
   const isVendor = role?.toLowerCase() === "vendor";
   const isAdmin = role?.toLowerCase() === "admin";
 
-  const DOWNLOAD_ENDPOINT = "http://94.136.184.78:8080/api/files/download";
+  const DOWNLOAD_ENDPOINT = "http://164.68.110.138:8080/api/files/download";
 
   const getLogoUrl = (systemFileName: string) => {
     return `${DOWNLOAD_ENDPOINT}?systemFileName=${encodeURIComponent(systemFileName)}`;
