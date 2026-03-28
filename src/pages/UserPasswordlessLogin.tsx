@@ -187,7 +187,7 @@ const UserPasswordlessLogin: React.FC = () => {
                       message: 'Enter a valid 10-digit Indian phone number (e.g., +919876543210)',
                     },
                   })}
-                  className={`w-full px-5 py-4 border rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white placeholder-gray-400 ${
+                  className={`w-full px-5 py-4 border rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-green-600 transition-all bg-white placeholder-gray-400 ${
                     errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="+919876543210"
@@ -214,7 +214,7 @@ const UserPasswordlessLogin: React.FC = () => {
                           message: 'OTP must be 4-6 digits',
                         },
                       })}
-                      className={`w-full px-5 py-4 border rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white placeholder-gray-400 ${
+                      className={`w-full px-5 py-4 border rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-green-600 transition-all bg-white placeholder-gray-400 ${
                         errors.otp ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="Enter 4-6 digit OTP"
@@ -232,7 +232,7 @@ const UserPasswordlessLogin: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleResendOtp}
-                        className="text-orange-600 hover:underline font-medium"
+                        className="text-green-600 hover:underline font-medium"
                       >
                         Resend OTP
                       </button>
@@ -248,8 +248,8 @@ const UserPasswordlessLogin: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 className={`w-full py-4 rounded-2xl text-white font-semibold text-lg transition-all duration-300 ${
                   isSubmitting
-                    ? 'bg-orange-600/70 cursor-not-allowed'
-                    : 'bg-orange-600 hover:bg-orange-700'
+                    ? 'bg-green-600/70 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700'
                 }`}
               >
                 {isSubmitting ? (
