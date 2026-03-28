@@ -232,7 +232,7 @@ const RestaurantDetail: React.FC<RestaurantDetailProps> = ({ vendorId, isViewOnl
     return (
       <div className="max-w-6xl mx-auto p-4">
         <div className="flex justify-center items-center h-64">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -300,7 +300,7 @@ const RestaurantDetail: React.FC<RestaurantDetailProps> = ({ vendorId, isViewOnl
               {isAdmin && (
                 <Button
                   onClick={() => setIsUploadModalOpen(true)}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-teal-600 hover:bg-teal-700"
                 >
                   <Upload className="mr-2 h-4 w-4" /> Upload Excel
                 </Button>
@@ -330,7 +330,7 @@ const RestaurantDetail: React.FC<RestaurantDetailProps> = ({ vendorId, isViewOnl
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              className="text-teal-600 border-teal-200 hover:bg-teal-50"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleOpenEditModal(category.categoryId, "category");
@@ -424,7 +424,7 @@ const RestaurantDetail: React.FC<RestaurantDetailProps> = ({ vendorId, isViewOnl
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                          className="text-teal-600 border-teal-200 hover:bg-teal-50"
                                           onClick={() => handleOpenEditModal(item.itemId, "menuItem")}
                                         >
                                           <Edit className="w-4 h-4" />
@@ -493,7 +493,7 @@ const RestaurantDetail: React.FC<RestaurantDetailProps> = ({ vendorId, isViewOnl
                                             <Button
                                               variant="outline"
                                               size="sm"
-                                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                              className="text-teal-600 border-teal-200 hover:bg-teal-50"
                                               onClick={() => handleOpenEditModal(item.itemId, "menuItem")}
                                             >
                                               <Edit className="w-4 h-4" />
@@ -592,7 +592,7 @@ const RestaurantDetail: React.FC<RestaurantDetailProps> = ({ vendorId, isViewOnl
                 {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
                 {isUploading && (
                   <div className="flex justify-center">
-                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 )}
               </div>
@@ -612,7 +612,7 @@ const RestaurantDetail: React.FC<RestaurantDetailProps> = ({ vendorId, isViewOnl
                 <Button
                   onClick={handleUpload}
                   disabled={isUploading || !selectedFile}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-teal-600 hover:bg-teal-700"
                 >
                   {isUploading ? "Uploading..." : "Upload"}
                 </Button>

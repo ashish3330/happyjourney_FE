@@ -219,20 +219,20 @@ const OrdersExportDashboard: FC = () => {
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 bg-gradient-to-br from-gray-100 to-gray-200">
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-teal-600"></div>
         </div>
       )}
-      <Card className="mb-6 shadow-md border border-blue-100">
-        <CardHeader className="bg-blue-50">
-          <CardTitle className="text-xl sm:text-2xl font-bold text-blue-800">
+      <Card className="mb-6 shadow-md border border-teal-100">
+        <CardHeader className="bg-teal-50">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-teal-800">
             Orders Export Dashboard
           </CardTitle>
-          <p className="text-sm text-blue-600">Export orders based on station, vendor, and date range</p>
+          <p className="text-sm text-teal-600">Export orders based on station, vendor, and date range</p>
         </CardHeader>
       </Card>
-      <Card className="shadow-md border border-blue-100">
-        <CardHeader className="bg-blue-50">
-          <CardTitle className="text-lg font-semibold text-blue-800">Filter Orders for Export</CardTitle>
+      <Card className="shadow-md border border-teal-100">
+        <CardHeader className="bg-teal-50">
+          <CardTitle className="text-lg font-semibold text-teal-800">Filter Orders for Export</CardTitle>
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
           {error && (
@@ -242,7 +242,7 @@ const OrdersExportDashboard: FC = () => {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div>
-              <Label htmlFor="station" className="text-sm font-medium text-blue-700">
+              <Label htmlFor="station" className="text-sm font-medium text-teal-700">
                 Select Station
               </Label>
               <Select
@@ -259,7 +259,7 @@ const OrdersExportDashboard: FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="vendor" className="text-sm font-medium text-blue-700">
+              <Label htmlFor="vendor" className="text-sm font-medium text-teal-700">
                 Select Vendor
               </Label>
               <Select
@@ -274,7 +274,7 @@ const OrdersExportDashboard: FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="startDate" className="text-sm font-medium text-blue-700">
+              <Label htmlFor="startDate" className="text-sm font-medium text-teal-700">
                 Start Date
               </Label>
               <div className="mt-1">
@@ -284,7 +284,7 @@ const OrdersExportDashboard: FC = () => {
                   onChange={(date: Date | null) => setStartDate(date)}
                   maxDate={today}
                   dateFormat="yyyy-MM-dd"
-                  className="w-full text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500 rounded-md h-10 px-3"
+                  className="w-full text-sm border-teal-300 focus:border-teal-500 focus:ring-teal-500 rounded-md h-10 px-3"
                   placeholderText="Select start date"
                   showYearDropdown
                   showMonthDropdown
@@ -295,7 +295,7 @@ const OrdersExportDashboard: FC = () => {
               </div>
             </div>
             <div>
-              <Label htmlFor="endDate" className="text-sm font-medium text-blue-700">
+              <Label htmlFor="endDate" className="text-sm font-medium text-teal-700">
                 End Date
               </Label>
               <div className="mt-1">
@@ -306,7 +306,7 @@ const OrdersExportDashboard: FC = () => {
                   maxDate={today}
                   minDate={startDate || undefined}
                   dateFormat="yyyy-MM-dd"
-                  className="w-full text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500 rounded-md h-10 px-3"
+                  className="w-full text-sm border-teal-300 focus:border-teal-500 focus:ring-teal-500 rounded-md h-10 px-3"
                   placeholderText="Select end date"
                   showYearDropdown
                   showMonthDropdown
@@ -320,7 +320,7 @@ const OrdersExportDashboard: FC = () => {
           <div className="mt-4 flex justify-end">
             <Button
               onClick={handleExport}
-              className="bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
+              className="bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2"
               disabled={loading}
               aria-label="Export orders to Excel"
             >
@@ -335,8 +335,8 @@ const OrdersExportDashboard: FC = () => {
         </CardContent>
       </Card>
       <div className="flex flex-col items-center justify-center py-10">
-        <h2 className="text-lg sm:text-xl font-semibold text-blue-600">Export Orders</h2>
-        <p className="text-sm text-blue-500 mt-2">
+        <h2 className="text-lg sm:text-xl font-semibold text-teal-600">Export Orders</h2>
+        <p className="text-sm text-teal-500 mt-2">
           Select filters above and click "Export Excel" to download the orders report.
         </p>
       </div>

@@ -144,31 +144,31 @@
 //         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 //           <div className="flex items-center justify-between h-16">
 //             <div className="flex items-center space-x-2">
-//               <Utensils className="h-8 w-8 text-orange-500" />
+//               <Utensils className="h-8 w-8 text-teal-500" />
 //               <span className="text-xl font-bold text-gray-900">FoodHub</span>
 //             </div>
 //             <nav className="hidden md:flex space-x-8">
 //               <a
 //                 href="#"
-//                 className="text-gray-700 hover:text-orange-500 font-medium"
+//                 className="text-gray-700 hover:text-teal-500 font-medium"
 //               >
 //                 Home
 //               </a>
 //               <a
 //                 href="#"
-//                 className="text-gray-700 hover:text-orange-500 font-medium"
+//                 className="text-gray-700 hover:text-teal-500 font-medium"
 //               >
 //                 Restaurants
 //               </a>
 //               <a
 //                 href="#"
-//                 className="text-gray-700 hover:text-orange-500 font-medium"
+//                 className="text-gray-700 hover:text-teal-500 font-medium"
 //               >
 //                 About
 //               </a>
 //               <a
 //                 href="#"
-//                 className="text-gray-700 hover:text-orange-500 font-medium"
+//                 className="text-gray-700 hover:text-teal-500 font-medium"
 //               >
 //                 Contact
 //               </a>
@@ -178,7 +178,7 @@
 //       </header>
 
 //       {/* Hero Section */}
-//       <section className="relative bg-gradient-to-r from-orange-400 to-red-500 py-16 lg:py-24">
+//       <section className="relative bg-gradient-to-r from-teal-400 to-red-500 py-16 lg:py-24">
 //         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 //           <div className="grid lg:grid-cols-2 gap-8 items-center">
 //             <div className="text-white">
@@ -204,7 +204,7 @@
 //                 </div>
 //                 <Button
 //                   size="lg"
-//                   className="bg-white text-orange-500 hover:bg-gray-100 h-12 px-8"
+//                   className="bg-white text-teal-500 hover:bg-gray-100 h-12 px-8"
 //                 >
 //                   Search
 //                 </Button>
@@ -219,7 +219,7 @@
 //                   <Badge className="bg-green-500 text-white">
 //                     Special Offer
 //                   </Badge>
-//                   <span className="text-2xl font-bold text-orange-500">
+//                   <span className="text-2xl font-bold text-teal-500">
 //                     20% OFF
 //                   </span>
 //                 </div>
@@ -229,7 +229,7 @@
 //                 <p className="text-gray-600 text-sm mb-4">
 //                   Order now and save on your favorite fast food items
 //                 </p>
-//                 <Button className="w-full bg-orange-500 hover:bg-orange-600">
+//                 <Button className="w-full bg-teal-500 hover:bg-teal-700">
 //                   Order Now
 //                 </Button>
 //               </div>
@@ -251,7 +251,7 @@
 //                 className="text-center hover:shadow-lg transition-shadow cursor-pointer"
 //               >
 //                 <CardContent className="p-6">
-//                   <div className="text-3xl font-bold text-orange-500 mb-2">
+//                   <div className="text-3xl font-bold text-teal-500 mb-2">
 //                     {offer.discount}
 //                   </div>
 //                   <div className="text-sm text-gray-600">OFF</div>
@@ -276,7 +276,7 @@
 //               <Button
 //                 key={index}
 //                 variant="outline"
-//                 className="hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-colors"
+//                 className="hover:bg-teal-500 hover:text-white hover:border-teal-500 transition-colors"
 //               >
 //                 {category}
 //               </Button>
@@ -356,7 +356,7 @@
 //           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
 //             <div>
 //               <div className="flex items-center space-x-2 mb-4">
-//                 <Utensils className="h-8 w-8 text-orange-500" />
+//                 <Utensils className="h-8 w-8 text-teal-500" />
 //                 <span className="text-xl font-bold">FoodHub</span>
 //               </div>
 //               <p className="text-gray-400">

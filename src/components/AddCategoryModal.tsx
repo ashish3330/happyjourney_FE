@@ -145,7 +145,7 @@ const AddCategoryModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="categoryName"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.categoryName ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter category name"
                     />
                     {errors.categoryName && (
@@ -172,7 +172,7 @@ const AddCategoryModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.displayOrder ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter display order"
                     />
                     {errors.displayOrder && (

@@ -78,7 +78,7 @@ const Navbar: React.FC<NavbarProps> = ({ collapsed, setCollapsed }) => {
                 <span className="text-sm text-gray-600 hidden sm:inline">
                   Hi, {username || "User"}
                 </span>
-                <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
                     {username ? username.charAt(0).toUpperCase() : "U"}
                   </span>
@@ -101,7 +101,7 @@ const Navbar: React.FC<NavbarProps> = ({ collapsed, setCollapsed }) => {
                 <button
                   onClick={() => navigate("/login")}
                   type="button"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   Login
                 </button>

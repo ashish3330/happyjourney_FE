@@ -211,7 +211,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="itemName"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.itemName ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter item name"
                     />
                     {errors.itemName && (
@@ -236,7 +236,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="basePrice"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.basePrice ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter base price"
                     />
                     {errors.basePrice && (
@@ -261,7 +261,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="vendorPrice"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.vendorPrice ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter vendor price"
                     />
                     {errors.vendorPrice && (
@@ -285,7 +285,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="categoryId"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.categoryId ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                     >
                       <option value="" disabled>
                         Select a category
@@ -317,7 +317,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="description"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.description ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter description"
                     />
                     {errors.description && (
@@ -378,7 +378,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="preparationTimeMin"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.preparationTimeMin ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter preparation time"
                     />
                     {errors.preparationTimeMin && (
@@ -403,7 +403,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="imageUrl"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.imageUrl ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter image URL"
                     />
                     {errors.imageUrl && (
@@ -428,7 +428,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="displayOrder"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.displayOrder ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter display order"
                     />
                     {errors.displayOrder && (
@@ -453,7 +453,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="availableStartTime"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.availableStartTime ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                     />
                     {errors.availableStartTime && (
                       <p className="mt-1 text-sm text-red-600">{errors.availableStartTime.message}</p>
@@ -477,7 +477,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="availableEndTime"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.availableEndTime ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                     />
                     {errors.availableEndTime && (
                       <p className="mt-1 text-sm text-red-600">{errors.availableEndTime.message}</p>
@@ -501,7 +501,7 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                       id="itemCategory"
                       className={`mt-1 block w-full px-3 py-2 border ${
                         errors.itemCategory ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
                       placeholder="Enter item category"
                     />
                     {errors.itemCategory && (

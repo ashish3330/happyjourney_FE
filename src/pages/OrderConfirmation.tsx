@@ -40,7 +40,7 @@ const OrderConfirmation: React.FC = () => {
     return (
       <div className="max-w-7xl mx-auto p-4">
         <div className="flex justify-center items-center h-64">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -71,7 +71,7 @@ const OrderConfirmation: React.FC = () => {
           </p>
         </div>
         <Button
-          className="mt-6 bg-blue-600 hover:bg-blue-700 text-white"
+          className="mt-6 bg-teal-600 hover:bg-teal-700 text-white"
           onClick={() => navigate("/orders")}
         >
           View Orders

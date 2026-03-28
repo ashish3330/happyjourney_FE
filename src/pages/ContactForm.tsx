@@ -79,7 +79,7 @@ const ContactForm: FC = () => {
       <div className="p-4 md:p-6 max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-md overflow-hidden p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <CheckCircle className="w-5 h-5 text-blue-600" />
+            <CheckCircle className="w-5 h-5 text-teal-600" />
             <h2 className="text-xl font-semibold text-gray-800">Callback Request Submitted!</h2>
           </div>
           <div className="space-y-2">
@@ -98,7 +98,7 @@ const ContactForm: FC = () => {
           <div className="mt-6">
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
-                className="bg-blue-600 h-2.5 rounded-full animate-[progress_3s_linear_forwards]"
+                className="bg-teal-600 h-2.5 rounded-full animate-[progress_3s_linear_forwards]"
                 style={{ animationFillMode: "forwards" }}
               ></div>
             </div>
@@ -112,7 +112,7 @@ const ContactForm: FC = () => {
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       <div className="bg-white rounded-xl shadow-md overflow-hidden p-6">
         <div className="flex items-start gap-3 mb-6">
-          <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <AlertCircle className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" />
           <h2 className="text-xl font-semibold text-gray-800">Request a Callback</h2>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -127,7 +127,7 @@ const ContactForm: FC = () => {
               type="text"
               id="name"
               {...register("name")}
-              className={`mt-1 w-full p-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
+              className={`mt-1 w-full p-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all duration-200 ${
                 errors.name ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="John Doe"
@@ -151,7 +151,7 @@ const ContactForm: FC = () => {
               type="email"
               id="email"
               {...register("email")}
-              className={`mt-1 w-full p-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
+              className={`mt-1 w-full p-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all duration-200 ${
                 errors.email ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="your@email.com"
@@ -175,7 +175,7 @@ const ContactForm: FC = () => {
               type="tel"
               id="mobileNumber"
               {...register("mobileNumber")}
-              className={`mt-1 w-full p-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
+              className={`mt-1 w-full p-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all duration-200 ${
                 errors.mobileNumber ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="9876543210"
@@ -198,7 +198,7 @@ const ContactForm: FC = () => {
             <textarea
               id="message"
               {...register("message")}
-              className={`mt-1 w-full p-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
+              className={`mt-1 w-full p-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all duration-200 ${
                 errors.message ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Please provide details for your callback request..."
@@ -224,7 +224,7 @@ const ContactForm: FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 ${
+            className={`w-full bg-teal-600 text-white py-3 rounded-lg font-medium hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200 ${
               isSubmitting ? "opacity-50 cursor-not-allowed" : ""
             }`}
             aria-label="Submit callback request"

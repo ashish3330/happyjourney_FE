@@ -227,7 +227,7 @@ export default function AddStation({
                         errors.stationCode
                           ? "border-red-500"
                           : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base`}
                       placeholder="Enter City code"
                     />
                     {errors.stationCode && (
@@ -260,7 +260,7 @@ export default function AddStation({
                         errors.stationName
                           ? "border-red-500"
                           : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base`}
                       placeholder="Enter station name"
                     />
                     {errors.stationName && (
@@ -291,7 +291,7 @@ export default function AddStation({
                       id="city"
                       className={`mt-1 block w-full px-3 py-2.5 border ${
                         errors.city ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base`}
                       placeholder="Enter city"
                     />
                     {errors.city && (
@@ -322,7 +322,7 @@ export default function AddStation({
                       id="state"
                       className={`mt-1 block w-full px-3 py-2.5 border ${
                         errors.state ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base`}
                       placeholder="Enter state"
                     />
                     {errors.state && (
@@ -353,7 +353,7 @@ export default function AddStation({
                       id="pincode"
                       className={`mt-1 block w-full px-3 py-2.5 border ${
                         errors.pincode ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base`}
                       placeholder="Enter pincode"
                       maxLength={6}
                     />
@@ -385,7 +385,7 @@ export default function AddStation({
                       id="latitude"
                       className={`mt-1 block w-full px-3 py-2.5 border ${
                         errors.latitude ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base`}
                       placeholder="Enter latitude"
                       value={field.value || ""}
                       onChange={(e) =>
@@ -423,7 +423,7 @@ export default function AddStation({
                       id="longitude"
                       className={`mt-1 block w-full px-3 py-2.5 border ${
                         errors.longitude ? "border-red-500" : "border-gray-300"
-                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base`}
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base`}
                       placeholder="Enter longitude"
                       value={field.value || ""}
                       onChange={(e) =>

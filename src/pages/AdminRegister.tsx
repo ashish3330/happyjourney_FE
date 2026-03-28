@@ -95,7 +95,7 @@ const UserRegister: React.FC = () => {
               })}
               className={`w-full px-4 py-2 border ${
                 errors.email ? "border-red-500" : "border-gray-300"
-              } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              } rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500`}
             />
             {errors.email && (
               <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
@@ -128,7 +128,7 @@ const UserRegister: React.FC = () => {
                 onChange={handlePhoneInput}
                 className={`w-full pl-12 pr-4 py-2 border ${
                   errors.phoneNumber ? "border-red-500" : "border-gray-300"
-                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500`}
               />
             </div>
             {errors.phoneNumber && (
@@ -145,7 +145,7 @@ const UserRegister: React.FC = () => {
               {...register("username", { required: "Username is required" })}
               className={`w-full px-4 py-2 border ${
                 errors.username ? "border-red-500" : "border-gray-300"
-              } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              } rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500`}
             />
             {errors.username && (
               <p className="text-sm text-red-500 mt-1">{errors.username.message}</p>
@@ -162,7 +162,7 @@ const UserRegister: React.FC = () => {
                 {...register("password", { required: "Password is required" })}
                 className={`w-full px-4 py-2 border ${
                   errors.password ? "border-red-500" : "border-gray-300"
-                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500`}
               />
               <button
                 type="button"
@@ -183,7 +183,7 @@ const UserRegister: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            className="w-full bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-700 transition"
           >
             Register
           </button>
@@ -191,7 +191,7 @@ const UserRegister: React.FC = () => {
 
         <p className="mt-4 text-sm text-gray-500 text-center">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-600 hover:underline">
+          <a href="/login" className="text-teal-600 hover:underline">
             Log in
           </a>
         </p>

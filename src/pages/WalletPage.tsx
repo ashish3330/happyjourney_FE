@@ -8,10 +8,10 @@ const WalletPage = () => {
       <div className="bg-white rounded-xl shadow-md p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-700">Balance</h2>
-          <Wallet className="text-blue-600" size={24} />
+          <Wallet className="text-teal-600" size={24} />
         </div>
         <p className="text-3xl font-bold text-gray-800">₹1,250.00</p>
-        <button className="mt-4 flex items-center gap-2 text-blue-600 font-medium">
+        <button className="mt-4 flex items-center gap-2 text-teal-600 font-medium">
           <PlusCircle size={18} /> Add Money
         </button>
       </div>
@@ -27,7 +27,7 @@ const WalletPage = () => {
                 <p className="text-sm text-gray-500">•••• •••• •••• 4242</p>
               </div>
             </div>
-            <button className="w-full flex items-center justify-center gap-2 text-blue-600 font-medium p-3 border border-dashed rounded-lg">
+            <button className="w-full flex items-center justify-center gap-2 text-teal-600 font-medium p-3 border border-dashed rounded-lg">
               <PlusCircle size={18} /> Add New Payment Method
             </button>
           </div>
@@ -46,7 +46,7 @@ const WalletPage = () => {
               </div>
               <p className="font-medium text-red-500">-₹350.00</p>
             </div>
-            <button className="w-full text-center text-blue-600 font-medium">
+            <button className="w-full text-center text-teal-600 font-medium">
               View All Transactions
             </button>
           </div>

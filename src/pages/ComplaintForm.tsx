@@ -139,7 +139,7 @@ const ComplaintForm: React.FC = () => {
               name="orderId"
               value={formData.orderId}
               onChange={handleChange}
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="e.g. 12345"
               min="1"
             />
@@ -156,7 +156,7 @@ const ComplaintForm: React.FC = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="John Doe"
             />
           </div>
@@ -172,7 +172,7 @@ const ComplaintForm: React.FC = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="your@email.com"
             />
           </div>
@@ -188,7 +188,7 @@ const ComplaintForm: React.FC = () => {
               value={formData.mobileNumber}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="9876543210"
               pattern="[0-9]{10}"
               title="Please enter a 10-digit mobile number"
@@ -208,7 +208,7 @@ const ComplaintForm: React.FC = () => {
               value={formData.description}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="Please describe your complaint in detail..."
               rows={5}
             />
@@ -227,7 +227,7 @@ const ComplaintForm: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 ${
+            className={`w-full bg-teal-600 text-white py-3 rounded-lg font-medium hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200 ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >

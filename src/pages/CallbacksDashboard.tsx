@@ -199,17 +199,17 @@ const CallbacksDashboard: FC = () => {
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
       {loading ? (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-teal-600"></div>
         </div>
       ) : (
-        <Card className="w-full shadow-md border border-blue-100">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-xl sm:text-2xl font-bold text-blue-800">Callbacks Dashboard</CardTitle>
+        <Card className="w-full shadow-md border border-teal-100">
+          <CardHeader className="bg-teal-50">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-teal-800">Callbacks Dashboard</CardTitle>
           </CardHeader>
           <CardContent className="p-3 sm:p-6">
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="relative flex-1 sm:max-w-[200px]">
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-blue-400 h-4 w-4" />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-teal-400 h-4 w-4" />
                 <Input
                   ref={nameInputRef}
                   type="text"
@@ -217,7 +217,7 @@ const CallbacksDashboard: FC = () => {
                   value={nameInput}
                   onChange={handleNameChange}
                   onFocus={() => (activeInputRef.current = "name")}
-                  className="pl-8 w-full text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="pl-8 w-full text-sm border-teal-300 focus:border-teal-500 focus:ring-teal-500"
                   aria-label="Search callbacks by name"
                 />
               </div>
@@ -247,30 +247,30 @@ const CallbacksDashboard: FC = () => {
                 {isMobile ? (
                   <div className="space-y-3">
                     {listData.map((item, index) => (
-                      <Card key={item.callbackId} className="p-3 border border-blue-100">
+                      <Card key={item.callbackId} className="p-3 border border-teal-100">
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <p className="text-xs text-blue-600">Sr. No.</p>
+                            <p className="text-xs text-teal-600">Sr. No.</p>
                             <p className="font-medium text-sm truncate">{(page.current_page - 1) * page.per_page + index + 1}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-blue-600">Name</p>
+                            <p className="text-xs text-teal-600">Name</p>
                             <p className="font-medium text-sm truncate">{item.name}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-blue-600">Email</p>
+                            <p className="text-xs text-teal-600">Email</p>
                             <p className="font-medium text-sm truncate">{item.email || "N/A"}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-blue-600">Mobile</p>
+                            <p className="text-xs text-teal-600">Mobile</p>
                             <p className="font-medium text-sm truncate">{item.mobileNumber || "N/A"}</p>
                           </div>
                           <div className="col-span-2">
-                            <p className="text-xs text-blue-600">Message</p>
+                            <p className="text-xs text-teal-600">Message</p>
                             <p className="font-medium text-sm truncate">{item.message}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-blue-600">Status</p>
+                            <p className="text-xs text-teal-600">Status</p>
                             <p className="font-medium text-sm truncate">{item.status}</p>
                           </div>
                         </div>
@@ -278,7 +278,7 @@ const CallbacksDashboard: FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            className="border-teal-300 text-teal-700 hover:bg-teal-50"
                             onClick={() => handleOpenStatusModal(item.callbackId, item.status)}
                             aria-label={`Update status for callback ${item.callbackId}`}
                           >
@@ -289,21 +289,21 @@ const CallbacksDashboard: FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <table className="min-w-full divide-y divide-blue-200">
-                    <thead className="bg-blue-50">
+                  <table className="min-w-full divide-y divide-teal-200">
+                    <thead className="bg-teal-50">
                       <tr>
-                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Sr. No.</th>
-                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Name</th>
-                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Email</th>
-                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Mobile</th>
-                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Message</th>
-                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Status</th>
-                        <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Action</th>
+                        <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Sr. No.</th>
+                        <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Name</th>
+                        <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Email</th>
+                        <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Mobile</th>
+                        <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Message</th>
+                        <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Status</th>
+                        <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-blue-200">
+                    <tbody className="divide-y divide-teal-200">
                       {listData.map((item, index) => (
-                        <tr key={item.callbackId} className="hover:bg-blue-50 transition-colors">
+                        <tr key={item.callbackId} className="hover:bg-teal-50 transition-colors">
                           <td className="px-3 py-3 text-sm">{(page.current_page - 1) * page.per_page + index + 1}</td>
                           <td className="px-3 py-3 text-sm truncate max-w-[150px]">{item.name}</td>
                           <td className="px-3 py-3 text-sm truncate max-w-[200px]">{item.email || "N/A"}</td>
@@ -314,7 +314,7 @@ const CallbacksDashboard: FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              className="border-teal-300 text-teal-700 hover:bg-teal-50"
                               onClick={() => handleOpenStatusModal(item.callbackId, item.status)}
                               aria-label={`Update status for callback ${item.callbackId}`}
                             >
@@ -340,8 +340,8 @@ const CallbacksDashboard: FC = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-10">
-                <h2 className="text-lg sm:text-xl font-semibold text-blue-600">No Callbacks Found</h2>
-                <p className="text-sm text-blue-500 mt-2">Try adjusting your filters or adding new callbacks.</p>
+                <h2 className="text-lg sm:text-xl font-semibold text-teal-600">No Callbacks Found</h2>
+                <p className="text-sm text-teal-500 mt-2">Try adjusting your filters or adding new callbacks.</p>
               </div>
             )}
           </CardContent>
@@ -351,7 +351,7 @@ const CallbacksDashboard: FC = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-sm p-4">
           <DialogHeader>
-            <DialogTitle className="text-blue-800">Update Callback Status</DialogTitle>
+            <DialogTitle className="text-teal-800">Update Callback Status</DialogTitle>
           </DialogHeader>
           <Select
             options={statusOptions.filter((option) => option.value !== "")}
@@ -365,14 +365,14 @@ const CallbacksDashboard: FC = () => {
             <Button
               variant="outline"
               onClick={handleClose}
-              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              className="border-teal-300 text-teal-700 hover:bg-teal-50"
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpdateStatus}
               disabled={!selectedStatus}
-              className="bg-blue-600 text-white hover:bg-blue-700"
+              className="bg-teal-600 text-white hover:bg-teal-700"
             >
               Update
             </Button>

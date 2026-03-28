@@ -27,13 +27,13 @@ const HelpAndSupport = () => {
         <div className="flex border-b">
           <button
             onClick={() => setActiveTab("faq")}
-            className={`px-4 py-3 font-medium ${activeTab === "faq" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600"}`}
+            className={`px-4 py-3 font-medium ${activeTab === "faq" ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-600"}`}
           >
             FAQs
           </button>
           <button
             onClick={() => setActiveTab("contact")}
-            className={`px-4 py-3 font-medium ${activeTab === "contact" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600"}`}
+            className={`px-4 py-3 font-medium ${activeTab === "contact" ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-600"}`}
           >
             Contact Us
           </button>
@@ -43,7 +43,7 @@ const HelpAndSupport = () => {
           {activeTab === "faq" ? (
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <HelpCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <HelpCircle className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" />
                 <h2 className="text-xl font-semibold text-gray-800">Frequently Asked Questions</h2>
               </div>
               
@@ -76,37 +76,37 @@ const HelpAndSupport = () => {
           ) : (
             <div className="space-y-6">
               <div className="flex items-start gap-3">
-                <MessageSquare className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <MessageSquare className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" />
                 <h2 className="text-xl font-semibold text-gray-800">Contact Options</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-3">
-                    <Phone className="w-5 h-5 text-blue-600" />
+                    <Phone className="w-5 h-5 text-teal-600" />
                     <h3 className="font-medium text-gray-800">Phone Support</h3>
                   </div>
                   <p className="text-gray-600 mb-3">Available 24/7 for urgent order issues</p>
-                  <a href="tel:+917000496695" className="text-blue-600 font-medium">
+                  <a href="tel:+917000496695" className="text-teal-600 font-medium">
                   +91 70004 96695
                   </a>
                 </div>
 
                 <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-3">
-                    <Mail className="w-5 h-5 text-blue-600" />
+                    <Mail className="w-5 h-5 text-teal-600" />
                     <h3 className="font-medium text-gray-800">Email Support</h3>
                   </div>
                   <p className="text-gray-600 mb-3">Typically responds within 4 hours</p>
-                  <a href="mailto:support@relswad.in" className="text-blue-600 font-medium">
+                  <a href="mailto:support@relswad.in" className="text-teal-600 font-medium">
                     support@relswad.in
                   </a>
                 </div>
               </div>
 
-              <div className="border rounded-lg p-4 bg-blue-50">
+              <div className="border rounded-lg p-4 bg-teal-50">
                 <div className="flex items-center gap-3 mb-3">
-                  <Clock className="w-5 h-5 text-blue-600" />
+                  <Clock className="w-5 h-5 text-teal-600" />
                   <h3 className="font-medium text-gray-800">Support Hours</h3>
                 </div>
                 <p className="text-gray-600">

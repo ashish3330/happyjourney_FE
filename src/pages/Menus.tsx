@@ -222,9 +222,9 @@ const Menus = () => {
                           <label
                             className={`border rounded-md py-1 px-3 cursor-pointer ${
                               item.status === 0
-                                ? "text-blue-600 bg-blue-100"
+                                ? "text-teal-600 bg-teal-100"
                                 : item.status === 1
-                                ? "text-white bg-blue-700"
+                                ? "text-white bg-teal-700"
                                 : item.status === 2
                                 ? "text-white bg-yellow-600"
                                 : "text-green-600 bg-green-100"

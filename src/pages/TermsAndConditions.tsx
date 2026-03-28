@@ -8,7 +8,7 @@ const TermsAndConditions = () => {
       
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex items-center gap-3 mb-6">
-          <FileText className="w-8 h-8 text-blue-600" />
+          <FileText className="w-8 h-8 text-teal-600" />
           <h2 className="text-xl font-semibold text-gray-800">Terms of Service</h2>
         </div>
 

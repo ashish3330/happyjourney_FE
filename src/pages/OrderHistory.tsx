@@ -89,7 +89,7 @@ interface PageResponse<T> {
 
 const statusConfig = {
   PLACED: {
-    color: "bg-blue-50 text-blue-800",
+    color: "bg-teal-50 text-teal-800",
     icon: <Clock className="w-4 h-4" />,
     label: "Order Placed",
   },
@@ -104,7 +104,7 @@ const statusConfig = {
     label: "Preparing Your Meal",
   },
   DISPATCHED: {
-    color: "bg-orange-50 text-orange-800",
+    color: "bg-teal-50 text-teal-800",
     icon: <Truck className="w-4 h-4" />,
     label: "Order Dispatched",
   },
@@ -145,7 +145,7 @@ const paymentMethodConfig = {
     label: "Cash on Delivery",
   },
   UPI: {
-    color: "text-blue-600",
+    color: "text-teal-600",
     icon: <MdPayment className="w-5 h-5" />,
     label: "UPI Payment",
   },
@@ -650,7 +650,7 @@ const OrderHistory: React.FC = () => {
               onClick={() => setActiveTab("active")}
               className={`px-4 py-2 text-sm font-medium ${
                 activeTab === "active"
-                  ? "bg-blue-50 text-blue-600 border-blue-500 border-t-2 border-b-2"
+                  ? "bg-teal-50 text-teal-600 border-teal-500 border-t-2 border-b-2"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -660,7 +660,7 @@ const OrderHistory: React.FC = () => {
               onClick={() => setActiveTab("completed")}
               className={`px-4 py-2 text-sm font-medium ${
                 activeTab === "completed"
-                  ? "bg-blue-50 text-blue-600 border-blue-500 border-t-2 border-b-2"
+                  ? "bg-teal-50 text-teal-600 border-teal-500 border-t-2 border-b-2"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -683,8 +683,8 @@ const OrderHistory: React.FC = () => {
         </div>
       ) : currentOrders.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm p-6 text-center border border-gray-100">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-50">
-            <FaBoxOpen className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-50">
+            <FaBoxOpen className="h-6 w-6 text-teal-600" />
           </div>
           <h3 className="mt-3 text-lg font-medium text-gray-900">
             No {activeTab === "active" ? "active" : "completed"} orders found
@@ -761,7 +761,7 @@ const OrderHistory: React.FC = () => {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-blue-600 h-2 rounded-full"
+                          className="bg-teal-600 h-2 rounded-full"
                           style={{ width: `${getOrderProgress(order.orderStatus)}%` }}
                         ></div>
                       </div>
@@ -780,7 +780,7 @@ const OrderHistory: React.FC = () => {
                       <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <Truck className="w-5 h-5 text-blue-600" />
+                            <Truck className="w-5 h-5 text-teal-600" />
                             Delivery Information
                           </h3>
                           <div className="space-y-3">
@@ -829,7 +829,7 @@ const OrderHistory: React.FC = () => {
                         </div>
                         <div className="space-y-4">
                           <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <MdFastfood className="w-5 h-5 text-blue-600" />
+                            <MdFastfood className="w-5 h-5 text-teal-600" />
                             Order Items ({order.items?.length || 0})
                           </h3>
                           <div className="border rounded-lg divide-y">
@@ -865,7 +865,7 @@ const OrderHistory: React.FC = () => {
                         </div>
                         <div className="space-y-4">
                           <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <MdPayment className="w-5 h-5 text-blue-600" />
+                            <MdPayment className="w-5 h-5 text-teal-600" />
                             Payment Information
                           </h3>
                           <div className="space-y-3">
@@ -897,7 +897,7 @@ const OrderHistory: React.FC = () => {
                         </div>
                         <div className="space-y-4">
                           <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <FaReceipt className="w-5 h-5 text-blue-600" />
+                            <FaReceipt className="w-5 h-5 text-teal-600" />
                             Order Summary
                           </h3>
                           <div className="space-y-2">

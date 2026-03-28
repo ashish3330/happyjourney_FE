@@ -69,7 +69,7 @@ const WhyChooseHappyJourney: React.FC = () => {
               color: "bg-emerald-50"
             },
             {
-              icon: <FaShieldAlt className="w-6 h-6 text-blue-600 mr-2" />,
+              icon: <FaShieldAlt className="w-6 h-6 text-teal-600 mr-2" />,
               title: "Priority on Hygiene",
               description: "Enjoy secure deliveries with safe, tamper-evident packaging.",
               highlights: [
@@ -77,7 +77,7 @@ const WhyChooseHappyJourney: React.FC = () => {
                 "Temperature-regulated packaging",
                 "Street Numed delivery personnel"
               ],
-              color: "bg-blue-50"
+              color: "bg-teal-50"
             }
           ].map((item, index) => (
             <div
@@ -138,7 +138,7 @@ const WhyChooseHappyJourney: React.FC = () => {
                 step: "2"
               },
               {
-                icon: <FaUser className="w-6 h-6 text-blue-600 mr-2" />,
+                icon: <FaUser className="w-6 h-6 text-teal-600 mr-2" />,
                 title: "Dine on Your Journey",
                 description: "Get your meal delivered to your doorstep with tracking.",
                 highlights: [
@@ -177,7 +177,7 @@ const WhyChooseHappyJourney: React.FC = () => {
       </section>
 
       {/* Bulk Order Section */}
-      <section className="bg-gradient-to-r from-amber-100 to-blue-100 rounded-2xl overflow-hidden mb-14 sm:mb-20 lg:mb-28">
+      <section className="bg-gradient-to-r from-amber-100 to-teal-100 rounded-2xl overflow-hidden mb-14 sm:mb-20 lg:mb-28">
         <div className="flex flex-col sm:flex-row">
           <div className="sm:w-1/2 p-6 sm:p-8 lg:p-12">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5">Seamless Group Dining</h2>
@@ -190,7 +190,7 @@ const WhyChooseHappyJourney: React.FC = () => {
                 <span className="text-sm sm:text-base text-gray-700">10% off for orders of 10+ meals</span>
               </li>
               <li className="flex items-center">
-                <FaUsers className="w-6 h-6 text-blue-600 mr-3" />
+                <FaUsers className="w-6 h-6 text-teal-600 mr-3" />
                 <span className="text-sm sm:text-base text-gray-700">Personalized group coordinator</span>
               </li>
               <li className="flex items-center">

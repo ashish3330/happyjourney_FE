@@ -547,8 +547,8 @@ const VendorLedgerSummary: FC = () => {
         title: "Net Balance",
         value: `₹${vendorDetails.ledgerSummary.netBalance.toFixed(2)}`,
         icon: DollarSign,
-        color: "bg-gradient-to-r from-blue-600 to-blue-700",
-        textColor: "text-blue-600",
+        color: "bg-gradient-to-r from-teal-600 to-teal-700",
+        textColor: "text-teal-600",
       },
     ];
   }, [vendorDetails]);
@@ -562,7 +562,7 @@ const VendorLedgerSummary: FC = () => {
   }
 
   const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, color, textColor }) => (
-    <Card className="shadow-lg transform hover:scale-105 transition-transform duration-300 border border-blue-100">
+    <Card className="shadow-lg transform hover:scale-105 transition-transform duration-300 border border-teal-100">
       <CardContent className="p-6">
         <div className="flex items-center space-x-4">
           <div className={`p-3 rounded-full ${color}`}>
@@ -581,20 +581,20 @@ const VendorLedgerSummary: FC = () => {
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 bg-gradient-to-br from-gray-100 to-gray-200">
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-teal-600"></div>
         </div>
       )}
-      <Card className="mb-6 shadow-md border border-blue-100">
-        <CardHeader className="bg-blue-50">
-          <CardTitle className="text-xl sm:text-2xl font-bold text-blue-800">
+      <Card className="mb-6 shadow-md border border-teal-100">
+        <CardHeader className="bg-teal-50">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-teal-800">
             Vendor Ledger Summary
           </CardTitle>
-          <p className="text-sm text-blue-600">View, export, and download vendor ledger details</p>
+          <p className="text-sm text-teal-600">View, export, and download vendor ledger details</p>
         </CardHeader>
       </Card>
-      <Card className="mb-6 shadow-md border border-blue-100">
-        <CardHeader className="bg-blue-50">
-          <CardTitle className="text-lg font-semibold text-blue-800">Filter Vendor Ledger</CardTitle>
+      <Card className="mb-6 shadow-md border border-teal-100">
+        <CardHeader className="bg-teal-50">
+          <CardTitle className="text-lg font-semibold text-teal-800">Filter Vendor Ledger</CardTitle>
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
           {error && (
@@ -604,7 +604,7 @@ const VendorLedgerSummary: FC = () => {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div>
-              <Label htmlFor="station" className="text-sm font-medium text-blue-700">
+              <Label htmlFor="station" className="text-sm font-medium text-teal-700">
                 Select Station
               </Label>
               <Select
@@ -621,7 +621,7 @@ const VendorLedgerSummary: FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="vendor" className="text-sm font-medium text-blue-700">
+              <Label htmlFor="vendor" className="text-sm font-medium text-teal-700">
                 Select Vendor
               </Label>
               <Select
@@ -636,7 +636,7 @@ const VendorLedgerSummary: FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="startDate" className="text-sm font-medium text-blue-700">
+              <Label htmlFor="startDate" className="text-sm font-medium text-teal-700">
                 Start Date
               </Label>
               <div className="mt-1">
@@ -646,7 +646,7 @@ const VendorLedgerSummary: FC = () => {
                   onChange={(date: Date | null) => setStartDate(date)}
                   maxDate={today}
                   dateFormat="yyyy-MM-dd"
-                  className="w-full text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500 rounded-md h-10 px-3"
+                  className="w-full text-sm border-teal-300 focus:border-teal-500 focus:ring-teal-500 rounded-md h-10 px-3"
                   placeholderText="Select start date"
                   showYearDropdown
                   showMonthDropdown
@@ -657,7 +657,7 @@ const VendorLedgerSummary: FC = () => {
               </div>
             </div>
             <div>
-              <Label htmlFor="endDate" className="text-sm font-medium text-blue-700">
+              <Label htmlFor="endDate" className="text-sm font-medium text-teal-700">
                 End Date
               </Label>
               <div className="mt-1">
@@ -668,7 +668,7 @@ const VendorLedgerSummary: FC = () => {
                   maxDate={today}
                   minDate={startDate || undefined}
                   dateFormat="yyyy-MM-dd"
-                  className="w-full text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500 rounded-md h-10 px-3"
+                  className="w-full text-sm border-teal-300 focus:border-teal-500 focus:ring-teal-500 rounded-md h-10 px-3"
                   placeholderText="Select end date"
                   showYearDropdown
                   showMonthDropdown
@@ -682,14 +682,14 @@ const VendorLedgerSummary: FC = () => {
           <div className="mt-4 flex justify-end space-x-3">
             <Button
               onClick={handleFilterSubmit}
-              className="bg-blue-600 text-white hover:bg-blue-700"
+              className="bg-teal-600 text-white hover:bg-teal-700"
               disabled={loading}
             >
               Apply Filters
             </Button>
             <Button
               onClick={handleExport}
-              className="bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
+              className="bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2"
               disabled={loading || !selectedVendor}
               aria-label="Export vendor ledger to Excel"
             >
@@ -702,7 +702,7 @@ const VendorLedgerSummary: FC = () => {
             </Button>
             <Button
               onClick={handlePdfExport}
-              className="bg-orange-600 text-white hover:bg-orange-700 flex items-center gap-2"
+              className="bg-teal-700 text-white hover:bg-teal-800 flex items-center gap-2"
               disabled={loading || !selectedVendor}
               aria-label="Download vendor ledger as PDF"
             >
@@ -718,42 +718,42 @@ const VendorLedgerSummary: FC = () => {
       </Card>
       {vendorDetails && (
         <div>
-          <Card className="mb-6 shadow-md border border-blue-100">
-            <CardHeader className="bg-blue-50">
-              <CardTitle className="text-lg font-semibold text-blue-800">Vendor Details</CardTitle>
+          <Card className="mb-6 shadow-md border border-teal-100">
+            <CardHeader className="bg-teal-50">
+              <CardTitle className="text-lg font-semibold text-teal-800">Vendor Details</CardTitle>
             </CardHeader>
             <CardContent className="p-3 sm:p-6">
               <div className="mb-6">
-                <h2 className="text-lg font-semibold text-blue-800 mb-4">Vendor Information</h2>
+                <h2 className="text-lg font-semibold text-teal-800 mb-4">Vendor Information</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                    <p className="text-sm font-medium text-blue-700">Vendor Name</p>
-                    <p className="text-sm text-blue-600 font-semibold">{vendorDetails.vendorName}</p>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-teal-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-teal-700">Vendor Name</p>
+                    <p className="text-sm text-teal-600 font-semibold">{vendorDetails.vendorName}</p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                    <p className="text-sm font-medium text-blue-700">Business Name</p>
-                    <p className="text-sm text-blue-600 font-semibold">{vendorDetails.businessName}</p>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-teal-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-teal-700">Business Name</p>
+                    <p className="text-sm text-teal-600 font-semibold">{vendorDetails.businessName}</p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                    <p className="text-sm font-medium text-blue-700">GST Number</p>
-                    <p className="text-sm text-blue-600 font-semibold">{vendorDetails.gstNumber}</p>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-teal-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-teal-700">GST Number</p>
+                    <p className="text-sm text-teal-600 font-semibold">{vendorDetails.gstNumber}</p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                    <p className="text-sm font-medium text-blue-700">Email</p>
-                    <p className="text-sm text-blue-600">{vendorDetails.email || "N/A"}</p>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-teal-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-teal-700">Email</p>
+                    <p className="text-sm text-teal-600">{vendorDetails.email || "N/A"}</p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                    <p className="text-sm font-medium text-blue-700">Phone Number</p>
-                    <p className="text-sm text-blue-600">{vendorDetails.phoneNumber || "N/A"}</p>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-teal-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-teal-700">Phone Number</p>
+                    <p className="text-sm text-teal-600">{vendorDetails.phoneNumber || "N/A"}</p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow duration-300">
-                    <p className="text-sm font-medium text-blue-700">Address</p>
-                    <p className="text-sm text-blue-600">{vendorDetails.address || "N/A"}</p>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-teal-100 hover:shadow-md transition-shadow duration-300">
+                    <p className="text-sm font-medium text-teal-700">Address</p>
+                    <p className="text-sm text-teal-600">{vendorDetails.address || "N/A"}</p>
                   </div>
                 </div>
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-blue-800 mb-4">Ledger Summary</h2>
+                <h2 className="text-lg font-semibold text-teal-800 mb-4">Ledger Summary</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {statsCards.map((card, index) => (
                     <StatCard
@@ -769,46 +769,46 @@ const VendorLedgerSummary: FC = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="shadow-md border border-blue-100">
-            <CardHeader className="bg-blue-50">
-              <CardTitle className="text-lg font-semibold text-blue-800">Ledger Records</CardTitle>
+          <Card className="shadow-md border border-teal-100">
+            <CardHeader className="bg-teal-50">
+              <CardTitle className="text-lg font-semibold text-teal-800">Ledger Records</CardTitle>
             </CardHeader>
             <CardContent className="p-3 sm:p-6">
               {ledgerRecords.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-blue-200">
-                    <thead className="bg-blue-50">
+                  <table className="min-w-full divide-y divide-teal-200">
+                    <thead className="bg-teal-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-700 uppercase tracking-wider">
                           Order ID
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-700 uppercase tracking-wider">
                           Amount
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-700 uppercase tracking-wider">
                           Transaction Type
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-700 uppercase tracking-wider">
                           Description
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-700 uppercase tracking-wider">
                           System Balance
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-700 uppercase tracking-wider">
                           Vendor Balance
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-700 uppercase tracking-wider">
                           Created At
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-blue-200">
+                    <tbody className="bg-white divide-y divide-teal-200">
                       {ledgerRecords.map((record) => (
-                        <tr key={record.ledgerId} className="hover:bg-blue-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                        <tr key={record.ledgerId} className="hover:bg-teal-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-teal-600">
                             {record.orderId}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-teal-600">
                             ₹{record.amount.toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -822,16 +822,16 @@ const VendorLedgerSummary: FC = () => {
                               {record.transactionType}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-teal-600">
                             {record.description}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-teal-600">
                             ₹{record.systemBalance.toFixed(2)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-teal-600">
                             ₹{record.vendorBalance.toFixed(2)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-teal-600">
                             {format(new Date(record.createdAt), "yyyy-MM-dd HH:mm:ss")}
                           </td>
                         </tr>
@@ -840,7 +840,7 @@ const VendorLedgerSummary: FC = () => {
                   </table>
                 </div>
               ) : (
-                <p className="text-sm text-blue-500 text-center">
+                <p className="text-sm text-teal-500 text-center">
                   No ledger records found for the selected vendor and date range.
                 </p>
               )}
@@ -850,8 +850,8 @@ const VendorLedgerSummary: FC = () => {
       )}
       {!vendorDetails && (
         <div className="flex flex-col items-center justify-center py-10">
-          <h2 className="text-lg sm:text-xl font-semibold text-blue-600">Vendor Ledger Summary</h2>
-          <p className="text-sm text-blue-500 mt-2">
+          <h2 className="text-lg sm:text-xl font-semibold text-teal-600">Vendor Ledger Summary</h2>
+          <p className="text-sm text-teal-500 mt-2">
             Select a vendor and date range to view the ledger summary and records.
           </p>
         </div>

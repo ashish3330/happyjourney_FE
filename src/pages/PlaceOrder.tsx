@@ -113,7 +113,7 @@ const FormField: React.FC<{
       maxLength={maxLength}
       disabled={disabled}
       className={`mt-1 rounded-lg ${disabled ? "bg-gray-100 cursor-not-allowed" : ""} ${
-        error ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"
+        error ? "border-red-500 focus:ring-red-500" : "focus:ring-teal-500"
       }`}
       aria-invalid={!!error}
       aria-describedby={error ? `${id}-error` : undefined}
@@ -291,7 +291,7 @@ const PlaceOrder: React.FC = () => {
           <p className="text-gray-600 mb-6">Please select a valid vendor to continue.</p>
           <Button
             onClick={() => navigate("/vendors")}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2"
+            className="bg-teal-600 hover:bg-teal-700 text-white rounded-full px-6 py-2"
           >
             Browse Vendors
           </Button>
@@ -649,7 +649,7 @@ const PlaceOrder: React.FC = () => {
           <p className="text-gray-600 mb-6">Add some delicious items to your cart to place an order.</p>
           <Button
             onClick={() => navigate(`/vendor/${effectiveVendorId}/menu`)}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2"
+            className="bg-teal-600 hover:bg-teal-700 text-white rounded-full px-6 py-2"
           >
             Browse Menu
           </Button>
@@ -734,9 +734,9 @@ const PlaceOrder: React.FC = () => {
                 placeholder="Enter Pincode"
               />
               <div className="md:col-span-2">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="text-blue-800 font-medium">Estimated delivery: {estimatedDeliveryTime}</p>
-                  <p className="text-sm text-blue-600 mt-1">Based on vendor's preparation time</p>
+                <div className="p-4 bg-teal-50 rounded-lg">
+                  <p className="text-teal-800 font-medium">Estimated delivery: {estimatedDeliveryTime}</p>
+                  <p className="text-sm text-teal-600 mt-1">Based on vendor's preparation time</p>
                 </div>
               </div>
               <div className="md:col-span-2">
@@ -749,7 +749,7 @@ const PlaceOrder: React.FC = () => {
                   value={formData.deliveryInstructions}
                   onChange={handleInputChange}
                   placeholder="e.g., Call before delivery, special instructions"
-                  className="mt-1 rounded-lg h-24 focus:ring-blue-500"
+                  className="mt-1 rounded-lg h-24 focus:ring-teal-500"
                   aria-describedby="deliveryInstructions-desc"
                 />
                 <p id="deliveryInstructions-desc" className="text-sm text-gray-500 mt-1">
@@ -764,7 +764,7 @@ const PlaceOrder: React.FC = () => {
                   onValueChange={(value) => handleSelectChange("paymentMethod", value)}
                   value={formData.paymentMethod}
                 >
-                  <SelectTrigger className="mt-1 rounded-lg focus:ring-blue-500">
+                  <SelectTrigger className="mt-1 rounded-lg focus:ring-teal-500">
                     <SelectValue placeholder="Select Payment Method" />
                   </SelectTrigger>
                   <SelectContent className="bg-white rounded-lg shadow-lg">
@@ -805,7 +805,7 @@ const PlaceOrder: React.FC = () => {
               </div>
             </div>
             <Button
-              className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full py-3 text-lg font-semibold transition-all duration-200 flex items-center justify-center"
+              className="w-full mt-8 bg-teal-600 hover:bg-teal-700 text-white rounded-full py-3 text-lg font-semibold transition-all duration-200 flex items-center justify-center"
               onClick={handlePlaceOrder}
               disabled={isLoading || (formData.paymentMethod === "ONLINE" && !razorpayLoaded)}
               aria-busy={isLoading}

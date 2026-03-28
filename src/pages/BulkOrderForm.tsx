@@ -107,7 +107,7 @@ const BulkOrderForm: React.FC = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="Your name"
             />
           </div>
@@ -122,7 +122,7 @@ const BulkOrderForm: React.FC = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="Your email"
             />
           </div>
@@ -137,7 +137,7 @@ const BulkOrderForm: React.FC = () => {
               value={formData.phone}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="Your phone number"
             />
           </div>
@@ -155,7 +155,7 @@ const BulkOrderForm: React.FC = () => {
               value={formData.deliveryStation}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="Delivery city"
             />
           </div>
@@ -172,7 +172,7 @@ const BulkOrderForm: React.FC = () => {
               value={formData.orderDetails}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="Specify your order details (e.g., menu items)"
               rows={4}
             />
@@ -192,7 +192,7 @@ const BulkOrderForm: React.FC = () => {
               onChange={handleChange}
               required
               min="1"
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="Number of meals"
             />
           </div>
@@ -208,7 +208,7 @@ const BulkOrderForm: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 ${
+            className={`w-full bg-teal-600 text-white py-3 rounded-lg font-medium hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200 ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >

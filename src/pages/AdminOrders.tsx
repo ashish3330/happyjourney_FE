@@ -110,14 +110,14 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     if (this.state.hasError) {
       return (
         <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 bg-gradient-to-br from-gray-100 to-gray-200">
-          <Card className="shadow-md border border-blue-100">
+          <Card className="shadow-md border border-teal-100">
             <CardContent className="p-3 sm:p-6">
               <div className="text-center py-10">
                 <h2 className="text-lg sm:text-xl font-semibold text-red-600">Something went wrong</h2>
                 <p className="text-sm text-red-500 mt-2">Please refresh the page or try again later.</p>
                 <Button
                   onClick={() => window.location.reload()}
-                  className="mt-4 bg-blue-600 text-white hover:bg-blue-700"
+                  className="mt-4 bg-teal-600 text-white hover:bg-teal-700"
                 >
                   Refresh
                 </Button>
@@ -143,12 +143,12 @@ const statusConfig = {
     label: "Pending Confirmation",
   },
   PREPARING: {
-    color: "bg-blue-50 text-blue-800",
+    color: "bg-teal-50 text-teal-800",
     icon: <ChefHat className="w-4 h-4" />,
     label: "Preparing Your Meal",
   },
   DISPATCHED: {
-    color: "bg-indigo-50 text-indigo-800",
+    color: "bg-teal-50 text-teal-800",
     icon: <Truck className="w-4 h-4" />,
     label: "Dispatched",
   },
@@ -171,7 +171,7 @@ const paymentConfig = {
     label: "Payment Pending",
   },
   CAPTURED: {
-    color: "bg-blue-50 text-blue-800",
+    color: "bg-teal-50 text-teal-800",
     icon: <CheckCircle className="w-4 h-4" />,
     label: "Payment Captured",
   },
@@ -199,7 +199,7 @@ const paymentMethodConfig = {
     label: "Cash on Delivery",
   },
   UPI: {
-    color: "text-blue-600",
+    color: "text-teal-600",
     icon: <MdPayment className="w-5 h-5" />,
     label: "UPI Payment",
   },
@@ -687,20 +687,20 @@ const AdminOrders: React.FC = () => {
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 bg-gradient-to-br from-gray-100 to-gray-200">
         {loading && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-teal-600"></div>
           </div>
         )}
-        <Card className="mb-6 shadow-md border border-blue-100">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-xl sm:text-2xl font-bold text-blue-800">
+        <Card className="mb-6 shadow-md border border-teal-100">
+          <CardHeader className="bg-teal-50">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-teal-800">
               Order Management Dashboard
             </CardTitle>
-            <p className="text-sm text-blue-600">Manage active and historical orders</p>
+            <p className="text-sm text-teal-600">Manage active and historical orders</p>
           </CardHeader>
         </Card>
-        <Card className="shadow-md border border-blue-100">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-lg font-semibold text-blue-800">Filter Orders</CardTitle>
+        <Card className="shadow-md border border-teal-100">
+          <CardHeader className="bg-teal-50">
+            <CardTitle className="text-lg font-semibold text-teal-800">Filter Orders</CardTitle>
           </CardHeader>
           <CardContent className="p-3 sm:p-6">
             {error && (
@@ -710,7 +710,7 @@ const AdminOrders: React.FC = () => {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div>
-                <Label htmlFor="station" className="text-sm font-medium text-blue-700">
+                <Label htmlFor="station" className="text-sm font-medium text-teal-700">
                   Select City
                 </Label>
                 <Select
@@ -727,7 +727,7 @@ const AdminOrders: React.FC = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="vendor" className="text-sm font-medium text-blue-700">
+                <Label htmlFor="vendor" className="text-sm font-medium text-teal-700">
                   Select Vendor
                 </Label>
                 <Select
@@ -742,7 +742,7 @@ const AdminOrders: React.FC = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="startDate" className="text-sm font-medium text-blue-700">
+                <Label htmlFor="startDate" className="text-sm font-medium text-teal-700">
                   Start Date
                 </Label>
                 <div className="mt-1">
@@ -752,7 +752,7 @@ const AdminOrders: React.FC = () => {
                     onChange={(date: Date | null) => setStartDate(date)}
                     maxDate={today}
                     dateFormat="yyyy-MM-dd"
-                    className="w-full text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500 rounded-md h-10 px-3"
+                    className="w-full text-sm border-teal-300 focus:border-teal-500 focus:ring-teal-500 rounded-md h-10 px-3"
                     placeholderText="Select start date"
                     showYearDropdown
                     showMonthDropdown
@@ -763,7 +763,7 @@ const AdminOrders: React.FC = () => {
                 </div>
               </div>
               <div>
-                <Label htmlFor="endDate" className="text-sm font-medium text-blue-700">
+                <Label htmlFor="endDate" className="text-sm font-medium text-teal-700">
                   End Date
                 </Label>
                 <div className="mt-1">
@@ -774,7 +774,7 @@ const AdminOrders: React.FC = () => {
                     maxDate={today}
                     minDate={startDate || undefined}
                     dateFormat="yyyy-MM-dd"
-                    className="w-full text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-500 rounded-md h-10 px-3"
+                    className="w-full text-sm border-teal-300 focus:border-teal-500 focus:ring-teal-500 rounded-md h-10 px-3"
                     placeholderText="Select end date"
                     showYearDropdown
                     showMonthDropdown
@@ -788,7 +788,7 @@ const AdminOrders: React.FC = () => {
             <div className="mt-4 flex justify-end">
               <Button
                 onClick={fetchOrdersAndData}
-                className="bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
+                className="bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2"
                 disabled={loading}
               >
                 {loading ? (
@@ -803,14 +803,14 @@ const AdminOrders: React.FC = () => {
 
         <div className="mt-6">
           <div className="flex justify-between items-center mb-4 sm:mb-6">
-            <div className="inline-flex rounded-lg border border-blue-200 bg-blue-50">
+            <div className="inline-flex rounded-lg border border-teal-200 bg-teal-50">
               <Button
                 variant="ghost"
                 onClick={() => setActiveTab("active")}
                 className={`px-4 py-2 text-sm font-medium ${
                   activeTab === "active"
-                    ? "bg-blue-100 text-blue-800"
-                    : "text-blue-600 hover:bg-blue-100"
+                    ? "bg-teal-100 text-teal-800"
+                    : "text-teal-600 hover:bg-teal-100"
                 }`}
               >
                 Active Orders ({activeOrders.length})
@@ -820,8 +820,8 @@ const AdminOrders: React.FC = () => {
                 onClick={() => setActiveTab("completed")}
                 className={`px-4 py-2 text-sm font-medium ${
                   activeTab === "completed"
-                    ? "bg-blue-100 text-blue-800"
-                    : "text-blue-600 hover:bg-blue-100"
+                    ? "bg-teal-100 text-teal-800"
+                    : "text-teal-600 hover:bg-teal-100"
                 }`}
               >
                 Completed Orders ({historicalOrders.length})
@@ -831,11 +831,11 @@ const AdminOrders: React.FC = () => {
 
           {error && currentOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10">
-              <h2 className="text-lg sm:text-xl font-semibold text-blue-600">Error Loading Orders</h2>
-              <p className="text-sm text-blue-500 mt-2">{error}</p>
+              <h2 className="text-lg sm:text-xl font-semibold text-teal-600">Error Loading Orders</h2>
+              <p className="text-sm text-teal-500 mt-2">{error}</p>
               <Button
                 onClick={fetchOrdersAndData}
-                className="mt-4 bg-blue-600 text-white hover:bg-blue-700"
+                className="mt-4 bg-teal-600 text-white hover:bg-teal-700"
                 disabled={loading}
               >
                 {loading ? (
@@ -847,8 +847,8 @@ const AdminOrders: React.FC = () => {
             </div>
           ) : currentOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10">
-              <h2 className="text-lg sm:text-xl font-semibold text-blue-600">No Orders Found</h2>
-              <p className="text-sm text-blue-500 mt-2">
+              <h2 className="text-lg sm:text-xl font-semibold text-teal-600">No Orders Found</h2>
+              <p className="text-sm text-teal-500 mt-2">
                 {activeTab === "active"
                   ? "No active orders found. Try adjusting your filters."
                   : "No completed orders found."}
@@ -858,23 +858,23 @@ const AdminOrders: React.FC = () => {
             <div className="overflow-x-auto">
               {/* Desktop Table View */}
               <div className="hidden sm:block">
-                <table className="min-w-full divide-y divide-blue-200">
-                  <thead className="bg-blue-50">
+                <table className="min-w-full divide-y divide-teal-200">
+                  <thead className="bg-teal-50">
                     <tr>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Sr. No.</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Order ID</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Customer ID</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">City</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Vendor</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Delivery Time</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Status</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Total Amount</th>
-                      <th className="px-3 py-2 text-sm font-medium text-blue-900 text-left">Action</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Sr. No.</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Order ID</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Customer ID</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">City</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Vendor</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Delivery Time</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Status</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Total Amount</th>
+                      <th className="px-3 py-2 text-sm font-medium text-teal-900 text-left">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-blue-200">
+                  <tbody className="divide-y divide-teal-200">
                     {currentOrders.map((order, index) => (
-                      <tr key={order.orderId} className="hover:bg-blue-50 transition-colors">
+                      <tr key={order.orderId} className="hover:bg-teal-50 transition-colors">
                         <td className="px-3 py-3 text-sm">{index + 1}</td>
                         <td className="px-3 py-3 text-sm truncate max-w-[100px]">{order.orderId}</td>
                         <td className="px-3 py-3 text-sm truncate max-w-[100px]">{order.customerId}</td>
@@ -893,7 +893,7 @@ const AdminOrders: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            className="border-teal-300 text-teal-700 hover:bg-teal-50"
                             onClick={() => handleOpenDetailsModal(order)}
                             aria-label={`View details for order ${order.orderId}`}
                           >
@@ -908,40 +908,40 @@ const AdminOrders: React.FC = () => {
               {/* Mobile Card View */}
               <div className="sm:hidden space-y-3">
                 {currentOrders.map((order, index) => (
-                  <Card key={order.orderId} className="p-3 border border-blue-100">
+                  <Card key={order.orderId} className="p-3 border border-teal-100">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <p className="text-xs text-blue-600">Sr. No.</p>
+                        <p className="text-xs text-teal-600">Sr. No.</p>
                         <p className="font-medium text-sm truncate">{index + 1}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-blue-600">Order ID</p>
+                        <p className="text-xs text-teal-600">Order ID</p>
                         <p className="font-medium text-sm truncate">{order.orderId}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-blue-600">Customer ID</p>
+                        <p className="text-xs text-teal-600">Customer ID</p>
                         <p className="font-medium text-sm truncate">{order.customerId}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-blue-600">City</p>
+                        <p className="text-xs text-teal-600">City</p>
                         <p className="font-medium text-sm truncate">
                           {stationData[order.deliveryStationId]?.stationName || `City #${order.deliveryStationId}`}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-blue-600">Vendor</p>
+                        <p className="text-xs text-teal-600">Vendor</p>
                         <p className="font-medium text-sm truncate">{order.vendorName || "Unknown"}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-blue-600">Delivery Time</p>
+                        <p className="text-xs text-teal-600">Delivery Time</p>
                         <p className="font-medium text-sm truncate">{formatDate(order.deliveryTime)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-blue-600">Status</p>
+                        <p className="text-xs text-teal-600">Status</p>
                         <p className="font-medium text-sm truncate">{statusConfig[order.orderStatus]?.label || "Unknown"}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-blue-600">Total</p>
+                        <p className="text-xs text-teal-600">Total</p>
                         <p className="font-medium text-sm truncate">₹{(order.finalAmount || 0).toFixed(2)}</p>
                       </div>
                     </div>
@@ -949,7 +949,7 @@ const AdminOrders: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                        className="border-teal-300 text-teal-700 hover:bg-teal-50"
                         onClick={() => handleOpenDetailsModal(order)}
                         aria-label={`View details for order ${order.orderId}`}
                       >
@@ -965,12 +965,12 @@ const AdminOrders: React.FC = () => {
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto p-4">
               <DialogHeader>
-                <DialogTitle className="text-blue-800 text-lg">Order Details</DialogTitle>
+                <DialogTitle className="text-teal-800 text-lg">Order Details</DialogTitle>
               </DialogHeader>
               {selectedOrder && (
                 <div className="space-y-2 text-xs">
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                    <div className="font-semibold text-teal-700 flex items-center gap-1">
                       <Truck className="w-3 h-3" /> Order Info
                     </div>
                     <div></div>
@@ -979,7 +979,7 @@ const AdminOrders: React.FC = () => {
                     <p><strong>Status:</strong> {statusConfig[selectedOrder.orderStatus]?.label || "Unknown"}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                    <div className="font-semibold text-teal-700 flex items-center gap-1">
                       <FaMapMarkerAlt className="w-3 h-3" /> Delivery Info
                     </div>
                     <div></div>
@@ -993,11 +993,11 @@ const AdminOrders: React.FC = () => {
                     )}
                   </div>
                   <div className="space-y-1">
-                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                    <div className="font-semibold text-teal-700 flex items-center gap-1">
                       <MdFastfood className="w-3 h-3" /> Items ({(selectedOrder.items || []).length})
                     </div>
                     {(selectedOrder.items || []).map((item) => (
-                      <div key={item.itemId} className="border-t border-blue-100 pt-1 grid grid-cols-2 gap-2">
+                      <div key={item.itemId} className="border-t border-teal-100 pt-1 grid grid-cols-2 gap-2">
                         <p><strong>Name:</strong> {item.itemName || `Item #${item.itemId}`}</p>
                         <p><strong>Qty:</strong> {item.quantity} × ₹{(item.unitPrice || 0).toFixed(2)}</p>
                         <p><strong>Total:</strong> ₹{((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}</p>
@@ -1008,7 +1008,7 @@ const AdminOrders: React.FC = () => {
                     ))}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                    <div className="font-semibold text-teal-700 flex items-center gap-1">
                       <MdPayment className="w-3 h-3" /> Payment Info
                     </div>
                     <div></div>
@@ -1019,7 +1019,7 @@ const AdminOrders: React.FC = () => {
                     )}
                     {selectedOrder.paymentMethod === "COD" && selectedOrder.paymentStatus !== "COMPLETED" && activeTab === "active" && (
                       <div className="col-span-2 mt-1">
-                        <Label htmlFor={`cod-status-${selectedOrder.orderId}`} className="text-xs text-blue-700">
+                        <Label htmlFor={`cod-status-${selectedOrder.orderId}`} className="text-xs text-teal-700">
                           Update COD Payment
                         </Label>
                         <div className="flex gap-2 mt-1">
@@ -1054,14 +1054,14 @@ const AdminOrders: React.FC = () => {
                                 [selectedOrder.orderId]: e.target.value,
                               }))
                             }
-                            className="max-w-[160px] text-xs border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                            className="max-w-[160px] text-xs border-teal-300 focus:border-teal-500 focus:ring-teal-500"
                           />
                         </div>
                       </div>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="font-semibold text-blue-700 flex items-center gap-1">
+                    <div className="font-semibold text-teal-700 flex items-center gap-1">
                       <FaRupeeSign className="w-3 h-3" /> Order Summary
                     </div>
                     <div></div>
@@ -1075,7 +1075,7 @@ const AdminOrders: React.FC = () => {
                   </div>
                   {activeTab === "active" && selectedOrder && getAvailableStatuses(selectedOrder.orderStatus).length > 0 && (
                     <div className="mt-1 col-span-2">
-                      <Label htmlFor={`order-status-${selectedOrder.orderId}`} className="text-xs text-blue-700">
+                      <Label htmlFor={`order-status-${selectedOrder.orderId}`} className="text-xs text-teal-700">
                         Update Order Status
                       </Label>
                       <div className="flex gap-2 mt-1">
@@ -1110,7 +1110,7 @@ const AdminOrders: React.FC = () => {
                               [selectedOrder.orderId]: e.target.value,
                             }))
                           }
-                          className="max-w-[160px] text-xs border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                          className="max-w-[160px] text-xs border-teal-300 focus:border-teal-500 focus:ring-teal-500"
                         />
                       </div>
                     </div>
@@ -1121,7 +1121,7 @@ const AdminOrders: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={handleClose}
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs"
+                  className="border-teal-300 text-teal-700 hover:bg-teal-50 text-xs"
                 >
                   Close
                 </Button>

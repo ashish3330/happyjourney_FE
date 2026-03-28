@@ -124,7 +124,7 @@ const PaymentConfirmation: React.FC = () => {
           <p className="text-gray-600 mb-6">{error || "Order not found."}</p>
           <Button
             onClick={() => navigate("/order-history")}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2"
+            className="bg-teal-600 hover:bg-teal-700 text-white rounded-full px-6 py-2"
           >
             View Order History
           </Button>
@@ -185,7 +185,7 @@ const PaymentConfirmation: React.FC = () => {
           <div className="flex gap-4">
             <Button
               onClick={handleDownloadInvoice}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2"
+              className="bg-teal-600 hover:bg-teal-700 text-white rounded-full px-6 py-2"
             >
               Download Invoice
             </Button>

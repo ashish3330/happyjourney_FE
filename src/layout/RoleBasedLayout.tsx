@@ -1,37 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import VendorSidebar from "../components/VendorSidebar";
-import UserSidebar from "../components/UserSidebar";
 import Navbar from "../components/Navbar";
+import UserNavbar from "../components/UserNavbar";
 import { useAuth } from "../contexts/AuthContext";
 
 const RoleBasedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { role, userId } = useAuth();
+  const { role } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const navbarRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  console.log("RoleBasedLayout rendering, role:", role, "userId:", userId); // Debug
+  const isUserRole = !role || role.toLowerCase() === "user";
 
   const renderSidebar = () => {
-    if (!role) {
-      console.warn("No role defined, skipping sidebar render");
-      return null;
-    }
-    switch (role.toLowerCase()) {
+    if (isUserRole) return null;
+    switch (role!.toLowerCase()) {
       case "admin":
         return <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} ref={sidebarRef} className="sidebar-admin" />;
       case "vendor":
         return <VendorSidebar collapsed={collapsed} setCollapsed={setCollapsed} ref={sidebarRef} className="sidebar-vendor" />;
-      case "user":
-        return <UserSidebar collapsed={collapsed} setCollapsed={setCollapsed} ref={sidebarRef} className="sidebar-user" />;
       default:
-        console.warn("No sidebar for role:", role);
         return null;
     }
   };
 
   useEffect(() => {
+    if (isUserRole) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (window.innerWidth < 768 && !collapsed) {
         if (
@@ -44,11 +39,21 @@ const RoleBasedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         }
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [collapsed]);
+  }, [collapsed, isUserRole]);
 
+  // User/guest: full-width layout with top navbar
+  if (isUserRole) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <UserNavbar />
+        <main className="flex-1">{children}</main>
+      </div>
+    );
+  }
+
+  // Admin/Vendor: sidebar + top navbar layout
   return (
     <div className="flex h-screen overflow-hidden">
       {renderSidebar()}

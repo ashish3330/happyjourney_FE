@@ -7,7 +7,7 @@ const ShippingPolicy = () => {
       
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex items-center gap-3 mb-6">
-          <Truck className="w-8 h-8 text-blue-600" />
+          <Truck className="w-8 h-8 text-teal-600" />
           <h2 className="text-xl font-semibold text-gray-800">Food Delivery to Your Doorstep</h2>
         </div>
 

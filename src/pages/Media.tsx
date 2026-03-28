@@ -114,12 +114,12 @@ export default function MediaFilesUI() {
           {/* Controls */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-3">
-              <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+              <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white">
                 <option>Select Action</option>
                 <option>Delete Selected</option>
                 <option>Move to Folder</option>
               </select>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              <button className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                 Apply
               </button>
             </div>
@@ -132,19 +132,19 @@ export default function MediaFilesUI() {
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 w-64"
                 />
               </div>
               <select
                 value={searchBy}
                 onChange={(e) => setSearchBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white"
               >
                 <option>Search By User ID</option>
                 <option>Search By Directory</option>
                 <option>Search By Date</option>
               </select>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              <button className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                 Search
               </button>
             </div>
@@ -164,7 +164,7 @@ export default function MediaFilesUI() {
                           if (input) input.indeterminate = isIndeterminate;
                         }}
                         onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                       />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -200,23 +200,23 @@ export default function MediaFilesUI() {
                           onChange={(e) =>
                             handleSelectFile(file.id, e.target.checked)
                           }
-                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                         />
                       </td>
                       <td className="px-6 py-4">
                         <div className="w-16 h-12 bg-gray-200 rounded-lg overflow-hidden">
-                          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
-                            <FileText className="w-6 h-6 text-indigo-500" />
+                          <div className="w-full h-full bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-teal-500" />
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-indigo-600 font-medium hover:text-indigo-800 cursor-pointer">
+                        <span className="text-teal-600 font-medium hover:text-teal-800 cursor-pointer">
                           {file.userId}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-indigo-600 hover:text-indigo-800 cursor-pointer text-sm">
+                        <span className="text-teal-600 hover:text-teal-800 cursor-pointer text-sm">
                           {file.url}
                         </span>
                       </td>
@@ -247,7 +247,7 @@ export default function MediaFilesUI() {
               <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                 Previous
               </button>
-              <button className="px-3 py-2 bg-indigo-600 text-white rounded-lg">
+              <button className="px-3 py-2 bg-teal-600 text-white rounded-lg">
                 1
               </button>
               <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">

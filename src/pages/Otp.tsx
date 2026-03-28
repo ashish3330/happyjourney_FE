@@ -40,7 +40,7 @@ const OtpVerification: React.FC = () => {
           maxLength={6}
           value={otp}
           onChange={(e) => setOtp(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-center tracking-widest text-lg"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 text-center tracking-widest text-lg"
         />
         {error && (
           <p className="text-sm text-red-500 mt-2 text-center">{error}</p>
@@ -48,7 +48,7 @@ const OtpVerification: React.FC = () => {
 
         <button
           onClick={handleVerify}
-          className="w-full bg-blue-600 text-white mt-6 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="w-full bg-teal-600 text-white mt-6 py-2 rounded-lg hover:bg-teal-700 transition"
         >
           Verify OTP
         </button>

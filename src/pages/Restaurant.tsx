@@ -212,7 +212,7 @@ const Restaurant: FC = () => {
                 <input
                   type="text"
                   id="searchName"
-                  className="w-full p-2.5 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2.5 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Search by business name..."
                   value={searchName}
                   onChange={handleSearchNameChange}
@@ -225,7 +225,7 @@ const Restaurant: FC = () => {
                 <input
                   type="text"
                   id="searchStationCode"
-                  className="w-full p-2.5 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2.5 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Search by station code..."
                   value={searchStationCode}
                   onChange={handleSearchStationCodeChange}
@@ -234,7 +234,7 @@ const Restaurant: FC = () => {
               <select
                 value={page.per_page}
                 onChange={handlePageSizeChange}
-                className="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 text-sm focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 text-sm focus:ring-2 focus:ring-teal-500"
               >
                 <option value={10}>10 Records</option>
                 <option value={25}>25 Records</option>
@@ -244,7 +244,7 @@ const Restaurant: FC = () => {
           </div>
           <Button
             onClick={handleOpenAddModal}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 w-full sm:w-auto shadow-md"
+            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg px-4 py-2 w-full sm:w-auto shadow-md"
           >
             <Plus className="size-5" />
             Add Vendor
@@ -322,7 +322,7 @@ const Restaurant: FC = () => {
                             {item.isVeg ? (
                               <Leaf className="w-5 h-5 text-green-500" />
                             ) : (
-                              <Flame className="w-5 h-5 text-orange-500" />
+                              <Flame className="w-5 h-5 text-teal-500" />
                             )}
                             <span>{item.isVeg ? "Veg" : "Non-Veg"}</span>
                           </div>
@@ -344,7 +344,7 @@ const Restaurant: FC = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleOpenEditModal(item.vendorId)}
-                              className="p-2 text-blue-600 hover:bg-blue-50"
+                              className="p-2 text-teal-600 hover:bg-teal-50"
                             >
                               <Edit className="w-5 h-5" />
                             </Button>
@@ -401,7 +401,7 @@ const Restaurant: FC = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => handleOpenEditModal(item.vendorId)}
-                            className="p-2 text-blue-600 hover:bg-blue-50"
+                            className="p-2 text-teal-600 hover:bg-teal-50"
                           >
                             <Edit className="w-5 h-5" />
                           </Button>
@@ -452,7 +452,7 @@ const Restaurant: FC = () => {
                             {item.isVeg ? (
                               <Leaf className="w-4 h-4 text-green-500" />
                             ) : (
-                              <Flame className="w-4 h-4 text-orange-500" />
+                              <Flame className="w-4 h-4 text-teal-500" />
                             )}
                             <span>{item.isVeg ? "Veg" : "Non-Veg"}</span>
                           </div>

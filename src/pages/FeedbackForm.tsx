@@ -46,7 +46,7 @@ const FeedbackForm: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gray-100 justify-center items-center p-4 sm:p-6">
       <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md">
-        <h2 className="text-2xl sm:text-3xl font-bold text-blue-600 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-teal-600 mb-6">
           Share Your Feedback
         </h2>
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -62,7 +62,7 @@ const FeedbackForm: React.FC = () => {
                   onClick={() => handleRatingChange(star)}
                   onMouseEnter={() => setHoveredStar(star)}
                   onMouseLeave={() => setHoveredStar(null)}
-                  className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
+                  className="focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 rounded-full"
                   aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
                 >
                   <Star
@@ -93,7 +93,7 @@ const FeedbackForm: React.FC = () => {
               name="comments"
               value={formData.comments}
               onChange={handleChange}
-              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="mt-1 w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
               placeholder="Share your thoughts with us..."
               rows={5}
             />
@@ -139,7 +139,7 @@ const FeedbackForm: React.FC = () => {
           <button
             type="submit"
             disabled={loading || formData.rating === 0}
-            className={`w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 ${
+            className={`w-full bg-teal-600 text-white py-3 rounded-lg font-medium hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200 ${
               loading || formData.rating === 0 ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >

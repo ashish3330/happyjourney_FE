@@ -45,7 +45,7 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
           {/* Brand Section */}
           <div className="lg:col-span-5 space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-2xl">🍛</span>
               </div>
               <h2 className="text-3xl font-bold tracking-tight">{config.brandName}</h2>
@@ -110,7 +110,7 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
             <div className="space-y-5 text-gray-400">
               <div className="flex gap-4">
                 <div className="mt-1">
-                  <Phone className="h-5 w-5 text-orange-500" />
+                  <Phone className="h-5 w-5 text-teal-500" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Call Us</p>
@@ -125,7 +125,7 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
 
               <div className="flex gap-4">
                 <div className="mt-1">
-                  <Mail className="h-5 w-5 text-orange-500" />
+                  <Mail className="h-5 w-5 text-teal-500" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Email Us</p>
@@ -140,7 +140,7 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
 
               <div className="flex gap-4">
                 <div className="mt-1">
-                  <MapPin className="h-5 w-5 text-orange-500" />
+                  <MapPin className="h-5 w-5 text-teal-500" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Visit Us</p>
