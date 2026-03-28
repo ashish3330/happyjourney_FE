@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import api from "@/utils/axios";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, Clock, ShoppingBag, CreditCard, Banknote, ShoppingCart } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Define interfaces
 interface CartItem {
@@ -167,6 +168,7 @@ const PlaceOrder: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const maxRetries = 3;
 
   // Refs to track payment status and prevent unwanted cancellations
@@ -452,8 +454,14 @@ const PlaceOrder: React.FC = () => {
     setCartSummary(null);
     setPendingOrderId(null);
     cleanupRazorpay();
-    toast.success("🎉 Payment successful! Your order is confirmed!", { duration: 3000 });
-    navigate("/order-history");
+    // Clear global cart
+    localStorage.removeItem("cartCount");
+    localStorage.removeItem("cartTotal");
+    localStorage.removeItem("cartVendorId");
+    window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count: 0, total: 0, vendorId: null } }));
+    // Show animated success overlay, then navigate
+    setShowSuccess(true);
+    setTimeout(() => navigate("/order-history"), 2800);
   }, [updatePaymentStatus, cleanupRazorpay, navigate]);
 
   // Place order handler
@@ -665,6 +673,82 @@ const PlaceOrder: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f8f9fb]">
+
+      {/* ── Order success overlay ── */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.05 }}
+              className="bg-white rounded-3xl px-10 py-12 flex flex-col items-center text-center shadow-2xl mx-4 max-w-sm w-full"
+            >
+              {/* Animated circle + checkmark */}
+              <div className="relative w-24 h-24 mb-6">
+                <motion.svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                  <circle cx="50" cy="50" r="44" fill="none" stroke="#f0fdf4" strokeWidth="8" />
+                  <motion.circle
+                    cx="50" cy="50" r="44"
+                    fill="none" stroke="#16a34a" strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={276}
+                    initial={{ strokeDashoffset: 276 }}
+                    animate={{ strokeDashoffset: 0 }}
+                    transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+                  />
+                </motion.svg>
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.6 }}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <svg viewBox="0 0 52 52" className="w-12 h-12">
+                    <motion.path
+                      fill="none" stroke="#16a34a" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"
+                      d="M14 27 l9 9 l16 -18"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.4, ease: "easeOut", delay: 0.65 }}
+                    />
+                  </svg>
+                </motion.div>
+              </div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.75 }}
+                className="text-2xl font-extrabold text-gray-900"
+              >
+                Order Placed!
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.85 }}
+                className="text-gray-500 text-sm mt-2"
+              >
+                Your food is being prepared 🍽️
+              </motion.p>
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 2.5, ease: "linear", delay: 0.3 }}
+                style={{ originX: 0 }}
+                className="mt-6 h-1 w-full bg-teal-500 rounded-full"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Sticky Page Header */}
       <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center">

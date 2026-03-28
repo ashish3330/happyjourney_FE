@@ -146,19 +146,19 @@ const UserPasswordlessLogin: React.FC = () => {
           <p className="text-white/70 text-sm tracking-wide">Fresh. Hot. Delivered to your door.</p>
         </div>
 
-        {/* Desktop: left-aligned full content */}
-        <div className="hidden lg:flex relative z-10 h-full flex-col px-10 py-10 justify-between">
+        {/* Desktop: centered content */}
+        <div className="hidden lg:flex relative z-10 h-full flex-col items-center justify-between py-10 text-center">
           <img src={HappyJourneyLogoDark} alt="HappyJourney" className="h-14 w-auto object-contain" />
 
-          <div>
-            <h2 className="text-[2.6rem] font-extrabold text-white leading-[1.15] tracking-tight">
-              Your next<br />meal is just<br />a tap away.
+          <div className="flex flex-col items-center">
+            <h2 className="text-4xl font-extrabold text-white leading-[1.2] tracking-tight max-w-xs">
+              Fresh meals, delivered sizzling hot.
             </h2>
-            <p className="mt-4 text-white/60 text-[15px] leading-relaxed max-w-xs">
-              Fresh, hot food delivered right to your doorstep across India.
+            <p className="mt-4 text-white/60 text-sm leading-relaxed max-w-[240px]">
+              Hot food at your doorstep across 400+ cities in India.
             </p>
 
-            <div className="mt-10 space-y-5">
+            <div className="mt-10 space-y-4 text-left">
               {[
                 { icon: '🍽️', title: '500+ Partner Restaurants', sub: 'Curated local & cloud kitchens' },
                 { icon: '📍', title: '400+ Cities Covered',       sub: 'Pan-India delivery network'    },

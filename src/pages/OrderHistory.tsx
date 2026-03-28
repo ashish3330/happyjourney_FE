@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  FaRupeeSign,
   FaDownload,
   FaMapMarkerAlt,
   FaReceipt,
@@ -15,9 +14,6 @@ import api from "@/utils/axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 
 interface OrderItemDTO {
@@ -570,56 +566,43 @@ const OrderHistory: React.FC = () => {
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
   };
 
-  const getOrderProgress = (status: OrderDTO["orderStatus"]) => {
-    switch (status) {
-      case "PLACED":
-        return 20;
-      case "PENDING":
-        return 40;
-      case "PREPARING":
-        return 70;
-      case "DISPATCHED":
-        return 85;
-      case "DELIVERED":
-        return 100;
-      case "CANCELLED":
-        return 0;
-      default:
-        return 0;
-    }
-  };
-
   const canDownloadInvoice = (order: OrderDTO) => {
     return order.orderStatus === "DELIVERED" || order.paymentStatus === "COMPLETED";
   };
 
+  const STEPS = ["Placed", "Confirmed", "Preparing", "On the Way", "Delivered"];
+  const stepIndex: Record<string, number> = {
+    PLACED: 0, PENDING: 1, PREPARING: 2, DISPATCHED: 3, DELIVERED: 4, CANCELLED: -1,
+  };
+
+  const borderColor = (status: OrderDTO["orderStatus"]) => {
+    if (status === "DELIVERED") return "border-l-green-500";
+    if (status === "CANCELLED") return "border-l-red-400";
+    return "border-l-teal-500";
+  };
+
+  const totalSpent = historicalOrders
+    .filter((o) => o.orderStatus === "DELIVERED")
+    .reduce((s, o) => s + (o.finalAmount || 0), 0);
+
   if (loading) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-48" />
-          <div className="flex space-x-2">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-24" />
-          </div>
+      <div className="min-h-screen bg-[#f8f9fb]">
+        <div className="bg-white border-b border-gray-100 px-4 sm:px-8 py-8">
+          <Skeleton className="h-8 w-44 mb-2" />
+          <Skeleton className="h-4 w-64" />
         </div>
-        <div className="space-y-4">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+            <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 space-y-4">
               <div className="flex justify-between">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-6 w-24" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-3 w-28" />
+                </div>
+                <Skeleton className="h-8 w-24 rounded-full" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Skeleton className="h-9 w-20" />
-                <Skeleton className="h-9 w-20" />
-              </div>
+              <Skeleton className="h-3 w-3/4" />
             </div>
           ))}
         </div>
@@ -628,325 +611,287 @@ const OrderHistory: React.FC = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Orders</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {activeTab === "active" ? "Your current and upcoming orders" : "Your completed orders"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchOrdersAndData} 
-            disabled={loading}
-          >
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Refresh"}
-          </Button>
-          <div className="inline-flex rounded-lg border border-gray-200 bg-white">
+    <div className="min-h-screen bg-[#f8f9fb]">
+
+      {/* ── Page header ── */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">My Orders</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {activeOrders.length + historicalOrders.length} orders · ₹{totalSpent.toFixed(0)} spent
+              </p>
+            </div>
             <button
-              onClick={() => setActiveTab("active")}
-              className={`px-4 py-2 text-sm font-medium ${
-                activeTab === "active"
-                  ? "bg-teal-50 text-teal-600 border-teal-500 border-t-2 border-b-2"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+              onClick={fetchOrdersAndData}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors self-start sm:self-auto"
             >
-              Active ({activeOrders.length})
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "↻"} Refresh
             </button>
-            <button
-              onClick={() => setActiveTab("completed")}
-              className={`px-4 py-2 text-sm font-medium ${
-                activeTab === "completed"
-                  ? "bg-teal-50 text-teal-600 border-teal-500 border-t-2 border-b-2"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              Completed ({historicalOrders.length})
-            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-2 mt-6">
+            {(["active", "completed"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                  activeTab === tab
+                    ? "bg-teal-600 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                {tab === "active" ? "Active" : "Completed"}
+                <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                  activeTab === tab ? "bg-white/20 text-white" : "bg-gray-200 text-gray-500"
+                }`}>
+                  {tab === "active" ? activeOrders.length : historicalOrders.length}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {error ? (
-        <div className="bg-white rounded-xl shadow-sm p-6 text-center border border-red-100">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50">
-            <XCircle className="h-6 w-6 text-red-600" />
+      {/* ── Content ── */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-4">
+        {error ? (
+          <div className="bg-white rounded-2xl p-10 text-center border border-red-100">
+            <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <XCircle className="w-7 h-7 text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Something went wrong</h3>
+            <p className="text-sm text-gray-500 mt-1 mb-5">{error}</p>
+            <button
+              onClick={fetchOrdersAndData}
+              className="px-5 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
-          <h3 className="mt-3 text-lg font-medium text-gray-900">Error loading orders</h3>
-          <p className="mt-2 text-sm text-gray-500">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={fetchOrdersAndData} disabled={loading}>
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Try Again"}
-          </Button>
-        </div>
-      ) : currentOrders.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm p-6 text-center border border-gray-100">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-50">
-            <FaBoxOpen className="h-6 w-6 text-teal-600" />
+        ) : currentOrders.length === 0 ? (
+          <div className="bg-white rounded-2xl p-14 text-center border border-gray-100">
+            <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaBoxOpen className="w-7 h-7 text-teal-500" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">
+              No {activeTab === "active" ? "active" : "completed"} orders
+            </h3>
+            <p className="text-sm text-gray-400 mt-1">
+              {activeTab === "active"
+                ? "Your live orders will show up here."
+                : "Your past orders will appear here once delivered."}
+            </p>
           </div>
-          <h3 className="mt-3 text-lg font-medium text-gray-900">
-            No {activeTab === "active" ? "active" : "completed"} orders found
-          </h3>
-          <p className="mt-2 text-sm text-gray-500">
-            {activeTab === "active" ? "Your upcoming orders will appear here" : "Your completed orders will appear here"}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {currentOrders.map((order) => {
-            const statusConfig = getStatusConfig(order.orderStatus);
-            const paymentConfig = getPaymentConfig(order.paymentStatus);
-            const paymentMethodConfig = getPaymentMethodConfig(order.paymentMethod);
-            
+        ) : (
+          currentOrders.map((order) => {
+            const sc = getStatusConfig(order.orderStatus);
+            const pc = getPaymentConfig(order.paymentStatus);
+            const pmc = getPaymentMethodConfig(order.paymentMethod);
+            const isExpanded = expandedOrderId === order.orderId;
+            const currentStep = stepIndex[order.orderStatus] ?? 0;
+            const previewItems = (order.items || []).slice(0, 2);
+            const extraCount = (order.items || []).length - 2;
+
             return (
               <motion.div
                 key={order.orderId}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+                transition={{ duration: 0.25 }}
+                className={`bg-white rounded-2xl border-l-4 border border-gray-100 overflow-hidden ${borderColor(order.orderStatus)}`}
               >
-                <div className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-lg font-semibold text-gray-900">Order #{order.orderId}</h2>
-                        <Badge variant="outline" className={`${statusConfig.color} py-1 px-2.5`}>
-                          <div className="flex items-center gap-1.5">
-                            {statusConfig.icon}
-                            <span>{statusConfig.label}</span>
-                          </div>
-                        </Badge>
+                {/* ── Card header ── */}
+                <button
+                  className="w-full text-left p-5 hover:bg-gray-50/50 transition-colors"
+                  onClick={() => toggleOrderDetails(order.orderId)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      {/* Restaurant + order id */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-base font-extrabold text-gray-900 truncate">
+                          {order.vendorName || `Vendor #${order.vendorId}`}
+                        </span>
+                        <span className="text-xs text-gray-400 font-medium shrink-0">#{order.orderId}</span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1 flex items-center">
-                        <IoTime className="mr-1.5" />
-                        {formatDate(order.deliveryTime)}
-                      </p>
-                      <p className="text-sm text-gray-500 mt-1 flex items-center">
-                        <FaMapMarkerAlt className="mr-1.5" />
-                        {stationData[order.deliveryStationId]
-                          ? `${stationData[order.deliveryStationId].stationName} (${stationData[order.deliveryStationId].stationCode})`
-                          : `City #${order.deliveryStationId}`}
+
+                      {/* Date + city */}
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <IoTime size={11} /> {formatDate(order.deliveryTime)}
+                        </span>
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <FaMapMarkerAlt size={10} />
+                          {stationData[order.deliveryStationId]?.stationName || `City #${order.deliveryStationId}`}
+                        </span>
+                      </div>
+
+                      {/* Items preview */}
+                      <p className="text-xs text-gray-500 mt-2 truncate">
+                        {previewItems.map((i) => i.itemName).join(", ")}
+                        {extraCount > 0 && <span className="text-teal-600 font-semibold"> +{extraCount} more</span>}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">Total Amount</p>
-                        <p className="text-lg font-semibold flex items-center justify-end">
-                          <FaRupeeSign className="mr-1" size={14} />
-                          {(order.finalAmount || 0).toFixed(2)}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => toggleOrderDetails(order.orderId)}
-                        className="rounded-full"
-                      >
-                        {expandedOrderId === order.orderId ? (
-                          <IoChevronUp className="w-5 h-5" />
-                        ) : (
-                          <IoChevronDown className="w-5 h-5" />
-                        )}
-                      </Button>
+
+                    {/* Right: amount + status + chevron */}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <span className="text-lg font-extrabold text-teal-600">₹{(order.finalAmount || 0).toFixed(0)}</span>
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full ${sc.color}`}>
+                        {sc.icon}
+                        {sc.label}
+                      </span>
+                      <span className="text-gray-400">{isExpanded ? <IoChevronUp size={16} /> : <IoChevronDown size={16} />}</span>
                     </div>
                   </div>
+
+                  {/* ── Step tracker (active non-cancelled orders) ── */}
                   {activeTab === "active" && order.orderStatus !== "CANCELLED" && (
-                    <div className="mt-4">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Order Placed</span>
-                        <span>{order.orderStatus === "DELIVERED" ? "Delivered" : "In Progress"}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-teal-600 h-2 rounded-full"
-                          style={{ width: `${getOrderProgress(order.orderStatus)}%` }}
-                        ></div>
+                    <div className="mt-4 pt-4 border-t border-gray-50">
+                      <div className="flex items-center">
+                        {STEPS.map((step, i) => (
+                          <React.Fragment key={step}>
+                            <div className="flex flex-col items-center">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
+                                i < currentStep ? "bg-teal-500 text-white"
+                                : i === currentStep ? "bg-teal-600 text-white ring-4 ring-teal-100"
+                                : "bg-gray-100 text-gray-400"
+                              }`}>
+                                {i < currentStep ? "✓" : i + 1}
+                              </div>
+                              <span className={`text-[9px] mt-1 font-medium hidden sm:block ${
+                                i <= currentStep ? "text-teal-600" : "text-gray-400"
+                              }`}>{step}</span>
+                            </div>
+                            {i < STEPS.length - 1 && (
+                              <div className={`flex-1 h-0.5 mx-1 rounded-full ${i < currentStep ? "bg-teal-500" : "bg-gray-200"}`} />
+                            )}
+                          </React.Fragment>
+                        ))}
                       </div>
                     </div>
                   )}
-                </div>
+                </button>
+
+                {/* ── Expanded details ── */}
                 <AnimatePresence>
-                  {expandedOrderId === order.orderId && (
+                  {isExpanded && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="border-t border-gray-100 overflow-hidden"
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
                     >
-                      <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <Truck className="w-5 h-5 text-teal-600" />
-                            Delivery Information
-                          </h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">City</span>
-                              <span className="text-sm font-medium text-right">
-                                {stationData[order.deliveryStationId] ? (
-                                  <Tooltip>
-                                    <TooltipTrigger className="text-left">
-                                      {stationData[order.deliveryStationId].stationName}
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      {stationData[order.deliveryStationId].city}, {stationData[order.deliveryStationId].state}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                ) : (
-                                  `City #${order.deliveryStationId}`
-                                )}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Street Num</span>
-                              <span className="text-sm font-medium">{order.trainNumber || `Street Num #${order.trainId}`}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">House Num/Floor</span>
-                              <span className="text-sm font-medium">
-                                {order.coachNumber}/{order.seatNumber}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Vendor</span>
-                              <span className="text-sm font-medium">{order.vendorName || `Vendor #${order.vendorId}`}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Delivery Time</span>
-                              <span className="text-sm font-medium">{formatDate(order.deliveryTime)}</span>
-                            </div>
-                            {order.deliveryInstructions && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-gray-500">Instructions</span>
-                                <span className="text-sm font-medium text-right max-w-xs">{order.deliveryInstructions}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <MdFastfood className="w-5 h-5 text-teal-600" />
-                            Order Items ({order.items?.length || 0})
-                          </h3>
-                          <div className="border rounded-lg divide-y">
+                      <div className="px-5 pb-5 pt-1 border-t border-gray-100 space-y-5">
+
+                        {/* Order items */}
+                        <div>
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <MdFastfood className="text-teal-500" /> Items ({order.items?.length || 0})
+                          </p>
+                          <div className="space-y-2">
                             {(order.items || []).map((item) => (
-                              <div key={`${order.orderId}-${item.itemId}`} className="p-3">
-                                <div className="flex justify-between">
-                                  <div>
-                                    <p className="font-medium">
-                                      {item.itemName}
-                                      {item.category && (
-                                        <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                          {item.category}
-                                        </span>
-                                      )}
-                                    </p>
-                                    {item.specialInstructions && item.specialInstructions !== "No special instructions" && (
-                                      <p className="text-xs text-gray-500 mt-1">Note: {item.specialInstructions}</p>
-                                    )}
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="font-medium flex items-center justify-end">
-                                      <FaRupeeSign className="mr-1" size={10} />
-                                      {((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      {item.quantity} × ₹{(item.unitPrice || 0).toFixed(2)}
-                                    </p>
-                                  </div>
+                              <div key={`${order.orderId}-${item.itemId}`} className="flex justify-between items-start bg-gray-50 rounded-xl px-4 py-3">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-semibold text-gray-800 truncate">{item.itemName}</p>
+                                  {item.specialInstructions && item.specialInstructions !== "No special instructions" && (
+                                    <p className="text-xs text-gray-400 mt-0.5">Note: {item.specialInstructions}</p>
+                                  )}
+                                </div>
+                                <div className="text-right shrink-0 ml-4">
+                                  <p className="text-sm font-bold text-gray-900">₹{((item.quantity || 0) * (item.unitPrice || 0)).toFixed(0)}</p>
+                                  <p className="text-xs text-gray-400">{item.quantity} × ₹{(item.unitPrice || 0).toFixed(0)}</p>
                                 </div>
                               </div>
                             ))}
                           </div>
                         </div>
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <MdPayment className="w-5 h-5 text-teal-600" />
-                            Payment Information
-                          </h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Method</span>
-                              <span className="text-sm font-medium flex items-center gap-1.5">
-                                <span className={paymentMethodConfig.color}>
-                                  {paymentMethodConfig.icon}
-                                </span>
-                                {paymentMethodConfig.label}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Status</span>
-                              <Badge variant="outline" className={`${paymentConfig.color} py-1 px-2.5`}>
-                                <div className="flex items-center gap-1.5">
-                                  {paymentConfig.icon}
-                                  <span>{paymentConfig.label}</span>
-                                </div>
-                              </Badge>
-                            </div>
-                            {order.razorpayOrderID && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-gray-500">Transaction ID</span>
-                                <span className="text-sm font-medium font-mono">{order.razorpayOrderID}</span>
+
+                        {/* Delivery + Payment row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                              <Truck size={12} className="text-teal-500" /> Delivery
+                            </p>
+                            {[
+                              ["City", stationData[order.deliveryStationId]?.stationName || `#${order.deliveryStationId}`],
+                              ["Address", `${order.coachNumber} / ${order.seatNumber}`],
+                              ["Vendor", order.vendorName || `#${order.vendorId}`],
+                              ["Time", formatDate(order.deliveryTime)],
+                              ...(order.deliveryInstructions ? [["Note", order.deliveryInstructions]] : []),
+                            ].map(([label, value]) => (
+                              <div key={label} className="flex justify-between gap-2">
+                                <span className="text-xs text-gray-400 shrink-0">{label}</span>
+                                <span className="text-xs font-medium text-gray-700 text-right">{value}</span>
                               </div>
-                            )}
+                            ))}
+                          </div>
+
+                          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                              <MdPayment className="text-teal-500" /> Payment
+                            </p>
+                            {[
+                              ["Method", pmc.label],
+                              ["Status", pc.label],
+                              ...(order.razorpayOrderID ? [["Txn ID", order.razorpayOrderID]] : []),
+                            ].map(([label, value]) => (
+                              <div key={label} className="flex justify-between gap-2">
+                                <span className="text-xs text-gray-400 shrink-0">{label}</span>
+                                <span className="text-xs font-medium text-gray-700 text-right truncate">{value}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <FaReceipt className="w-5 h-5 text-teal-600" />
-                            Order Summary
-                          </h3>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Subtotal</span>
-                              <span className="text-sm font-medium">₹{(order.totalAmount || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Delivery Charges</span>
-                              <span className="text-sm font-medium">₹{(order.deliveryCharges || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-500">Tax ({order.taxPercentage || 5}%)</span>
-                              <span className="text-sm font-medium">₹{(order.taxAmount || 0).toFixed(2)}</span>
-                            </div>
-                            {order.discountAmount && order.discountAmount > 0 && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-gray-500">Discount</span>
-                                <span className="text-sm font-medium text-green-600">
-                                  -₹{order.discountAmount.toFixed(2)}
-                                </span>
+
+                        {/* Price breakdown */}
+                        <div className="bg-teal-50 rounded-xl p-4">
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <FaReceipt className="text-teal-500" /> Bill Summary
+                          </p>
+                          <div className="space-y-1.5">
+                            {[
+                              ["Subtotal", `₹${(order.totalAmount || 0).toFixed(2)}`],
+                              ["Delivery", `₹${(order.deliveryCharges || 0).toFixed(2)}`],
+                              [`GST (${order.taxPercentage || 5}%)`, `₹${(order.taxAmount || 0).toFixed(2)}`],
+                              ...(order.discountAmount && order.discountAmount > 0
+                                ? [["Discount", `-₹${order.discountAmount.toFixed(2)}`]]
+                                : []),
+                            ].map(([label, value]) => (
+                              <div key={label} className="flex justify-between text-sm text-gray-600">
+                                <span>{label}</span>
+                                <span className={label === "Discount" ? "text-green-600 font-medium" : ""}>{value}</span>
                               </div>
-                            )}
-                            <div className="pt-2 border-t border-gray-200 flex justify-between">
-                              <span className="text-base font-semibold">Total Amount</span>
-                              <span className="text-base font-semibold">₹{(order.finalAmount || 0).toFixed(2)}</span>
+                            ))}
+                            <div className="flex justify-between pt-2 mt-1 border-t border-teal-200">
+                              <span className="text-sm font-extrabold text-gray-900">Total</span>
+                              <span className="text-base font-extrabold text-teal-600">₹{(order.finalAmount || 0).toFixed(2)}</span>
                             </div>
-                          </div>
-                          <div className="pt-4 flex justify-end gap-3">
-                            <Button variant="outline" onClick={() => toggleOrderDetails(order.orderId)}>
-                              Close Details
-                            </Button>
-                            {canDownloadInvoice(order) && (
-                              <Button onClick={() => generateInvoice(order)} className="gap-2">
-                                <FaDownload className="w-4 h-4" />
-                                Download Invoice
-                              </Button>
-                            )}
                           </div>
                         </div>
+
+                        {/* Actions */}
+                        {canDownloadInvoice(order) && (
+                          <button
+                            onClick={() => generateInvoice(order)}
+                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-colors"
+                          >
+                            <FaDownload className="w-3.5 h-3.5" /> Download Invoice
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </motion.div>
             );
-          })}
-        </div>
-      )}
+          })
+        )}
+      </div>
     </div>
   );
 };
