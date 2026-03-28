@@ -23,7 +23,6 @@ interface FooterProps {
 const QUICK_LINKS: FooterLink[] = [
   { label: 'Home', path: '/home' },
   { label: 'Order History', path: '/order-history' },
-  { label: 'Track Order', path: '/track-order' },
   { label: 'Privacy Policy', path: '/privacy-policy' },
   { label: 'Terms & Conditions', path: '/terms' },
 ];

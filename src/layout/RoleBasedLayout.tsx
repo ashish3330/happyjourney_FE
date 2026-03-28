@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import VendorSidebar from "../components/VendorSidebar";
 import Navbar from "../components/Navbar";
 import UserNavbar from "../components/UserNavbar";
+import CartBar from "../components/CartBar";
 import { useAuth } from "../contexts/AuthContext";
 
 const RoleBasedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -49,6 +50,7 @@ const RoleBasedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <div className="min-h-screen flex flex-col bg-gray-50">
         <UserNavbar />
         <main className="flex-1">{children}</main>
+        <CartBar />
       </div>
     );
   }

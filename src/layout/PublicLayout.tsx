@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { Outlet } from "react-router-dom";
 import UserNavbar from "../components/UserNavbar";
+import CartBar from "../components/CartBar";
 
 const PublicLayout: FC = () => {
   return (
@@ -9,6 +10,7 @@ const PublicLayout: FC = () => {
       <main className="flex-1">
         <Outlet />
       </main>
+      <CartBar />
     </div>
   );
 };
