@@ -36,6 +36,10 @@ const UserNavbar = () => {
   const policyRef = useRef<HTMLDivElement>(null);
   const userRef   = useRef<HTMLDivElement>(null);
 
+  // Treat "null" string or empty as no username
+  const displayName = (username && username !== "null") ? username : "User";
+  const avatarLetter = displayName.charAt(0).toUpperCase();
+
   // ── Cart count: sync from localStorage on every navigation ──
   useEffect(() => {
     const stored = localStorage.getItem("cartCount");
@@ -153,8 +157,8 @@ const UserNavbar = () => {
             {/* Desktop: cart icon with badge (logged-in only) */}
             {accessToken && (
               <button
-                onClick={() => navigate("/order-history")}
-                title="My Orders"
+                onClick={() => window.dispatchEvent(new CustomEvent("cart-open"))}
+                title="View Cart"
                 className="hidden md:flex relative items-center justify-center w-9 h-9 rounded-lg text-gray-600 hover:text-teal-700 hover:bg-teal-50 transition-colors"
               >
                 <ShoppingCart size={20} />
@@ -174,12 +178,10 @@ const UserNavbar = () => {
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 hover:border-teal-300 hover:bg-teal-50 transition-colors"
                 >
                   <div className="w-7 h-7 bg-teal-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">
-                      {username ? username.charAt(0).toUpperCase() : "U"}
-                    </span>
+                    <span className="text-white text-xs font-bold">{avatarLetter}</span>
                   </div>
                   <span className="text-sm font-semibold text-gray-700 max-w-[96px] truncate">
-                    {username || "User"}
+                    {displayName}
                   </span>
                   <ChevronDown
                     size={13}
@@ -191,7 +193,7 @@ const UserNavbar = () => {
                   <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-50">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-xs text-gray-400">Signed in as</p>
-                      <p className="text-sm font-semibold text-gray-800 truncate">{username}</p>
+                      <p className="text-sm font-semibold text-gray-800 truncate">{displayName}</p>
                     </div>
                     <button
                       onClick={handleLogout}
@@ -268,12 +270,10 @@ const UserNavbar = () => {
                   {/* User info row */}
                   <div className="flex items-center gap-3 px-3 py-3">
                     <div className="w-9 h-9 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm font-bold">
-                        {username ? username.charAt(0).toUpperCase() : "U"}
-                      </span>
+                      <span className="text-white text-sm font-bold">{avatarLetter}</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate">{username || "User"}</p>
+                      <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
                       <p className="text-xs text-gray-400">Signed in</p>
                     </div>
                   </div>

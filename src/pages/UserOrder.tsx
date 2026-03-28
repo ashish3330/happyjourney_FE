@@ -290,6 +290,13 @@ const UserOrder: React.FC = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // ── Open cart drawer from navbar cart icon ──────────────
+  useEffect(() => {
+    const handler = () => setIsCartOpen(true);
+    window.addEventListener("cart-open", handler);
+    return () => window.removeEventListener("cart-open", handler);
+  }, []);
+
   const sortedCategories = [...categories].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   const cartItemCount = cartSummary?.items.reduce((s, i) => s + i.quantity, 0) ?? 0;
   const hasCart = cartItemCount > 0;
