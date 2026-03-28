@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/axios";
-import Happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg";
+import Happy_Journey_Logo from "../assets/HappyJourney_Logo.svg";
 
 const primaryLinks = [
   { label: "Home",          path: "/home",          icon: Home    },

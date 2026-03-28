@@ -1,7 +1,7 @@
 import React, { useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { adminMenuItems } from "../constants/menuItems";
-import happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
+import happy_Journey_Logo from "../assets/HappyJourney_Logo.svg"
 
 type SidebarProps = {
   collapsed: boolean;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Facebook, Twitter, Instagram, Phone, Mail, MapPin } from 'lucide-react';
+import HappyJourneyLogoDark from '../assets/HappyJourney_Logo_Dark.svg';
 
 interface FooterLink {
   label: string;
@@ -43,11 +44,12 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
           
           {/* Brand Section */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-2xl">🍛</span>
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight">{config.brandName}</h2>
+            <div>
+              <img
+                src={HappyJourneyLogoDark}
+                alt={config.brandName}
+                className="h-12 w-auto object-contain"
+              />
             </div>
             
             <p className="text-gray-400 text-[15px] leading-relaxed max-w-md">

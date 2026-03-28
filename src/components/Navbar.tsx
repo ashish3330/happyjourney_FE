@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import api from "../utils/axios";
 import { useAuth } from "../contexts/AuthContext";
-import Happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg";
+import Happy_Journey_Logo from "../assets/HappyJourney_Logo.svg";
 
 type NavbarProps = {
   collapsed?: boolean;

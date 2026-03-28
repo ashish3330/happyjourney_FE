@@ -1,7 +1,7 @@
 import React, { useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { guestMenuItems, userMenuItems } from "../constants/menuItems";
-import Happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
+import Happy_Journey_Logo from "../assets/HappyJourney_Logo.svg"
 import { useAuth } from '../contexts/AuthContext';
 
 type UserSidebarProps = {
