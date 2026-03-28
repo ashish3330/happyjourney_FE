@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HappyJourneyLogoDark from '../assets/HappyJourney_Logo_Dark.svg';
-import HappyJourneyLogo from '../assets/HappyJourney_Logo.svg';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import api from '../utils/axios';
@@ -128,12 +127,12 @@ const UserPasswordlessLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#f4f6f8]">
 
       {/* ══════════════════════════════════════
-          LEFT — Brand panel
+          LEFT / TOP — Brand panel
       ══════════════════════════════════════ */}
-      <div className="lg:w-[45%] w-full h-52 lg:h-auto relative overflow-hidden">
+      <div className="lg:w-[45%] w-full h-[300px] lg:h-auto relative overflow-hidden lg:overflow-visible">
         <img
           src="https://images.pexels.com/photos/1667427/pexels-photo-1667427.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
           alt=""
@@ -141,12 +140,17 @@ const UserPasswordlessLogin: React.FC = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-br from-teal-950/95 via-gray-900/85 to-black/90" />
 
-        <div className="relative z-10 h-full flex flex-col px-10 py-10 justify-between">
-          {/* Logo */}
+        {/* Mobile: centered logo + tagline */}
+        <div className="lg:hidden relative z-10 h-full flex flex-col items-center justify-center gap-3 px-6 pb-10">
+          <img src={HappyJourneyLogoDark} alt="HappyJourney" className="h-14 w-auto object-contain drop-shadow-lg" />
+          <p className="text-white/70 text-sm tracking-wide">Fresh. Hot. Delivered to your door.</p>
+        </div>
+
+        {/* Desktop: left-aligned full content */}
+        <div className="hidden lg:flex relative z-10 h-full flex-col px-10 py-10 justify-between">
           <img src={HappyJourneyLogoDark} alt="HappyJourney" className="h-14 w-auto object-contain" />
 
-          {/* Copy — desktop only */}
-          <div className="hidden lg:block">
+          <div>
             <h2 className="text-[2.6rem] font-extrabold text-white leading-[1.15] tracking-tight">
               Your next<br />meal is just<br />a tap away.
             </h2>
@@ -171,25 +175,22 @@ const UserPasswordlessLogin: React.FC = () => {
             </div>
           </div>
 
-          <p className="hidden lg:block text-white/25 text-xs">
+          <p className="text-white/25 text-xs">
             © {new Date().getFullYear()} HappyJourney. All rights reserved.
           </p>
         </div>
       </div>
 
       {/* ══════════════════════════════════════
-          RIGHT — Form panel
+          RIGHT / BOTTOM — Form panel
+          Mobile: slides up over the hero (-mt-8, rounded-t-3xl)
+          Desktop: centered card in gray panel
       ══════════════════════════════════════ */}
-      <div className="lg:w-[55%] w-full flex items-center justify-center bg-[#f4f6f8] py-12 px-5 md:px-10">
-        <div className="w-full max-w-[420px] bg-white rounded-3xl shadow-lg px-8 py-10 md:px-10 md:py-12">
-
-          {/* Mobile-only logo */}
-          <div className="lg:hidden mb-7 flex justify-center">
-            <img src={HappyJourneyLogo} alt="HappyJourney" className="h-9 w-auto object-contain" />
-          </div>
+      <div className="lg:w-[55%] w-full -mt-8 lg:mt-0 relative z-10 lg:z-auto lg:flex lg:items-center lg:justify-center lg:py-12 lg:px-10">
+        <div className="w-full max-w-[420px] mx-auto bg-white rounded-t-3xl lg:rounded-3xl shadow-xl lg:shadow-lg px-6 pt-8 pb-10 lg:px-10 lg:py-12">
 
           {/* Step indicator */}
-          <div className="flex items-center mb-8">
+          <div className="flex items-center mb-7">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors duration-300 ${!isOtpSent ? 'bg-teal-600 text-white' : 'bg-teal-100 text-teal-700'}`}>
               1
             </div>
@@ -200,7 +201,7 @@ const UserPasswordlessLogin: React.FC = () => {
           </div>
 
           {/* Heading */}
-          <div className="mb-8">
+          <div className="mb-7">
             <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
               {isOtpSent ? 'Verify your number' : 'Sign in to continue'}
             </h1>
