@@ -599,7 +599,7 @@ const UserOrder: React.FC = () => {
               {filteredItems.length} result{filteredItems.length !== 1 ? "s" : ""} for "{searchQuery}"
             </p>
             {filteredItems.length > 0 ? (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {filteredItems.map((item) => <MenuCard key={item.itemId} item={item} />)}
               </div>
             ) : (
@@ -631,7 +631,7 @@ const UserOrder: React.FC = () => {
                   {allItems.length}
                 </span>
               </div>
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {allItems.map((item) => <MenuCard key={item.itemId} item={item} />)}
               </div>
             </div>
