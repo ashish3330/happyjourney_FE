@@ -146,11 +146,17 @@ const UserOrder: React.FC = () => {
       }));
       setCartSummary({ ...summary, items: enriched });
       const count = enriched.reduce((s, i) => s + i.quantity, 0);
-      localStorage.setItem("cartCount", String(count));
-      window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count } }));
+      localStorage.setItem("cartCount",   String(count));
+      localStorage.setItem("cartTotal",   String(summary.finalAmount ?? 0));
+      localStorage.setItem("cartVendorId", String(effectiveVendorId));
+      window.dispatchEvent(new CustomEvent("cart-updated", {
+        detail: { count, total: summary.finalAmount ?? 0, vendorId: effectiveVendorId },
+      }));
     } catch {
       setCartSummary(null);
       localStorage.setItem("cartCount", "0");
+      localStorage.removeItem("cartTotal");
+      localStorage.removeItem("cartVendorId");
       window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count: 0 } }));
     }
   }, [effectiveVendorId]);
@@ -263,6 +269,8 @@ const UserOrder: React.FC = () => {
       setIsClearCartOpen(false);
       setIsCartOpen(false);
       localStorage.setItem("cartCount", "0");
+      localStorage.removeItem("cartTotal");
+      localStorage.removeItem("cartVendorId");
       window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count: 0 } }));
     } catch (e: any) {
       setError(e.response?.data?.message ?? "Failed to clear cart.");

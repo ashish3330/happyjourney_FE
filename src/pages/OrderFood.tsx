@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search, Star, Clock, MapPin, Shield, Utensils,
-  Train, ChevronRight, X, TrendingUp, CheckCircle,
+  Train, ChevronRight, X, TrendingUp, CheckCircle, ShoppingCart,
 } from "lucide-react";
 import api from "@/utils/axios";
 import Pagination from "@/components/Pagination";
@@ -87,6 +87,11 @@ const OrderFood = () => {
     current_page: 1, to: 0, total: 0, from: 0,
     per_page: 12, remainingPages: 0, last_page: 0,
   });
+
+  // ── Persistent cart state (from localStorage) ─────────
+  const [cartCount,    setCartCount]    = useState(0);
+  const [cartTotal,    setCartTotal]    = useState(0);
+  const [cartVendorId, setCartVendorId] = useState<string | null>(null);
 
   const navigate   = useNavigate();
   const inputRef   = useRef<HTMLInputElement>(null);
@@ -215,6 +220,27 @@ const OrderFood = () => {
       });
     };
   }, [imageUrls]);
+
+  // ── Sync cart state from localStorage + live events ───
+  useEffect(() => {
+    const sync = () => {
+      const count    = Number(localStorage.getItem("cartCount")    ?? 0);
+      const total    = Number(localStorage.getItem("cartTotal")    ?? 0);
+      const vendorId = localStorage.getItem("cartVendorId");
+      setCartCount(count);
+      setCartTotal(total);
+      setCartVendorId(vendorId);
+    };
+    sync();
+    const handler = (e: Event) => {
+      const { count, total, vendorId } = (e as CustomEvent).detail ?? {};
+      setCartCount(count ?? 0);
+      setCartTotal(total ?? 0);
+      setCartVendorId(vendorId ? String(vendorId) : null);
+    };
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, []);
 
   // ═══════════════════════════════════════════════════════
   //  RENDER
@@ -632,6 +658,37 @@ const OrderFood = () => {
       )}
 
       <WhyChoose config={HappyJourneyConfig} />
+
+      {/* ── Sticky cart bar (shows when cart has items) ── */}
+      {cartCount > 0 && cartVendorId && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-teal-600 shadow-2xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center relative flex-shrink-0">
+                <ShoppingCart size={18} className="text-white" />
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-yellow-400 text-gray-900 text-[10px] font-extrabold rounded-full flex items-center justify-center">
+                  {cartCount}
+                </span>
+              </div>
+              <div>
+                <p className="text-white/80 text-xs font-medium leading-none mb-0.5">
+                  {cartCount} item{cartCount !== 1 ? "s" : ""} in cart
+                </p>
+                <p className="text-white font-extrabold text-base leading-none">
+                  ₹{cartTotal.toFixed(2)}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate(`/user-order/${cartVendorId}`)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white text-teal-700 text-sm font-extrabold rounded-xl hover:bg-teal-50 transition-colors shadow-sm flex-shrink-0"
+            >
+              View Cart
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
