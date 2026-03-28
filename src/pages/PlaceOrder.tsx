@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/utils/axios";
 import { toast } from "sonner";
+import { ArrowLeft, MapPin, Clock, ShoppingBag, CreditCard, Banknote, ShoppingCart } from "lucide-react";
 
 // Define interfaces
 interface CartItem {
@@ -100,10 +97,10 @@ const FormField: React.FC<{
   disabled?: boolean;
 }> = ({ label, id, name, value, onChange, error, placeholder, type = "text", maxLength, disabled = false }) => (
   <div>
-    <Label htmlFor={id} className="text-gray-700 font-medium">
+    <label htmlFor={id} className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
       {label}
-    </Label>
-    <Input
+    </label>
+    <input
       id={id}
       name={name}
       value={value}
@@ -112,14 +109,14 @@ const FormField: React.FC<{
       type={type}
       maxLength={maxLength}
       disabled={disabled}
-      className={`mt-1 rounded-lg ${disabled ? "bg-gray-100 cursor-not-allowed" : ""} ${
-        error ? "border-red-500 focus:ring-red-500" : "focus:ring-teal-500"
-      }`}
+      className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white transition-colors ${
+        disabled ? "bg-gray-50 cursor-not-allowed text-gray-500" : ""
+      } ${error ? "border-red-400 focus:ring-red-400" : "border-gray-200"}`}
       aria-invalid={!!error}
       aria-describedby={error ? `${id}-error` : undefined}
     />
     {error && (
-      <p id={`${id}-error`} className="text-red-600 text-sm mt-1">
+      <p id={`${id}-error`} className="text-red-600 text-xs mt-1">
         {error}
       </p>
     )}
@@ -128,17 +125,19 @@ const FormField: React.FC<{
 
 // Reusable Order Item Component
 const OrderItem: React.FC<{ item: CartItem }> = ({ item }) => (
-  <div className="flex justify-between items-start p-4 bg-gray-50 rounded-lg">
-    <div className="flex-1">
-      <p className="text-base font-medium text-gray-900">{item.itemName}</p>
-      <p className="text-sm text-gray-600">
-        ₹{item.unitPrice.toFixed(2)} × {item.quantity}
-      </p>
+  <div className="flex justify-between items-center">
+    <div className="flex-1 min-w-0 mr-3">
+      <div className="flex items-center gap-2">
+        <span className="bg-teal-50 text-teal-700 text-xs font-bold rounded-md px-2 py-0.5">
+          {item.quantity}x
+        </span>
+        <p className="text-sm font-medium text-gray-800 truncate">{item.itemName}</p>
+      </div>
       {item.specialInstructions && (
-        <p className="text-xs text-gray-500 mt-1 italic">"{item.specialInstructions}"</p>
+        <p className="text-xs text-gray-400 mt-0.5 italic truncate">"{item.specialInstructions}"</p>
       )}
     </div>
-    <p className="text-base font-medium text-gray-900">
+    <p className="text-sm font-semibold text-gray-900 whitespace-nowrap">
       ₹{(item.unitPrice * item.quantity).toFixed(2)}
     </p>
   </div>
@@ -221,7 +220,7 @@ const PlaceOrder: React.FC = () => {
     try {
       logger.info("Cancelling pending order", { orderId, reason });
       updatePaymentStatus(PaymentStatus.CANCELLED);
-      
+
       // Try the payment cancellation endpoint first
       try {
         await api.post(`/payments/cancel/${orderId}`);
@@ -232,13 +231,13 @@ const PlaceOrder: React.FC = () => {
         await api.delete(`/orders/cancel/${orderId}`);
         logger.info("Regular order cancelled successfully", { orderId });
       }
-      
+
       setPendingOrderId(null);
     } catch (error: any) {
-      logger.error("Failed to cancel pending order", { 
-        orderId, 
-        reason, 
-        error: error.message 
+      logger.error("Failed to cancel pending order", {
+        orderId,
+        reason,
+        error: error.message
       });
       // Don't throw error here to prevent blocking navigation
     }
@@ -250,7 +249,7 @@ const PlaceOrder: React.FC = () => {
       if (pendingOrderId && paymentStatusRef.current === PaymentStatus.PENDING && !isPaymentCompleteRef.current) {
         event.preventDefault();
         event.returnValue = "You have a pending payment. Are you sure you want to leave?";
-        
+
         // Only cancel if we're actually leaving the page and payment is still pending
         if (!isUnmountingRef.current) {
           isUnmountingRef.current = true;
@@ -272,7 +271,7 @@ const PlaceOrder: React.FC = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      
+
       // Cancel pending order when component unmounts only if payment is still pending
       if (pendingOrderId && paymentStatusRef.current === PaymentStatus.PENDING && !isPaymentCompleteRef.current) {
         isUnmountingRef.current = true;
@@ -285,13 +284,13 @@ const PlaceOrder: React.FC = () => {
   // Validate vendorId
   if (isNaN(effectiveVendorId) || effectiveVendorId <= 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fb]">
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Invalid Vendor ID</h2>
           <p className="text-gray-600 mb-6">Please select a valid vendor to continue.</p>
           <Button
             onClick={() => navigate("/vendors")}
-            className="bg-teal-600 hover:bg-teal-700 text-white rounded-full px-6 py-2"
+            className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl px-6 py-2"
           >
             Browse Vendors
           </Button>
@@ -494,7 +493,7 @@ const PlaceOrder: React.FC = () => {
     let orderId: string | null = null;
     try {
       logger.info(`Creating ${formData.paymentMethod} order`, { vendorId: effectiveVendorId });
-      
+
       // Call the correct endpoint from OrderController
       const orderResponse = await api.post("/orders", orderPayload);
       const order: OrderResponse = orderResponse.data;
@@ -513,11 +512,11 @@ const PlaceOrder: React.FC = () => {
         // Set pending order ID for auto-cancellation
         setPendingOrderId(orderId);
 
-        logger.info("Initializing Razorpay checkout", { 
-          orderId, 
-          razorpayOrderID: order.razorpayOrderID, 
+        logger.info("Initializing Razorpay checkout", {
+          orderId,
+          razorpayOrderID: order.razorpayOrderID,
           amount: order.amountInPaise,
-          key: razorpayKey 
+          key: razorpayKey
         });
 
         const options = {
@@ -530,19 +529,19 @@ const PlaceOrder: React.FC = () => {
           handler: async function (response: any) {
             try {
               logger.info("Verifying payment", { orderId });
-              
+
               // Call the correct payment verification endpoint
               await api.post(`/payments/verify/${orderId}`, {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
               });
-              
+
               logger.info("Payment verified successfully", { orderId });
               handlePaymentSuccess(orderId!);
             } catch (error: any) {
               // Handle "already captured" error gracefully
-              if (error.response?.data?.includes("already been captured") || 
+              if (error.response?.data?.includes("already been captured") ||
                   error.response?.data?.includes("already processed")) {
                 logger.warn("Payment already captured, proceeding with success", { orderId });
                 handlePaymentSuccess(orderId!);
@@ -617,24 +616,13 @@ const PlaceOrder: React.FC = () => {
     }
   };
 
-  // Loading state with skeleton
+  // Loading skeleton
   if (isLoading && !cartSummary) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="max-w-7xl w-full p-8 space-y-6">
-          <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="col-span-2 bg-white p-8 rounded-2xl shadow-xl space-y-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
-              ))}
-            </div>
-            <div className="bg-white p-8 rounded-2xl shadow-xl space-y-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-12 bg-gray-200 rounded animate-pulse"></div>
-              ))}
-            </div>
-          </div>
+      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm text-gray-500 font-medium">Loading your order...</p>
         </div>
       </div>
     );
@@ -643,180 +631,252 @@ const PlaceOrder: React.FC = () => {
   // Empty cart state
   if (!cartSummary || !cartSummary.items?.length) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Cart is Empty</h2>
-          <p className="text-gray-600 mb-6">Add some delicious items to your cart to place an order.</p>
-          <Button
-            onClick={() => navigate(`/vendor/${effectiveVendorId}/menu`)}
-            className="bg-teal-600 hover:bg-teal-700 text-white rounded-full px-6 py-2"
-          >
-            Browse Menu
-          </Button>
-          <Button
-            onClick={() => {
-              setRetryCount(0);
-              fetchInitialData();
-            }}
-            className="bg-gray-600 hover:bg-gray-700 text-white rounded-full px-6 py-2 mt-4"
-          >
-            Retry Loading Cart
-          </Button>
+      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center px-4">
+        <div className="bg-white p-10 rounded-2xl border border-gray-100 max-w-md w-full text-center shadow-sm">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center">
+              <ShoppingCart className="w-8 h-8 text-teal-500" />
+            </div>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Your Cart is Empty</h2>
+          <p className="text-gray-500 text-sm mb-6">Add some delicious items to your cart to place an order.</p>
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => navigate(`/vendor/${effectiveVendorId}/menu`)}
+              className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl py-3 font-semibold"
+            >
+              Browse Menu
+            </Button>
+            <Button
+              onClick={() => {
+                setRetryCount(0);
+                fetchInitialData();
+              }}
+              variant="outline"
+              className="rounded-2xl py-3 font-semibold text-gray-600 border-gray-200"
+            >
+              Retry
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 mb-10 text-center">
-          Place Order with {vendorDetails?.vendorName || "Vendor"}
-        </h1>
-
-        {error && (
-          <div className="mb-8 p-4 bg-red-50 text-red-700 rounded-lg flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.732 6.732a1 1 0 011.414 0L10 7.586l.854-.854a1 1 0 111.414 1.414L11.414 9l.854.854a1 1 0 11-1.414 1.414L10 10.414l-.854.854a1 1 0 11-1.414-1.414L8.586 9l-.854-.854a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-            {error}
+    <div className="min-h-screen bg-[#f8f9fb]">
+      {/* Sticky Page Header */}
+      <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-xl hover:bg-gray-100 transition-colors mr-3"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+          <div className="flex-1 text-center">
+            <h1 className="text-base font-bold text-gray-900 leading-tight">Checkout</h1>
+            {vendorDetails?.vendorName && (
+              <p className="text-xs text-gray-400 leading-tight">{vendorDetails.vendorName}</p>
+            )}
           </div>
-        )}
+          {/* Spacer to balance the back button */}
+          <div className="w-9" />
+        </div>
+      </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-1 bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-8">Delivery Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
+      {/* Main content */}
+      <div className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+
+        {/* LEFT COLUMN */}
+        <div className="flex flex-col gap-6">
+
+          {/* Error banner */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm flex items-start gap-2">
+              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.732 6.732a1 1 0 011.414 0L10 7.586l.854-.854a1 1 0 111.414 1.414L11.414 9l.854.854a1 1 0 11-1.414 1.414L10 10.414l-.854.854a1 1 0 11-1.414-1.414L8.586 9l-.854-.854a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Delivery Details Card */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6">
+
+            {/* Section 1: Delivery Address */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="w-4 h-4 text-teal-600" />
+                <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Delivery Address</h2>
+              </div>
+              <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3">
+                <p className="text-teal-700 text-sm font-medium">{stationDisplay}</p>
+              </div>
+            </div>
+
+            {/* Section 2: Delivery Details */}
+            <div className="mb-6">
+              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide mb-4">Delivery Details</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
-                  label="Delivery City"
-                  id="deliveryStationId"
-                  name="deliveryStationId"
-                  value={stationDisplay}
-                  disabled={true}
-                  placeholder="Station not available"
-                />
-              </div>
-              <FormField
-                label="House Number"
-                id="pnrNumber"
-                name="pnrNumber"
-                value={formData.pnrNumber}
-                onChange={handleInputChange}
-                placeholder="Enter House Number"
-              />
-              <FormField
-                label="Floor Number"
-                id="trainNumber"
-                name="trainNumber"
-                value={formData.trainNumber}
-                onChange={handleInputChange}
-                placeholder="Enter Floor Number"
-              />
-              <FormField
-                label="Street Number"
-                id="coachNumber"
-                name="coachNumber"
-                value={formData.coachNumber}
-                onChange={handleInputChange}
-                placeholder="Enter Street Number"
-              />
-              <FormField
-                label="Pincode"
-                id="seatNumber"
-                name="seatNumber"
-                value={formData.seatNumber}
-                onChange={handleInputChange}
-                placeholder="Enter Pincode"
-              />
-              <div className="md:col-span-2">
-                <div className="p-4 bg-teal-50 rounded-lg">
-                  <p className="text-teal-800 font-medium">Estimated delivery: {estimatedDeliveryTime}</p>
-                  <p className="text-sm text-teal-600 mt-1">Based on vendor's preparation time</p>
-                </div>
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="deliveryInstructions" className="text-gray-700 font-medium">
-                  Delivery Instructions (Optional)
-                </Label>
-                <Textarea
-                  id="deliveryInstructions"
-                  name="deliveryInstructions"
-                  value={formData.deliveryInstructions}
+                  label="House Number"
+                  id="pnrNumber"
+                  name="pnrNumber"
+                  value={formData.pnrNumber}
                   onChange={handleInputChange}
-                  placeholder="e.g., Call before delivery, special instructions"
-                  className="mt-1 rounded-lg h-24 focus:ring-teal-500"
-                  aria-describedby="deliveryInstructions-desc"
+                  placeholder="Enter House Number"
                 />
-                <p id="deliveryInstructions-desc" className="text-sm text-gray-500 mt-1">
-                  Add any special instructions for the delivery person
-                </p>
+                <FormField
+                  label="Floor Number"
+                  id="trainNumber"
+                  name="trainNumber"
+                  value={formData.trainNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter Floor Number"
+                />
+                <FormField
+                  label="Street Number"
+                  id="coachNumber"
+                  name="coachNumber"
+                  value={formData.coachNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter Street Number"
+                />
+                <FormField
+                  label="Pincode"
+                  id="seatNumber"
+                  name="seatNumber"
+                  value={formData.seatNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter Pincode"
+                />
               </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="paymentMethod" className="text-gray-700 font-medium">
-                  Payment Method
-                </Label>
-                <Select
-                  onValueChange={(value) => handleSelectChange("paymentMethod", value)}
-                  value={formData.paymentMethod}
+            </div>
+
+            {/* Section 3: Delivery Instructions */}
+            <div className="mb-6">
+              <label htmlFor="deliveryInstructions" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Delivery Instructions <span className="normal-case font-normal text-gray-400">(optional)</span>
+              </label>
+              <textarea
+                id="deliveryInstructions"
+                name="deliveryInstructions"
+                value={formData.deliveryInstructions}
+                onChange={handleInputChange}
+                placeholder="e.g., Call before delivery, leave at door..."
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white resize-none h-20 transition-colors"
+              />
+            </div>
+
+            {/* Section 4: Payment Method */}
+            <div>
+              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide mb-3">Payment Method</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {/* COD Button */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectChange("paymentMethod", "COD")}
+                  className={`flex flex-col items-start gap-1 p-4 rounded-xl border-2 transition-all text-left ${
+                    formData.paymentMethod === "COD"
+                      ? "border-teal-600 bg-teal-50 text-teal-700"
+                      : "border border-gray-200 text-gray-600 hover:border-teal-300"
+                  }`}
                 >
-                  <SelectTrigger className="mt-1 rounded-lg focus:ring-teal-500">
-                    <SelectValue placeholder="Select Payment Method" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white rounded-lg shadow-lg">
-                    <SelectItem value="COD" className="hover:bg-gray-100">
-                      Cash on Delivery
-                    </SelectItem>
-                    <SelectItem value="ONLINE" className="hover:bg-gray-100">
-                      Online Payment
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Banknote className={`w-5 h-5 ${formData.paymentMethod === "COD" ? "text-teal-600" : "text-gray-400"}`} />
+                  <span className="text-sm font-semibold leading-tight">Cash on Delivery</span>
+                  <span className={`text-xs leading-tight ${formData.paymentMethod === "COD" ? "text-teal-600" : "text-gray-400"}`}>
+                    Pay when you receive
+                  </span>
+                </button>
+
+                {/* Online Button */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectChange("paymentMethod", "ONLINE")}
+                  className={`flex flex-col items-start gap-1 p-4 rounded-xl border-2 transition-all text-left ${
+                    formData.paymentMethod === "ONLINE"
+                      ? "border-teal-600 bg-teal-50 text-teal-700"
+                      : "border border-gray-200 text-gray-600 hover:border-teal-300"
+                  }`}
+                >
+                  <CreditCard className={`w-5 h-5 ${formData.paymentMethod === "ONLINE" ? "text-teal-600" : "text-gray-400"}`} />
+                  <span className="text-sm font-semibold leading-tight">Pay Online</span>
+                  <span className={`text-xs leading-tight ${formData.paymentMethod === "ONLINE" ? "text-teal-600" : "text-gray-400"}`}>
+                    Razorpay (Cards/UPI/Net Banking)
+                  </span>
+                </button>
               </div>
             </div>
           </div>
-          <div className="w-full lg:w-96 bg-white rounded-2xl shadow-xl p-8 lg:sticky lg:top-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Order Summary</h2>
-            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2">
+
+          {/* Estimated Delivery Info Bar */}
+          <div className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-teal-600 shrink-0" />
+            <p className="text-teal-700 text-sm font-medium">
+              Estimated delivery by <span className="font-bold">{estimatedDeliveryTime}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN — Order Summary */}
+        <div className="lg:sticky lg:top-24 self-start">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            {/* Title */}
+            <div className="flex items-center gap-2 mb-5">
+              <ShoppingBag className="w-5 h-5 text-teal-600" />
+              <h2 className="text-base font-bold text-gray-900">Order Summary</h2>
+            </div>
+
+            {/* Items list */}
+            <div className="max-h-60 overflow-y-auto space-y-3 mb-5 pr-1">
               {cartSummary.items.map((item) => (
                 <OrderItem key={item.itemId} item={item} />
               ))}
             </div>
-            <div className="border-t border-gray-200 pt-4 space-y-3">
-              <div className="flex justify-between text-sm text-gray-700">
+
+            {/* Divider + Price Breakdown */}
+            <div className="border-t border-gray-100 pt-4 space-y-2.5">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>Subtotal</span>
                 <span>₹{cartSummary.subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm text-gray-700">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>GST ({((cartSummary.taxAmount / cartSummary.subtotal) * 100).toFixed(1)}%)</span>
                 <span>₹{cartSummary.taxAmount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm text-gray-700">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>Delivery</span>
                 <span>₹{cartSummary.deliveryCharges.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-lg font-bold text-gray-900 pt-3">
+              <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-100">
                 <span>Total</span>
-                <span>₹{cartSummary.finalAmount.toFixed(2)}</span>
+                <span className="text-teal-700">₹{cartSummary.finalAmount.toFixed(2)}</span>
               </div>
             </div>
-            <Button
-              className="w-full mt-8 bg-teal-600 hover:bg-teal-700 text-white rounded-full py-3 text-lg font-semibold transition-all duration-200 flex items-center justify-center"
+
+            {/* CTA Button */}
+            <button
               onClick={handlePlaceOrder}
               disabled={isLoading || (formData.paymentMethod === "ONLINE" && !razorpayLoaded)}
               aria-busy={isLoading}
+              className="w-full mt-6 py-4 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed text-white font-bold rounded-2xl text-base transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              ) : null}
-              {isLoading ? "Processing..." : formData.paymentMethod === "COD" ? "Place Order" : "Pay Now"}
-            </Button>
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : formData.paymentMethod === "COD" ? (
+                <span>Place Order →</span>
+              ) : (
+                <span>Proceed to Pay →</span>
+              )}
+            </button>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -115,7 +115,6 @@ const UserOrder: React.FC = () => {
   const [isClearCartOpen,setIsClearCartOpen]= useState(false);
   const [isAddingItem,   setIsAddingItem]   = useState<number | null>(null);
   const [quantities,     setQuantities]     = useState<Record<number, number>>({});
-  const [cartQuantities, setCartQuantities] = useState<Record<number, number>>({});
   const [isCartOpen,     setIsCartOpen]     = useState(false);   // mobile/desktop cart drawer
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [searchQuery,    setSearchQuery]    = useState("");
@@ -146,11 +145,13 @@ const UserOrder: React.FC = () => {
         itemName: items.find((m) => m.itemId === ci.itemId)?.itemName ?? "Unknown",
       }));
       setCartSummary({ ...summary, items: enriched });
-      const qMap: Record<number, number> = {};
-      enriched.forEach((ci) => { qMap[ci.itemId] = ci.quantity; });
-      setCartQuantities(qMap);
+      const count = enriched.reduce((s, i) => s + i.quantity, 0);
+      localStorage.setItem("cartCount", String(count));
+      window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count } }));
     } catch {
       setCartSummary(null);
+      localStorage.setItem("cartCount", "0");
+      window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count: 0 } }));
     }
   }, [effectiveVendorId]);
 
@@ -250,7 +251,6 @@ const UserOrder: React.FC = () => {
     try {
       await api.delete(`/cart/items/${itemId}`, { params: { vendorId: effectiveVendorId } });
       await fetchCartSummary();
-      setCartQuantities((prev) => ({ ...prev, [itemId]: 0 }));
     } catch (e: any) {
       setError(e.response?.data?.message ?? "Failed to remove item.");
     }
@@ -262,7 +262,8 @@ const UserOrder: React.FC = () => {
       setCartSummary(null);
       setIsClearCartOpen(false);
       setIsCartOpen(false);
-      setCartQuantities({});
+      localStorage.setItem("cartCount", "0");
+      window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count: 0 } }));
     } catch (e: any) {
       setError(e.response?.data?.message ?? "Failed to clear cart.");
     }
@@ -320,35 +321,35 @@ const UserOrder: React.FC = () => {
         <div key={item.itemId} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-800 truncate">{item.itemName}</p>
-            <p className="text-xs text-gray-500 mt-0.5">₹{item.unitPrice} × {cartQuantities[item.itemId] ?? item.quantity}</p>
+            <p className="text-xs text-gray-500 mt-0.5">₹{item.unitPrice} × {item.quantity}</p>
           </div>
           <div className="flex items-center gap-1 border border-teal-200 rounded-full px-1 bg-white">
             <QtyButton
               onClick={() => {
-                const nq = (cartQuantities[item.itemId] ?? item.quantity) - 1;
+                const nq = item.quantity - 1;
                 if (nq < 1) removeItemFromCart(item.itemId);
-                else { setCartQuantities((p) => ({ ...p, [item.itemId]: nq })); updateCartItem(item.itemId, nq); }
+                else updateCartItem(item.itemId, nq);
               }}
               disabled={isAddingItem === item.itemId}
             >
-              <Minus size={13} />
+              {isAddingItem === item.itemId ? (
+                <span className="w-3 h-3 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Minus size={13} />
+              )}
             </QtyButton>
             <span className="w-6 text-center text-sm font-bold text-teal-700">
-              {cartQuantities[item.itemId] ?? item.quantity}
+              {item.quantity}
             </span>
             <QtyButton
-              onClick={() => {
-                const nq = (cartQuantities[item.itemId] ?? item.quantity) + 1;
-                setCartQuantities((p) => ({ ...p, [item.itemId]: nq }));
-                updateCartItem(item.itemId, nq);
-              }}
+              onClick={() => updateCartItem(item.itemId, item.quantity + 1)}
               disabled={isAddingItem === item.itemId}
             >
               <Plus size={13} />
             </QtyButton>
           </div>
           <p className="text-sm font-bold text-gray-800 w-16 text-right">
-            ₹{(item.unitPrice * (cartQuantities[item.itemId] ?? item.quantity)).toFixed(0)}
+            ₹{(item.unitPrice * item.quantity).toFixed(0)}
           </p>
           <button
             onClick={() => removeItemFromCart(item.itemId)}
@@ -418,7 +419,6 @@ const UserOrder: React.FC = () => {
                 className="px-2.5 py-1.5 text-teal-600 hover:bg-teal-50 font-bold text-lg leading-none"
                 onClick={() => {
                   const nq = cartQty - 1;
-                  setCartQuantities((p) => ({ ...p, [item.itemId]: nq }));
                   if (nq === 0) removeItemFromCart(item.itemId);
                   else updateCartItem(item.itemId, nq);
                 }}
@@ -432,11 +432,7 @@ const UserOrder: React.FC = () => {
               </span>
               <button
                 className="px-2.5 py-1.5 text-teal-600 hover:bg-teal-50 font-bold text-lg leading-none"
-                onClick={() => {
-                  const nq = cartQty + 1;
-                  setCartQuantities((p) => ({ ...p, [item.itemId]: nq }));
-                  updateCartItem(item.itemId, nq);
-                }}
+                onClick={() => updateCartItem(item.itemId, cartQty + 1)}
                 disabled={isAddingItem === item.itemId}
               >+</button>
             </div>
@@ -481,17 +477,6 @@ const UserOrder: React.FC = () => {
   // ══════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
-
-      {/* ── Mobile cart icon (fixed, appears in navbar area) ── */}
-      {hasCart && (
-        <button
-          onClick={() => setIsCartOpen(true)}
-          className="md:hidden fixed top-3.5 right-14 z-[60] flex items-center gap-1 bg-teal-600 text-white px-3 py-1.5 rounded-full shadow-lg text-xs font-bold"
-        >
-          <ShoppingCart size={14} />
-          <span>{cartItemCount}</span>
-        </button>
-      )}
 
       {/* ── Restaurant hero banner ── */}
       <div className="relative w-full h-52 sm:h-72 overflow-hidden">

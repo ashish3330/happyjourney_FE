@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Menu, X, ChevronDown, ShoppingCart,
-  Home, History, Phone, HelpCircle,
+  Home, History, Phone, HelpCircle, LogIn, LogOut,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/axios";
@@ -24,24 +24,48 @@ const policyLinks = [
 ];
 
 const UserNavbar = () => {
-  const [mobileOpen,        setMobileOpen]        = useState(false);
-  const [policyOpen,        setPolicyOpen]        = useState(false);
-  const [userDropdownOpen,  setUserDropdownOpen]  = useState(false);
+  const [mobileOpen,       setMobileOpen]       = useState(false);
+  const [policyOpen,       setPolicyOpen]       = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [cartCount,        setCartCount]        = useState(0);
 
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const { username, logout, accessToken, role } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { username, logout, accessToken } = useAuth();
 
   const policyRef = useRef<HTMLDivElement>(null);
   const userRef   = useRef<HTMLDivElement>(null);
 
-  const isUser = role === "user";
+  // ── Cart count: sync from localStorage on every navigation ──
+  useEffect(() => {
+    const stored = localStorage.getItem("cartCount");
+    setCartCount(stored ? Number(stored) : 0);
+  }, [location.pathname]);
+
+  // ── Cart count: real-time updates via custom event from UserOrder ──
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const count = (e as CustomEvent<{ count: number }>).detail?.count ?? 0;
+      setCartCount(count);
+    };
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, []);
+
+  // Reset count when user logs out
+  useEffect(() => {
+    if (!accessToken) {
+      setCartCount(0);
+      localStorage.removeItem("cartCount");
+    }
+  }, [accessToken]);
 
   const handleLogout = async () => {
     try { await api.get("/auth/logout"); } catch { /* ignore */ }
     logout();
     navigate("/home");
     setUserDropdownOpen(false);
+    setMobileOpen(false);
   };
 
   useEffect(() => {
@@ -126,21 +150,25 @@ const UserNavbar = () => {
           {/* ── Right actions ── */}
           <div className="flex items-center gap-2">
 
-            {/* Cart — desktop, logged-in user only */}
-            {isUser && (
+            {/* Desktop: cart icon with badge (logged-in only) */}
+            {accessToken && (
               <button
                 onClick={() => navigate("/order-history")}
                 title="My Orders"
-                className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-600 hover:text-teal-700 hover:bg-teal-50 transition-colors"
+                className="hidden md:flex relative items-center justify-center w-9 h-9 rounded-lg text-gray-600 hover:text-teal-700 hover:bg-teal-50 transition-colors"
               >
                 <ShoppingCart size={20} />
-                <span className="text-sm font-semibold">Cart</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-teal-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
               </button>
             )}
 
-            {/* Auth block */}
+            {/* Desktop: user avatar dropdown */}
             {accessToken ? (
-              <div ref={userRef} className="relative">
+              <div ref={userRef} className="relative hidden md:block">
                 <button
                   onClick={() => setUserDropdownOpen((v) => !v)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 hover:border-teal-300 hover:bg-teal-50 transition-colors"
@@ -150,7 +178,7 @@ const UserNavbar = () => {
                       {username ? username.charAt(0).toUpperCase() : "U"}
                     </span>
                   </div>
-                  <span className="hidden sm:block text-sm font-semibold text-gray-700 max-w-[96px] truncate">
+                  <span className="text-sm font-semibold text-gray-700 max-w-[96px] truncate">
                     {username || "User"}
                   </span>
                   <ChevronDown
@@ -177,39 +205,19 @@ const UserNavbar = () => {
             ) : (
               <button
                 onClick={() => navigate("/login")}
-                className="hidden md:block px-5 py-2 text-sm font-semibold text-white bg-teal-500 rounded-full hover:bg-teal-700 transition-colors shadow-sm"
+                className="hidden md:block px-5 py-2 text-sm font-semibold text-white bg-teal-600 rounded-full hover:bg-teal-700 transition-colors shadow-sm"
               >
                 Login
               </button>
             )}
 
-            {/* Mobile: cart icon (logged-in) or login button (guest) */}
-            <div className="flex md:hidden items-center gap-2">
-              {isUser && (
-                <button
-                  onClick={() => navigate("/order-history")}
-                  title="Cart"
-                  className="p-2 rounded-lg text-gray-600 hover:text-teal-700 hover:bg-teal-50 transition-colors"
-                >
-                  <ShoppingCart size={20} />
-                </button>
-              )}
-              {!accessToken && (
-                <button
-                  onClick={() => navigate("/login")}
-                  className="px-4 py-1.5 text-sm font-semibold text-white bg-teal-500 rounded-full hover:bg-teal-700 transition-colors"
-                >
-                  Login
-                </button>
-              )}
-              {/* Hamburger */}
-              <button
-                onClick={() => setMobileOpen((v) => !v)}
-                className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-              >
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
+            {/* Mobile: hamburger only */}
+            <button
+              onClick={() => setMobileOpen((v) => !v)}
+              className="flex md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
       </div>
@@ -253,17 +261,40 @@ const UserNavbar = () => {
               ))}
             </div>
 
-            {/* Logout in mobile menu */}
-            {accessToken && (
-              <div className="pt-2 mt-1 border-t border-gray-100">
+            {/* Auth section — always at bottom of drawer */}
+            <div className="pt-2 mt-1 border-t border-gray-100">
+              {accessToken ? (
+                <>
+                  {/* User info row */}
+                  <div className="flex items-center gap-3 px-3 py-3">
+                    <div className="w-9 h-9 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-bold">
+                        {username ? username.charAt(0).toUpperCase() : "U"}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">{username || "User"}</p>
+                      <p className="text-xs text-gray-400">Signed in</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </>
+              ) : (
                 <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                  onClick={() => { navigate("/login"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-teal-600 hover:bg-teal-50 transition-colors"
                 >
-                  Logout
+                  <LogIn size={16} />
+                  Login
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </nav>
         </div>
       )}
