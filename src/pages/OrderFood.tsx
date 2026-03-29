@@ -84,6 +84,7 @@ const OrderFood = () => {
   const [loading,     setLoading]     = useState(false);
   const [imageUrls,   setImageUrls]   = useState<Record<string, string>>({});
   const [hasSearched, setHasSearched] = useState(false);
+  const [vegFilter,   setVegFilter]   = useState<"all" | "veg" | "nonveg">("all");
   const [page, setPage] = useState<PaginationData>({
     current_page: 1, to: 0, total: 0, from: 0,
     per_page: 12, remainingPages: 0, last_page: 0,
@@ -152,6 +153,7 @@ const OrderFood = () => {
       if (!query.trim()) { setStations([]); setVendors([]); setHasSearched(false); return; }
       setLoading(true);
       setHasSearched(true);
+      setVegFilter("all");
       try {
         const params = type === "stationCode" ? { stationCode: query } : { city: query };
         const res = await api.get<Station[]>("/stations/all", { params });
@@ -216,6 +218,13 @@ const OrderFood = () => {
       });
     };
   }, [imageUrls]);
+
+  // ── Client-side veg/non-veg filter ───────────────────
+  const displayedVendors = vendors.filter((v) => {
+    if (vegFilter === "veg")    return v.veg === true;
+    if (vegFilter === "nonveg") return v.veg === false;
+    return true;
+  });
 
   // ═══════════════════════════════════════════════════════
   //  RENDER
@@ -393,7 +402,37 @@ const OrderFood = () => {
             </div>
 
             {vendors.length > 0 && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Veg / Non-veg filter pills */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setVegFilter(vegFilter === "veg" ? "all" : "veg")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border-2 transition-all ${
+                      vegFilter === "veg"
+                        ? "bg-green-600 border-green-600 text-white"
+                        : "bg-white border-green-500 text-green-700 hover:bg-green-50"
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-sm border-2 border-current flex items-center justify-center">
+                      <span className={`w-1 h-1 rounded-full ${vegFilter === "veg" ? "bg-white" : "bg-green-600"}`} />
+                    </span>
+                    Veg Only
+                  </button>
+                  <button
+                    onClick={() => setVegFilter(vegFilter === "nonveg" ? "all" : "nonveg")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border-2 transition-all ${
+                      vegFilter === "nonveg"
+                        ? "bg-red-600 border-red-600 text-white"
+                        : "bg-white border-red-500 text-red-600 hover:bg-red-50"
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-sm border-2 border-current flex items-center justify-center">
+                      <span className={`w-1 h-1 rounded-full ${vegFilter === "nonveg" ? "bg-white" : "bg-red-600"}`} />
+                    </span>
+                    Non-Veg Only
+                  </button>
+                </div>
+
                 <select
                   value={page.per_page}
                   onChange={handlePageSizeChange}
@@ -417,13 +456,30 @@ const OrderFood = () => {
           {/* Vendor cards */}
           {!loading && vendors.length > 0 && (
             <>
+              {displayedVendors.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5 bg-gray-100">
+                    <span className="text-3xl">{vegFilter === "veg" ? "🥗" : "🍗"}</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold text-gray-800 mb-1">
+                    No {vegFilter === "veg" ? "veg" : "non-veg"} restaurants found
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">Try removing the filter to see all restaurants.</p>
+                  <button
+                    onClick={() => setVegFilter("all")}
+                    className="px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 text-sm font-semibold rounded-full border border-teal-200 transition-colors"
+                  >
+                    Show All Restaurants
+                  </button>
+                </div>
+              ) : (
               <motion.div
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
                 initial="hidden"
                 animate="visible"
                 variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
               >
-                {vendors.map((vendor) => (
+                {displayedVendors.map((vendor) => (
                   <motion.div
                     key={vendor.vendorId}
                     variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
@@ -514,6 +570,7 @@ const OrderFood = () => {
                   </motion.div>
                 ))}
               </motion.div>
+              )}
 
               <div className="mt-10">
                 <Pagination
