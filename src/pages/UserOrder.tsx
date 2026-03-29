@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   Star, Clock, Leaf, Utensils, Trash2, Plus, Minus,
   ShoppingCart, Search, X, ChevronRight, MapPin,
@@ -91,6 +91,7 @@ const UserOrder: React.FC = () => {
   const { id: urlId } = useParams<{ id: string }>();
   const { accessToken } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [vendor,         setVendor]         = useState<Vendor | null>(null);
   const [categories,     setCategories]     = useState<Category[]>([]);
@@ -108,6 +109,13 @@ const UserOrder: React.FC = () => {
 
   const categoryRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const cartSheetRef = useRef<HTMLDivElement>(null);
+
+  // Auto-open cart sheet when navigated from CartBar "View Cart"
+  useEffect(() => {
+    if ((location.state as { openCart?: boolean })?.openCart) {
+      setIsCartOpen(true);
+    }
+  }, [location.state]);
 
   const effectiveVendorId = Number(urlId);
 
@@ -319,11 +327,17 @@ const UserOrder: React.FC = () => {
   // ── Shared cart items list (used in both drawer and bottom bar) ──
   const CartItemsList = () => (
     <div className="space-y-0 overflow-y-auto flex-1">
-      {cartSummary!.items.map((item) => (
+      {cartSummary!.items.map((item) => {
+        // Resolve name live from menuItems so stale-closure "Unknown" is never shown
+        const resolvedName =
+          item.itemName && item.itemName !== "Unknown"
+            ? item.itemName
+            : menuItems.find((m) => m.itemId === item.itemId)?.itemName ?? `Item #${item.itemId}`;
+        return (
         <div key={item.itemId} className="flex items-center gap-4 py-4 border-b border-gray-100 last:border-0">
           {/* Name + price calc */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 leading-snug truncate">{item.itemName}</p>
+            <p className="text-sm font-semibold text-gray-800 leading-snug truncate">{resolvedName}</p>
             <p className="text-xs text-gray-400 mt-0.5">
               ₹{item.unitPrice} × {item.quantity}
               <span className="text-gray-500 font-semibold">
@@ -364,7 +378,8 @@ const UserOrder: React.FC = () => {
             <Trash2 size={15} />
           </button>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 
