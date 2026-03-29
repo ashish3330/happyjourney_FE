@@ -127,6 +127,7 @@ const UserPasswordlessLogin: React.FC = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#f4f6f8]">
 
       {/* ══════════════════════════════════════
@@ -317,8 +318,11 @@ const UserPasswordlessLogin: React.FC = () => {
             </form>
           </motion.div>
 
+          {/* Divider */}
+          <div className="mt-7 h-px bg-gradient-to-r from-transparent via-teal-200 to-transparent" />
+
           {/* Footer */}
-          <p className="mt-7 text-center text-[11px] text-gray-400 leading-relaxed">
+          <p className="mt-4 text-center text-[11px] text-gray-400 leading-relaxed">
             By continuing, you agree to our{' '}
             <a href="/terms" className="text-teal-600 hover:underline">Terms of Service</a>
             {' '}and{' '}
@@ -327,6 +331,10 @@ const UserPasswordlessLogin: React.FC = () => {
         </div>
       </div>
     </div>
+
+      {/* Separator between login page and global footer */}
+      <div className="h-1 bg-gradient-to-r from-teal-600 via-teal-400 to-teal-600" />
+    </>
   );
 };
 
