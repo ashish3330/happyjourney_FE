@@ -62,19 +62,6 @@ interface CartSummary {
 }
 
 // ── Reusable quantity stepper ──────────────────────────────
-const QtyButton: React.FC<{
-  onClick: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-}> = ({ onClick, disabled, children }) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className="w-8 h-8 flex items-center justify-center rounded-full text-teal-600 hover:bg-teal-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-  >
-    {children}
-  </button>
-);
 
 // ── Loading skeleton ───────────────────────────────────────
 const PageSkeleton = () => (
