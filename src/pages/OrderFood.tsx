@@ -4,6 +4,7 @@ import {
   Search, Star, Clock, MapPin, Shield, Utensils,
   Train, ChevronRight, X, TrendingUp, CheckCircle,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import api from "@/utils/axios";
 import Pagination from "@/components/Pagination";
 import { SparklesIcon, FireIcon } from "@heroicons/react/20/solid";
@@ -416,10 +417,17 @@ const OrderFood = () => {
           {/* Vendor cards */}
           {!loading && vendors.length > 0 && (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+                initial="hidden"
+                animate="visible"
+                variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
+              >
                 {vendors.map((vendor) => (
-                  <div
+                  <motion.div
                     key={vendor.vendorId}
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                     onClick={() => navigate(`/user-order/${vendor.vendorId}`)}
                     className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:-translate-y-1"
                   >
@@ -503,9 +511,9 @@ const OrderFood = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               <div className="mt-10">
                 <Pagination

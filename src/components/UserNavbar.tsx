@@ -4,6 +4,7 @@ import {
   Menu, X, ChevronDown, ShoppingCart,
   Home, History, Phone, HelpCircle, LogIn, LogOut,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/axios";
 import Happy_Journey_Logo from "../assets/HappyJourney_Logo.svg";
@@ -214,19 +215,37 @@ const UserNavbar = () => {
             )}
 
             {/* Mobile: hamburger only */}
-            <button
+            <motion.button
               onClick={() => setMobileOpen((v) => !v)}
               className="flex md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+              whileTap={{ scale: 0.88 }}
             >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+              <AnimatePresence mode="wait" initial={false}>
+                {mobileOpen ? (
+                  <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <X size={20} />
+                  </motion.span>
+                ) : (
+                  <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Menu size={20} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
           </div>
         </div>
       </div>
 
       {/* ── Mobile drawer ── */}
+      <AnimatePresence>
       {mobileOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white shadow-lg">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="md:hidden border-t border-gray-100 bg-white shadow-lg"
+        >
           <nav className="px-4 py-3 space-y-0.5">
             {visibleLinks.map((link) => (
               <Link
@@ -296,8 +315,9 @@ const UserNavbar = () => {
               )}
             </div>
           </nav>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </header>
   );
 };
