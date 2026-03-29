@@ -696,82 +696,137 @@ const OrderHistory: React.FC = () => {
             const previewItems = (order.items || []).slice(0, 2);
             const extraCount = (order.items || []).length - 2;
 
+            // Avatar letter for restaurant
+            const avatarLetter = (order.vendorName || "R").charAt(0).toUpperCase();
+
             return (
               <motion.div
                 key={order.orderId}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25 }}
-                className={`bg-white rounded-2xl border-l-4 border border-gray-100 overflow-hidden ${borderColor(order.orderStatus)}`}
+                className={`bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm border-l-4 ${borderColor(order.orderStatus)}`}
               >
                 {/* ── Card header ── */}
                 <button
-                  className="w-full text-left p-5 hover:bg-gray-50/50 transition-colors"
+                  className="w-full text-left px-4 py-3.5 hover:bg-gray-50/40 transition-colors"
                   onClick={() => toggleOrderDetails(order.orderId)}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      {/* Restaurant + order id */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-base font-extrabold text-gray-900 truncate">
-                          {order.vendorName || `Vendor #${order.vendorId}`}
-                        </span>
-                        <span className="text-xs text-gray-400 font-medium shrink-0">#{order.orderId}</span>
-                      </div>
-
-                      {/* Date + city */}
-                      <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <IoTime size={11} /> {formatDate(order.deliveryTime)}
-                        </span>
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <FaMapMarkerAlt size={10} />
-                          {stationData[order.deliveryStationId]?.stationName || `City #${order.deliveryStationId}`}
-                        </span>
-                      </div>
-
-                      {/* Items preview */}
-                      <p className="text-xs text-gray-500 mt-2 truncate">
-                        {previewItems.map((i) => i.itemName).join(", ")}
-                        {extraCount > 0 && <span className="text-teal-600 font-semibold"> +{extraCount} more</span>}
-                      </p>
+                  {/* Row 1: Avatar + Name + Amount + Chevron */}
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-extrabold flex-shrink-0 ${
+                      order.orderStatus === "DELIVERED" ? "bg-green-100 text-green-700"
+                      : order.orderStatus === "CANCELLED" ? "bg-red-100 text-red-500"
+                      : "bg-teal-100 text-teal-700"
+                    }`}>
+                      {avatarLetter}
                     </div>
 
-                    {/* Right: amount + status + chevron */}
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <span className="text-lg font-extrabold text-teal-600">₹{(order.finalAmount || 0).toFixed(0)}</span>
-                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full ${sc.color}`}>
-                        {sc.icon}
-                        {sc.label}
+                    {/* Name + meta */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <span className="text-sm font-extrabold text-gray-900 truncate leading-none">
+                          {order.vendorName || `Vendor #${order.vendorId}`}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-medium shrink-0 leading-none">
+                          #{order.orderId}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] text-gray-400 flex items-center gap-0.5">
+                          <IoTime size={10} /> {formatDate(order.deliveryTime)}
+                        </span>
+                        {stationData[order.deliveryStationId]?.stationName && (
+                          <span className="text-[11px] text-gray-400 flex items-center gap-0.5">
+                            · <FaMapMarkerAlt size={8} className="mx-0.5" />
+                            {stationData[order.deliveryStationId].stationName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Amount + chevron */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-base font-extrabold text-gray-900">
+                        ₹{(order.finalAmount || 0).toFixed(0)}
                       </span>
-                      <span className="text-gray-400">{isExpanded ? <IoChevronUp size={16} /> : <IoChevronDown size={16} />}</span>
+                      <span className="text-gray-400 ml-0.5">
+                        {isExpanded ? <IoChevronUp size={14} /> : <IoChevronDown size={14} />}
+                      </span>
                     </div>
                   </div>
 
-                  {/* ── Step tracker (active non-cancelled orders) ── */}
+                  {/* Row 2: Items preview + Status badge */}
+                  <div className="flex items-center justify-between gap-3 mt-2.5 pl-12">
+                    <p className="text-[11px] text-gray-500 truncate flex-1 leading-snug">
+                      {previewItems.map((i) => i.itemName).join(", ")}
+                      {extraCount > 0 && (
+                        <span className="text-teal-600 font-semibold"> +{extraCount} more</span>
+                      )}
+                    </p>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${sc.color}`}>
+                      {sc.icon && React.cloneElement(sc.icon as React.ReactElement, { className: "w-2.5 h-2.5" })}
+                      {sc.label}
+                    </span>
+                  </div>
+
+                  {/* ── Step tracker (active, non-cancelled) ── */}
                   {activeTab === "active" && order.orderStatus !== "CANCELLED" && (
-                    <div className="mt-4 pt-4 border-t border-gray-50">
-                      <div className="flex items-center">
+                    <div className="mt-3 pt-3 border-t border-gray-50">
+                      <div className="flex items-start">
                         {STEPS.map((step, i) => (
                           <React.Fragment key={step}>
-                            <div className="flex flex-col items-center">
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
-                                i < currentStep ? "bg-teal-500 text-white"
-                                : i === currentStep ? "bg-teal-600 text-white ring-4 ring-teal-100"
-                                : "bg-gray-100 text-gray-400"
+                            <div className="flex flex-col items-center min-w-0">
+                              <div className={`relative w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 transition-colors ${
+                                i < currentStep
+                                  ? "bg-teal-500 text-white"
+                                  : i === currentStep
+                                  ? "bg-teal-600 text-white"
+                                  : "bg-gray-100 text-gray-400"
                               }`}>
                                 {i < currentStep ? "✓" : i + 1}
+                                {i === currentStep && (
+                                  <span className="absolute inset-0 rounded-full bg-teal-400 animate-ping opacity-30" />
+                                )}
                               </div>
-                              <span className={`text-[9px] mt-1 font-medium hidden sm:block ${
-                                i <= currentStep ? "text-teal-600" : "text-gray-400"
-                              }`}>{step}</span>
+                              <span className={`text-[8px] mt-0.5 font-medium text-center leading-tight ${
+                                i <= currentStep ? "text-teal-600" : "text-gray-300"
+                              }`}>
+                                {step}
+                              </span>
                             </div>
                             {i < STEPS.length - 1 && (
-                              <div className={`flex-1 h-0.5 mx-1 rounded-full ${i < currentStep ? "bg-teal-500" : "bg-gray-200"}`} />
+                              <div className={`flex-1 h-0.5 mx-0.5 mt-2.5 rounded-full ${
+                                i < currentStep ? "bg-teal-500" : "bg-gray-200"
+                              }`} />
                             )}
                           </React.Fragment>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Completed: delivery confirmation strip */}
+                  {activeTab === "completed" && order.orderStatus === "DELIVERED" && (
+                    <div className="mt-2.5 pl-12 flex items-center gap-1.5">
+                      <CheckCircle className="w-3 h-3 text-green-500" />
+                      <span className="text-[11px] text-green-600 font-semibold">Delivered</span>
+                      {canDownloadInvoice(order) && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); generateInvoice(order); }}
+                          className="ml-auto flex items-center gap-1 text-[10px] text-teal-600 font-bold hover:text-teal-700 transition-colors"
+                        >
+                          <FaDownload className="w-2.5 h-2.5" /> Invoice
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {activeTab === "completed" && order.orderStatus === "CANCELLED" && (
+                    <div className="mt-2.5 pl-12 flex items-center gap-1.5">
+                      <XCircle className="w-3 h-3 text-red-400" />
+                      <span className="text-[11px] text-red-500 font-semibold">Cancelled</span>
                     </div>
                   )}
                 </button>
