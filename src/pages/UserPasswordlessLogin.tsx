@@ -330,8 +330,6 @@ const UserPasswordlessLogin: React.FC = () => {
         </div>
       </div>
     </div>
-
-    </>
   );
 };
 
