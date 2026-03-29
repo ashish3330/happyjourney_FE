@@ -127,7 +127,6 @@ const UserPasswordlessLogin: React.FC = () => {
   };
 
   return (
-    <>
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#f4f6f8]">
 
       {/* ══════════════════════════════════════
@@ -332,8 +331,6 @@ const UserPasswordlessLogin: React.FC = () => {
       </div>
     </div>
 
-      {/* Separator between login page and global footer */}
-      <div className="h-1 bg-gradient-to-r from-teal-600 via-teal-400 to-teal-600" />
     </>
   );
 };

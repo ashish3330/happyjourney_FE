@@ -47,7 +47,12 @@ import VendorLedgerSummary from "./pages/VendorLedgerSummary";
 import { HappyJourneyFooter } from "./components/FooterConfigs";
 
 const FooterWrapper = () => {
-  return <HappyJourneyFooter /> 
+  return (
+    <>
+      <div className="h-1 bg-gradient-to-r from-teal-600 via-teal-400 to-teal-600" />
+      <HappyJourneyFooter />
+    </>
+  );
 };
 
 const App = () => {
