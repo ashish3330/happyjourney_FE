@@ -3,6 +3,7 @@ import api from "../utils/axios";
 import LoaderModal from "../components/LoaderModal";
 import { Edit, Plus, Search, Trash2, X } from "lucide-react";
 import Pagination from "../components/Pagination";
+import PageSizeSelect from "../components/PageSizeSelect";
 import { Button } from "@/components/ui/button";
 import { Box, Modal, Typography, IconButton } from "@mui/material";
 import AddStation from "@/components/AddStation";
@@ -198,8 +199,7 @@ const Station: FC = () => {
     }
   };
 
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSize = parseInt(e.target.value, 10);
+  const handlePageSizeChange = (newSize: number) => {
     if (newSize !== page.per_page) {
       setPage((prev) => ({ ...prev, per_page: newSize, current_page: 1 }));
       getData(1, newSize, { stationCode: stationCodeFilter, city: cityFilter });
@@ -246,15 +246,12 @@ const Station: FC = () => {
                     onFocus={() => (activeInputRef.current = "city")}
                   />
                 </div>
-                <select
+                <PageSizeSelect
                   value={page.per_page}
+                  options={[10, 25, 50]}
                   onChange={handlePageSizeChange}
-                  className="border border-gray-300 rounded-lg px-4 py-2 text-sm w-full sm:w-auto"
-                >
-                  <option value={10}>10 Records</option>
-                  <option value={25}>25 Records</option>
-                  <option value={50}>50 Records</option>
-                </select>
+                  label="records"
+                />
               </div>
             </div>
             <div className="w-full sm:w-auto">

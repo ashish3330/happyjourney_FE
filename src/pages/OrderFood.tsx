@@ -5,6 +5,7 @@ import {
   Train, ChevronRight, X, TrendingUp, CheckCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import PageSizeSelect from "@/components/PageSizeSelect";
 import api from "@/utils/axios";
 import Pagination from "@/components/Pagination";
 import { SparklesIcon, FireIcon } from "@heroicons/react/20/solid";
@@ -205,8 +206,7 @@ const OrderFood = () => {
     }
   };
 
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const size = parseInt(e.target.value, 10);
+  const handlePageSizeChange = (size: number) => {
     setPage((p) => ({ ...p, per_page: size, current_page: 1 }));
     if (stations.length > 0) fetchVendors(stations[0].stationId, 1, size);
   };
@@ -433,15 +433,11 @@ const OrderFood = () => {
                   </button>
                 </div>
 
-                <select
+                <PageSizeSelect
                   value={page.per_page}
+                  options={[12, 24, 48]}
                   onChange={handlePageSizeChange}
-                  className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:ring-2 focus:ring-teal-400 focus:outline-none bg-white shadow-sm"
-                >
-                  <option value={12}>Show 12</option>
-                  <option value={24}>Show 24</option>
-                  <option value={48}>Show 48</option>
-                </select>
+                />
               </div>
             )}
           </div>

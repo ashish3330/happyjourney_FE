@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import Select from "react-select";
 import Pagination from "../components/Pagination";
+import PageSizeSelect from "../components/PageSizeSelect";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import debounce from "lodash.debounce";
@@ -167,8 +168,7 @@ const CallbacksDashboard: FC = () => {
     getData(1, page.per_page, { name: nameFilter, status: value });
   };
 
-  const handlePageSizeChange = (selectedOption: any) => {
-    const newSize = selectedOption ? selectedOption.value : 10;
+  const handlePageSizeChange = (newSize: number) => {
     setPage((prev) => ({ ...prev, per_page: newSize, current_page: 1 }));
     getData(1, newSize, { name: nameFilter, status: statusFilter });
   };
@@ -231,15 +231,7 @@ const CallbacksDashboard: FC = () => {
                 isClearable
                 aria-label="Filter callbacks by status"
               />
-              <Select
-                options={pageSizeOptions}
-                value={pageSizeOptions.find((option) => option.value === page.per_page)}
-                onChange={handlePageSizeChange}
-                placeholder="Records per page"
-                className="w-full sm:w-[160px] text-sm"
-                classNamePrefix="select"
-                aria-label="Select records per page"
-              />
+              <PageSizeSelect value={page.per_page} options={[10, 25, 50]} onChange={handlePageSizeChange} label="records" />
             </div>
 
             {listData.length > 0 ? (

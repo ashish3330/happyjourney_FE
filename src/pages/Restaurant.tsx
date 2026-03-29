@@ -1,6 +1,7 @@
 import { FC, useEffect, useState, ChangeEvent } from "react";
 import api from "../utils/axios";
 import LoaderModal from "../components/LoaderModal";
+import PageSizeSelect from "../components/PageSizeSelect";
 import { Edit, Eye, Plus, Search, Trash2, X, Leaf, Flame } from "lucide-react";
 import Pagination from "../components/Pagination";
 import { Button } from "@/components/ui/button";
@@ -166,8 +167,7 @@ const Restaurant: FC = () => {
     }
   };
 
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSize = parseInt(e.target.value, 10);
+  const handlePageSizeChange = (newSize: number) => {
     if (newSize !== page.per_page) {
       setPage((prev) => ({ ...prev, per_page: newSize, current_page: 1 }));
       getData(1, newSize, searchName);
@@ -231,15 +231,12 @@ const Restaurant: FC = () => {
                   onChange={handleSearchStationCodeChange}
                 />
               </div> */}
-              <select
+              <PageSizeSelect
                 value={page.per_page}
+                options={[10, 25, 50]}
                 onChange={handlePageSizeChange}
-                className="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-40 text-sm focus:ring-2 focus:ring-teal-500"
-              >
-                <option value={10}>10 Records</option>
-                <option value={25}>25 Records</option>
-                <option value={50}>50 Records</option>
-              </select>
+                label="records"
+              />
             </div>
           </div>
           <Button
