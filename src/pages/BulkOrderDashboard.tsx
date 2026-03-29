@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import Select from "react-select";
 import Pagination from "../components/Pagination";
 import PageSizeSelect from "../components/PageSizeSelect";
 import { useMediaQuery } from "@mui/material";
@@ -24,11 +23,6 @@ interface BulkOrder {
   updatedAt?: string | null;
 }
 
-const pageSizeOptions = [
-  { value: 10, label: "10 Records" },
-  { value: 25, label: "25 Records" },
-  { value: 50, label: "50 Records" },
-];
 
 const BulkOrdersDashboard: FC = () => {
   const [listData, setListData] = useState<BulkOrder[]>([]);
