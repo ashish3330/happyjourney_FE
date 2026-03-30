@@ -176,6 +176,8 @@ const PlaceOrder: React.FC = () => {
   const isUnmountingRef = useRef(false);
   const razorpayInstanceRef = useRef<any>(null);
   const isPaymentCompleteRef = useRef(false);
+  const paidAmountRef = useRef<number>(0);
+  const successOrderIdRef = useRef<string>("");
 
   // Load Razorpay script
   useEffect(() => {
@@ -450,6 +452,7 @@ const PlaceOrder: React.FC = () => {
   // Success handler - common function for both payment methods
   // orderId parameter is kept for consistency with the callback signature
   const handlePaymentSuccess = useCallback((_orderId: string) => {
+    successOrderIdRef.current = _orderId;
     updatePaymentStatus(PaymentStatus.SUCCESS);
     setCartSummary(null);
     setPendingOrderId(null);
@@ -482,6 +485,7 @@ const PlaceOrder: React.FC = () => {
 
     setIsLoading(true);
     setError(null);
+    paidAmountRef.current = cartSummary.finalAmount;
     // Reset payment status when starting new order
     updatePaymentStatus(PaymentStatus.PENDING);
     isPaymentCompleteRef.current = false;
@@ -531,8 +535,9 @@ const PlaceOrder: React.FC = () => {
           key: razorpayKey,
           amount: order.amountInPaise,
           currency: "INR",
-          name: "TheHappyJourneyy",
+          name: "HappyJourney",
           description: `Food Order #${orderId}`,
+          image: "/favicon.svg",
           order_id: order.razorpayOrderID,
           handler: async function (response: any) {
             try {
@@ -574,7 +579,7 @@ const PlaceOrder: React.FC = () => {
             orderId,
           },
           theme: {
-            color: "#3399cc",
+            color: "#0d9488",
           }
         };
 
@@ -627,69 +632,98 @@ const PlaceOrder: React.FC = () => {
   // Success overlay — must be before cartSummary checks
   if (showSuccess) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
         <motion.div
-          initial={{ scale: 0.7, opacity: 0 }}
+          initial={{ scale: 0.75, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          className="bg-white rounded-3xl px-10 py-12 flex flex-col items-center text-center shadow-2xl mx-4 max-w-sm w-full"
+          className="bg-white rounded-3xl overflow-hidden shadow-2xl w-full max-w-sm"
         >
-          {/* Animated circle + checkmark */}
-          <div className="relative w-24 h-24 mb-6">
-            <motion.svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-              <circle cx="50" cy="50" r="44" fill="none" stroke="#f0fdf4" strokeWidth="8" />
-              <motion.circle
-                cx="50" cy="50" r="44"
-                fill="none" stroke="#16a34a" strokeWidth="8"
-                strokeLinecap="round"
-                strokeDasharray={276}
-                initial={{ strokeDashoffset: 276 }}
-                animate={{ strokeDashoffset: 0 }}
-                transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
-              />
-            </motion.svg>
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.65 }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <svg viewBox="0 0 52 52" className="w-12 h-12">
-                <motion.path
-                  fill="none" stroke="#16a34a" strokeWidth="5"
-                  strokeLinecap="round" strokeLinejoin="round"
-                  d="M14 27 l9 9 l16 -18"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.4, ease: "easeOut", delay: 0.7 }}
+          {/* Green header */}
+          <div className="bg-gradient-to-br from-green-500 to-emerald-600 px-8 pt-10 pb-8 flex flex-col items-center text-center">
+            {/* Animated circle + checkmark */}
+            <div className="relative w-20 h-20 mb-5">
+              <motion.svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="8" />
+                <motion.circle
+                  cx="50" cy="50" r="44"
+                  fill="none" stroke="white" strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={276}
+                  initial={{ strokeDashoffset: 276 }}
+                  animate={{ strokeDashoffset: 0 }}
+                  transition={{ duration: 0.65, ease: "easeOut", delay: 0.1 }}
                 />
-              </svg>
-            </motion.div>
+              </motion.svg>
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.6 }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <svg viewBox="0 0 52 52" className="w-10 h-10">
+                  <motion.path
+                    fill="none" stroke="white" strokeWidth="5"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    d="M14 27 l9 9 l16 -18"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.35, ease: "easeOut", delay: 0.65 }}
+                  />
+                </svg>
+              </motion.div>
+            </div>
+            <motion.h2
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.75 }}
+              className="text-2xl font-extrabold text-white"
+            >
+              Order Placed!
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.85 }}
+              className="text-green-100 text-sm mt-1"
+            >
+              Your food is being prepared 🍽️
+            </motion.p>
           </div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="text-2xl font-extrabold text-gray-900"
-          >
-            Order Placed!
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
+          {/* Details */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="text-gray-500 text-sm mt-2"
+            className="px-8 py-6 flex flex-col items-center gap-4"
           >
-            Your food is being prepared 🍽️
-          </motion.p>
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 2.5, ease: "linear", delay: 0.3 }}
-            style={{ originX: 0 }}
-            className="mt-6 h-1 w-full bg-teal-500 rounded-full"
-          />
+            {/* Amount pill */}
+            {paidAmountRef.current > 0 && (
+              <div className="flex items-center gap-3 w-full bg-gray-50 rounded-2xl px-4 py-3">
+                <div className="flex-1">
+                  <p className="text-xs text-gray-400 font-medium">Amount Paid</p>
+                  <p className="text-xl font-extrabold text-gray-900">₹{paidAmountRef.current.toFixed(2)}</p>
+                </div>
+                {successOrderIdRef.current && (
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400 font-medium">Order ID</p>
+                    <p className="text-sm font-bold text-teal-700">#{successOrderIdRef.current}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Progress bar */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 2.5, ease: "linear", delay: 0.3 }}
+              style={{ originX: 0 }}
+              className="h-1 w-full bg-teal-500 rounded-full"
+            />
+            <p className="text-xs text-gray-400">Redirecting to your orders…</p>
+          </motion.div>
         </motion.div>
       </div>
     );
@@ -884,7 +918,7 @@ const PlaceOrder: React.FC = () => {
                   <CreditCard className={`w-5 h-5 ${formData.paymentMethod === "ONLINE" ? "text-teal-600" : "text-gray-400"}`} />
                   <span className="text-sm font-semibold leading-tight">Pay Online</span>
                   <span className={`text-xs leading-tight ${formData.paymentMethod === "ONLINE" ? "text-teal-600" : "text-gray-400"}`}>
-                    Razorpay (Cards/UPI/Net Banking)
+                    UPI · Cards · Net Banking
                   </span>
                 </button>
               </div>
@@ -951,9 +985,16 @@ const PlaceOrder: React.FC = () => {
               ) : formData.paymentMethod === "COD" ? (
                 <span>Place Order →</span>
               ) : (
-                <span>Proceed to Pay →</span>
+                <span>Proceed to Pay · ₹{cartSummary.finalAmount.toFixed(2)}</span>
               )}
             </button>
+            {/* Trust badge */}
+            <div className="mt-3 flex items-center justify-center gap-1.5 text-gray-400">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clipRule="evenodd" />
+              </svg>
+              <span className="text-xs font-medium">100% Secure · Powered by Razorpay</span>
+            </div>
           </div>
         </div>
 
