@@ -4,7 +4,7 @@ import {
   Search, Star, Clock, MapPin, Shield, Utensils,
   Train, ChevronRight, X, TrendingUp, CheckCircle,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import PageSizeSelect from "@/components/PageSizeSelect";
 import api from "@/utils/axios";
 import Pagination from "@/components/Pagination";
@@ -60,6 +60,12 @@ const POPULAR_CITIES = [
   "Chennai", "Kolkata", "Pune", "Jaipur",
 ];
 
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=90",
+  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=90",
+  "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1920&q=90",
+];
+
 // ── Skeleton card ────────────────────────────────────────
 const CardSkeleton = () => (
   <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse">
@@ -78,6 +84,7 @@ const CardSkeleton = () => (
 
 // ── Main component ───────────────────────────────────────
 const OrderFood = () => {
+  const [heroSlide, setHeroSlide] = useState(0);
   const [searchType,  setSearchType]  = useState<"stationCode" | "city">("city");
   const [searchQuery, setSearchQuery] = useState("");
   const [stations,    setStations]    = useState<Station[]>([]);
@@ -94,6 +101,12 @@ const OrderFood = () => {
   const navigate   = useNavigate();
   const inputRef   = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // ── Hero carousel ────────────────────────────────────
+  useEffect(() => {
+    const id = setInterval(() => setHeroSlide((s) => (s + 1) % HERO_IMAGES.length), 4000);
+    return () => clearInterval(id);
+  }, []);
 
   // ── Image fetch ──────────────────────────────────────
   const fetchImage = async (logoUrl: string) => {
@@ -236,13 +249,20 @@ const OrderFood = () => {
           HERO — full-screen with background image
       ══════════════════════════════════════════ */}
       <section className="relative h-[75vh] min-h-[520px] max-h-[780px] flex items-center justify-center overflow-hidden">
-        {/* Background */}
+        {/* Background carousel */}
         <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=90"
-            alt=""
-            className="w-full h-full object-cover"
-          />
+          <AnimatePresence mode="sync">
+            <motion.img
+              key={heroSlide}
+              src={HERO_IMAGES[heroSlide]}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+            />
+          </AnimatePresence>
           <div className="absolute inset-0 bg-black/60" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
         </div>
@@ -343,6 +363,20 @@ const OrderFood = () => {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Carousel dots */}
+          <div className="flex gap-2 mt-6">
+            {HERO_IMAGES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setHeroSlide(i)}
+                className={`transition-all duration-300 rounded-full ${
+                  i === heroSlide ? "w-6 h-2 bg-teal-400" : "w-2 h-2 bg-white/40 hover:bg-white/60"
+                }`}
+                aria-label={`Slide ${i + 1}`}
+              />
+            ))}
           </div>
         </div>
       </section>

@@ -59,14 +59,13 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
               {config.description}
             </p>
 
-            {/* Social icons with brand colours */}
+            {/* Social icons */}
             <div className="flex gap-3 pt-1">
               <a
                 href={config.socialMedia.facebook}
                 target="_blank" rel="noopener noreferrer"
                 aria-label="Facebook"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
-                style={{ backgroundColor: '#1877F2' }}
+                className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center transition-colors hover:bg-white/20"
               >
                 <Facebook className="w-[18px] h-[18px] text-white" />
               </a>
@@ -74,7 +73,7 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
                 href={config.socialMedia.twitter}
                 target="_blank" rel="noopener noreferrer"
                 aria-label="X (formerly Twitter)"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80 bg-black"
+                className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center transition-colors hover:bg-white/20"
               >
                 <svg viewBox="0 0 24 24" className="w-[17px] h-[17px] fill-white">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -84,7 +83,7 @@ const Footer: React.FC<FooterProps> = React.memo(({ config }) => {
                 href={config.socialMedia.instagram}
                 target="_blank" rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-opacity hover:opacity-85 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400"
+                className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center transition-colors hover:bg-white/20"
               >
                 <Instagram className="w-[18px] h-[18px] text-white" />
               </a>
