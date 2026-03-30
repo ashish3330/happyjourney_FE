@@ -241,7 +241,7 @@ const VendorLedgerSummary: FC = () => {
     }
   };
 
-  const handlePdfExport = () => {
+  const handlePdfExport = async () => {
     if (!selectedVendor || !vendorDetails) {
       setError("Please select a vendor");
       toast.error("Please select a vendor");
