@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HappyJourneyLogoDark from '../assets/HappyJourney_Logo_Dark.svg';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
+import { UtensilsCrossed, MapPin, ShieldCheck } from 'lucide-react';
 import api from '../utils/axios';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -134,11 +135,12 @@ const UserPasswordlessLogin: React.FC = () => {
       ══════════════════════════════════════ */}
       <div className="lg:w-[45%] w-full h-[300px] lg:h-auto relative overflow-hidden lg:overflow-visible">
         <img
-          src="https://images.pexels.com/photos/1667427/pexels-photo-1667427.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+          src="https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
           alt=""
           className="object-cover w-full h-full absolute inset-0"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-950/95 via-gray-900/85 to-black/90" />
+        <div className="absolute inset-0 bg-gray-950/88" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-teal-900/15 to-teal-900/55" />
 
         {/* Mobile: centered logo + tagline */}
         <div className="lg:hidden relative z-10 h-full flex flex-col items-center justify-center gap-3 px-6 pb-10">
@@ -146,36 +148,58 @@ const UserPasswordlessLogin: React.FC = () => {
           <p className="text-white/70 text-sm tracking-wide">Fresh. Hot. Delivered to your door.</p>
         </div>
 
-        {/* Desktop: centered content */}
-        <div className="hidden lg:flex relative z-10 h-full flex-col items-center justify-between py-10 text-center">
+        {/* Desktop: left-aligned content */}
+        <div className="hidden lg:flex relative z-10 h-full flex-col justify-between py-12 px-10">
+
+          {/* Logo — top left */}
           <img src={HappyJourneyLogoDark} alt="HappyJourney" className="h-14 w-auto object-contain" />
 
-          <div className="flex flex-col items-center">
-            <h2 className="text-4xl font-extrabold text-white leading-[1.2] tracking-tight max-w-xs">
-              Fresh meals, delivered sizzling hot.
+          {/* Centre block */}
+          <div>
+            {/* Live badge */}
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-3.5 py-1.5 mb-7">
+              <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse shrink-0" />
+              <span className="text-white/75 text-[11px] font-semibold tracking-wider uppercase">Now live in 400+ cities</span>
+            </div>
+
+            {/* Heading — 2 lines */}
+            <h2 className="text-[2.6rem] font-extrabold text-white leading-[1.12] tracking-tight">
+              Fresh meals,<br />delivered sizzling hot.
             </h2>
-            <p className="mt-4 text-white/60 text-sm leading-relaxed max-w-[240px]">
-              Hot food at your doorstep across 400+ cities in India.
+            <p className="mt-4 text-white/55 text-sm leading-relaxed max-w-[280px]">
+              Hot, fresh food from local restaurants straight to your doorstep.
             </p>
 
-            <div className="mt-10 space-y-4 text-left">
-              {[
-                { icon: '🍽️', title: '500+ Partner Restaurants', sub: 'Curated local & cloud kitchens' },
-                { icon: '📍', title: '400+ Cities Covered',       sub: 'Pan-India delivery network'    },
-                { icon: '✅', title: '100% FSSAI Certified',      sub: 'Safe, hygienic, verified food' },
-              ].map(({ icon, title, sub }) => (
-                <div key={title} className="flex items-start gap-3">
-                  <span className="text-lg leading-none mt-0.5">{icon}</span>
+            {/* Feature pills */}
+            <div className="mt-10 space-y-4">
+              {(
+                [
+                  { Icon: UtensilsCrossed, anim: { rotate: [0, -12, 12, -6, 0] }, color: 'text-orange-400',  bg: 'rgba(251,146,60,0.18)',  title: '500+ Partner Restaurants', sub: 'Curated local & cloud kitchens' },
+                  { Icon: MapPin,          anim: { y: [0, -6, 0, -3, 0] },         color: 'text-teal-300',    bg: 'rgba(94,234,212,0.18)',  title: '400+ Cities Covered',       sub: 'Pan-India delivery network'    },
+                  { Icon: ShieldCheck,     anim: { scale: [1, 1.3, 1] },            color: 'text-emerald-400', bg: 'rgba(52,211,153,0.18)',  title: '100% FSSAI Certified',      sub: 'Safe, hygienic, verified food' },
+                ] as { Icon: React.FC<{ className?: string; strokeWidth?: number }>; anim: Record<string, unknown>; color: string; bg: string; title: string; sub: string }[]
+              ).map(({ Icon, anim, color, bg, title, sub }) => (
+                <motion.div key={title} className="flex items-center gap-3 cursor-default" whileHover="hovered">
+                  <motion.div
+                    className="w-9 h-9 rounded-xl backdrop-blur-sm border border-white/10 flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: bg.replace('0.18', '0.12') }}
+                    variants={{ hovered: { backgroundColor: bg, scale: 1.08 } }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <motion.div variants={{ hovered: { ...anim, transition: { duration: 0.45, ease: 'easeOut' } } }}>
+                      <Icon className={`w-[18px] h-[18px] ${color}`} strokeWidth={1.75} />
+                    </motion.div>
+                  </motion.div>
                   <div>
-                    <p className="text-white text-sm font-semibold leading-none mb-1">{title}</p>
-                    <p className="text-white/50 text-xs">{sub}</p>
+                    <p className="text-white text-sm font-semibold leading-none mb-0.5">{title}</p>
+                    <p className="text-white/45 text-xs">{sub}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
 
-          <p className="text-white/25 text-xs">
+          <p className="text-white/20 text-xs">
             © {new Date().getFullYear()} HappyJourney. All rights reserved.
           </p>
         </div>
@@ -186,8 +210,8 @@ const UserPasswordlessLogin: React.FC = () => {
           Mobile: slides up over the hero (-mt-8, rounded-t-3xl)
           Desktop: centered card in gray panel
       ══════════════════════════════════════ */}
-      <div className="lg:w-[55%] w-full -mt-8 lg:mt-0 relative z-10 lg:z-auto lg:flex lg:items-center lg:justify-center lg:py-12 lg:px-10">
-        <div className="w-full max-w-[420px] mx-auto bg-white rounded-t-3xl lg:rounded-3xl shadow-xl lg:shadow-lg px-6 pt-8 pb-10 lg:px-10 lg:py-12">
+      <div className="lg:w-[55%] w-full -mt-8 lg:mt-0 relative z-10 lg:z-auto bg-[#f4f6f8] lg:flex lg:items-center lg:justify-center lg:py-12 lg:px-10">
+        <div className="w-full max-w-[420px] mx-auto bg-white rounded-t-3xl lg:rounded-3xl shadow-xl lg:shadow-md px-6 pt-8 pb-10 lg:px-10 lg:py-12">
 
           {/* Step indicator */}
           <div className="flex items-center mb-7">
