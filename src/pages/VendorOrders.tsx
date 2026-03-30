@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
+import logoUrl from '../assets/Happy_Journey_Logo.jpg';
 import {
   Select,
   SelectContent,
@@ -188,6 +189,19 @@ const paymentMethodConfig = {
     label: "Net Banking",
   },
 };
+
+const loadPdfLogo = (): Promise<{ data: string; w: number; h: number }> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      c.getContext('2d')!.drawImage(img, 0, 0);
+      resolve({ data: c.toDataURL('image/jpeg'), w: img.naturalWidth, h: img.naturalHeight });
+    };
+    img.src = logoUrl;
+  });
 
 const VendorOrders: React.FC = () => {
   const { userId, accessToken } = useAuth();
@@ -468,17 +482,17 @@ const VendorOrders: React.FC = () => {
     }
   };
 
-  const generateInvoice = (order: OrderDTO) => {
+  const generateInvoice = async (order: OrderDTO) => {
+    const logo = await loadPdfLogo();
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
       format: "a4",
     });
 
-    doc.setFontSize(22);
-    doc.setTextColor(30, 64, 175);
-    doc.setFont("helvetica", "bold");
-    doc.text("RAILWAY EATS", 105, 20, { align: "center" });
+    const logoW = 48;
+    const logoH = (logoW * logo.h) / logo.w;
+    doc.addImage(logo.data, 'JPEG', (210 - logoW) / 2, 8, logoW, logoH);
 
     doc.setFontSize(10);
     doc.setTextColor(100, 116, 139);

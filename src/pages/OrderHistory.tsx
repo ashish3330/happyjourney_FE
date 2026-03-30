@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import logoUrl from '../assets/Happy_Journey_Logo.jpg';
 
 interface OrderItemDTO {
   itemId: number;
@@ -161,6 +162,19 @@ const paymentMethodConfig = {
     label: "Razorpay",
   },
 };
+
+const loadPdfLogo = (): Promise<{ data: string; w: number; h: number }> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      c.getContext('2d')!.drawImage(img, 0, 0);
+      resolve({ data: c.toDataURL('image/jpeg'), w: img.naturalWidth, h: img.naturalHeight });
+    };
+    img.src = logoUrl;
+  });
 
 const OrderHistory: React.FC = () => {
   const { userId, accessToken, username } = useAuth();
@@ -379,8 +393,9 @@ const OrderHistory: React.FC = () => {
     fetchOrdersAndData();
   }, [userId, accessToken]);
 
-  const generateInvoice = (order: OrderDTO) => {
+  const generateInvoice = async (order: OrderDTO) => {
     try {
+      const logo = await loadPdfLogo();
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -393,17 +408,17 @@ const OrderHistory: React.FC = () => {
       const marginRight = 14;
       const pageWidth = doc.internal.pageSize.width;
       const labelColumnWidth = 100;
-      let currentY = 20;
+      let currentY = 8;
 
-      // Header
-      doc.setFontSize(22);
-      doc.setTextColor(30, 64, 175);
-      doc.setFont("helvetica", "bold");
-      doc.text("HappyJourney", pageWidth / 2, currentY, { align: "center" });
-      currentY += 6;
+      // Logo
+      const logoW = 48;
+      const logoH = (logoW * logo.h) / logo.w;
+      doc.addImage(logo.data, 'JPEG', (pageWidth - logoW) / 2, currentY, logoW, logoH);
+      currentY += logoH + 3;
 
       doc.setFontSize(10);
       doc.setTextColor(100, 116, 139);
+      doc.setFont("helvetica", "normal");
       doc.text("Food Delivery On The Go", pageWidth / 2, currentY, { align: "center" });
       currentY += 10;
 

@@ -12,6 +12,7 @@ import api from "@/utils/axios";
 import { useAuth } from "@/contexts/AuthContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import logoUrl from '../assets/Happy_Journey_Logo.jpg';
 
 interface StationDTO {
   stationId: number;
@@ -58,6 +59,19 @@ interface VendorLedgerDTO {
   systemBalance: number;
   vendorBalance: number;
 }
+
+const loadPdfLogo = (): Promise<{ data: string; w: number; h: number }> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      c.getContext('2d')!.drawImage(img, 0, 0);
+      resolve({ data: c.toDataURL('image/jpeg'), w: img.naturalWidth, h: img.naturalHeight });
+    };
+    img.src = logoUrl;
+  });
 
 const VendorLedgerSummary: FC = () => {
   const { accessToken } = useAuth();
@@ -246,28 +260,30 @@ const VendorLedgerSummary: FC = () => {
       const margin = 15;
       let y = margin;
   
-      // Header
+      // Logo above header
+      const logo = await loadPdfLogo();
+      const logoW = 48;
+      const logoH = (logoW * logo.h) / logo.w;
+      doc.addImage(logo.data, 'JPEG', (pageWidth - logoW) / 2, 5, logoW, logoH);
+
+      // Header (shifted down by 20 to accommodate logo)
       doc.setFillColor(33, 150, 243);
-      doc.rect(0, 0, pageWidth, 30, "F");
-      doc.setFontSize(18);
+      doc.rect(0, 20, pageWidth, 30, "F");
+      doc.setFontSize(12);
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text("TheHappJjourney", margin, y + 10);
-      doc.setFontSize(10);
-      doc.text("Street Num Food Delivery Redefined", margin, y + 18);
-      doc.setFontSize(12);
-      doc.text("Vendor Ledger Invoice", pageWidth - margin - 60, y + 10);
+      doc.text("Vendor Ledger Invoice", pageWidth - margin - 60, y + 30);
       doc.setFontSize(8);
-      doc.text(`Invoice ID: INV-${selectedVendor}-${format(new Date(), "yyyyMMdd")}`, pageWidth - margin - 60, y + 18);
+      doc.text(`Invoice ID: INV-${selectedVendor}-${format(new Date(), "yyyyMMdd")}`, pageWidth - margin - 60, y + 38);
       doc.setFillColor(255, 111, 0);
-      doc.rect(0, 30, pageWidth, 2, "F");
-      y += 35;
+      doc.rect(0, 50, pageWidth, 2, "F");
+      y += 55;
   
       // Company Details
       doc.setFontSize(10);
       doc.setTextColor(50, 50, 50);
       doc.setFont("helvetica", "normal");
-      doc.text("TheHappJjourney", margin, y);
+      doc.text("HappyJourney", margin, y);
       doc.text("Railway Station Road Bhagwan Ganj Ward, Sagar  Madhya Pradesh-470002", margin, y + 5);
       doc.text("Email: support@thehappyjourneyy.com", margin, y + 10);
       doc.text("Phone: +91 9826262660", margin, y + 15);
