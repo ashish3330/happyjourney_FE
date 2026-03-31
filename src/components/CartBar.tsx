@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ShoppingCart, ChevronRight } from "lucide-react";
+import api from "@/utils/axios";
 
 // Pages that have their own cart UI — don't show global bar on these
 const EXCLUDED_PATHS = ["/user-order/", "/checkout/"];
+
+const clearCartStorage = () => {
+  localStorage.removeItem("cartCount");
+  localStorage.removeItem("cartTotal");
+  localStorage.removeItem("cartVendorId");
+};
 
 const CartBar = () => {
   const [cartCount,    setCartCount]    = useState(0);
@@ -13,14 +20,48 @@ const CartBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Sync from localStorage on every route change
+  // Sync from localStorage and validate against API on every route change
   useEffect(() => {
     const count    = Number(localStorage.getItem("cartCount")  ?? 0);
     const total    = Number(localStorage.getItem("cartTotal")  ?? 0);
     const vendorId = localStorage.getItem("cartVendorId");
-    setCartCount(count);
-    setCartTotal(total);
-    setCartVendorId(vendorId);
+
+    if (!vendorId || count === 0) {
+      clearCartStorage();
+      setCartCount(0);
+      setCartTotal(0);
+      setCartVendorId(null);
+      return;
+    }
+
+    // Verify the cart is still live on the server
+    api.get("/cart/summary", { params: { vendorId } })
+      .then((res) => {
+        const items: { quantity: number }[] = res.data?.items ?? [];
+        const liveCount = items.reduce((s, i) => s + i.quantity, 0);
+        if (liveCount === 0) {
+          clearCartStorage();
+          setCartCount(0);
+          setCartTotal(0);
+          setCartVendorId(null);
+          window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count: 0 } }));
+        } else {
+          const liveTotal = res.data?.finalAmount ?? total;
+          localStorage.setItem("cartCount", String(liveCount));
+          localStorage.setItem("cartTotal", String(liveTotal));
+          setCartCount(liveCount);
+          setCartTotal(liveTotal);
+          setCartVendorId(vendorId);
+        }
+      })
+      .catch(() => {
+        // Cart not found or server error — clear stale data
+        clearCartStorage();
+        setCartCount(0);
+        setCartTotal(0);
+        setCartVendorId(null);
+        window.dispatchEvent(new CustomEvent("cart-updated", { detail: { count: 0 } }));
+      });
   }, [location.pathname]);
 
   // Real-time updates via custom event
