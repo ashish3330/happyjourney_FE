@@ -10,7 +10,7 @@ const HelpAndSupport = () => {
       answer: "You can track your order in real-time through the 'My Orders' section of the app. We'll also send you SMS updates at key stages of your order's journey."
     },
     {
-      question: "What if my train is delayed?",
+      question: "What if my order is delayed?",
       answer: "If your doorstep is delayed by more than 30 minutes, please contact our customer support immediately. We'll coordinate with the restaurant to adjust delivery timing."
     },
     {

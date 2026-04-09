@@ -29,7 +29,7 @@ interface PaginationData {
 // ── Static data ──────────────────────────────────────────
 const STATS = [
   { value: "500+",   label: "Partner Restaurants", icon: Utensils },
-  { value: "2000+",  label: "Home Routes",          icon: Train    },
+  { value: "2000+",  label: "Routes",                icon: Train    },
   { value: "400+",   label: "Cities Covered",       icon: MapPin   },
   { value: "100%",   label: "FSSAI Certified",      icon: Shield   },
 ];
@@ -278,7 +278,7 @@ const OrderFood = () => {
           {/* Eyebrow pill */}
           <div className="inline-flex items-center gap-2 bg-teal-500/20 border border-teal-400/40 text-teal-300 text-xs font-bold px-4 py-2 rounded-full mb-5 backdrop-blur-sm">
             <Train size={12} />
-            India's #1 Home Food Delivery
+            India's #1 Food Delivery
           </div>
 
           {/* Headline */}

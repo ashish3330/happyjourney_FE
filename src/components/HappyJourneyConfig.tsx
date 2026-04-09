@@ -19,7 +19,7 @@ export const HappyJourneyConfig = {
     {
       icon: <FaTrain className="w-6 h-6 text-teal-600 mr-2" />,
       title: 'Serving Pan-India',
-      description: 'We deliver food at 500+ cities across India — anytime, anywhere, while you travel.',
+      description: 'We deliver food at 500+ cities across India — anytime, anywhere.',
       highlights: [
         'Covers all 17 City',
         'Track your order live via GPS',

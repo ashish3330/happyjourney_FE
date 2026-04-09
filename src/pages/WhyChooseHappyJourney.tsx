@@ -229,7 +229,7 @@ const WhyChooseHappyJourney: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 place-content-center mx-auto max-w-6xl">
           {[
             {
-              quote: "Made our train journeys delightful with tasty meals!",
+              quote: "Made our journeys delightful with tasty meals!",
               author: "Vikram S.",
               role: "Regular Commuter",
               rating: 5
