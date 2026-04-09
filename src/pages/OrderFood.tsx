@@ -49,8 +49,8 @@ const HOW_IT_WORKS = [
   },
   {
     step: "03",
-    title: "Enjoy at Your Seat",
-    desc: "Your meal is prepared fresh and delivered hot right to your seat.",
+    title: "Enjoy at Your Home",
+    desc: "Your meal is prepared fresh and delivered hot right to your home.",
     icon: Train,
   },
 ];
@@ -286,7 +286,7 @@ const OrderFood = () => {
             Delicious Food,{" "}
             <span className="text-teal-400">Right to</span>
             <br className="hidden sm:block" />
-            {" "}Your Seat
+            {" "}Your Home
           </h1>
 
           <p className="text-gray-300 text-base sm:text-lg mb-8 max-w-lg leading-relaxed">
@@ -659,7 +659,7 @@ const OrderFood = () => {
                   How It Works
                 </h2>
                 <p className="text-gray-500 max-w-xl mx-auto text-base">
-                  Getting food delivered to your train seat is easier than you think.
+                  Getting food delivered to your home is easier than you think.
                   Three simple steps and your meal is on its way.
                 </p>
               </div>

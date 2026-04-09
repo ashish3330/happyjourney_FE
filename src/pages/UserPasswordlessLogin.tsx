@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import HappyJourneyLogoDark from '../assets/HappyJourney_Logo_Dark.svg';
+import HappyJourneyLogoDark from '../assets/Happy_Journey_Logo.jpg';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { UtensilsCrossed, MapPin, ShieldCheck } from 'lucide-react';

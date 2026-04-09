@@ -544,7 +544,7 @@ const UserOrder: React.FC = () => {
               {vendor.stationId && (
                 <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full">
                   <MapPin size={12} />
-                  Delivers to your seat
+                  Delivers to your home
                 </span>
               )}
             </div>

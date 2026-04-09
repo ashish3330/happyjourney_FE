@@ -11,7 +11,7 @@ import {
 
 export const HappyJourneyConfig = {
   brandName: 'Happy Journey',
-  tagline: 'Delicious Meals, Delivered Onboard',
+  tagline: 'Delicious Food Delivered To You',
   heroDescription:
     'Enjoy fresh, hygienic meals delivered right to your doorstep. With Happy Journey, your trip becomes tastier, safer, and more convenient — making every mile memorable.',
   heroImage: 'https://images.unsplash.com/photo-1516108317508-a8a590b68d3e?auto=format&fit=crop&w=1200&q=80',
@@ -101,7 +101,7 @@ export const HappyJourneyConfig = {
   },
   testimonials: [
     {
-      quote: 'Happy Journey made our trip so much better! Fresh, hot food delivered right to our seat.',
+      quote: 'Happy Journey made our trip so much better! Fresh, hot food delivered right to our home.',
       author: 'Rajesh K.',
       role: 'Frequent Customer',
       rating: 5,

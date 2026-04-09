@@ -1,7 +1,7 @@
 import React, { useEffect, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { guestMenuItems } from "../constants/menuItems";
-import Happy_Journey_Logo from "../assets/HappyJourney_Logo.svg"
+import Happy_Journey_Logo from "../assets/Happy_Journey_Logo.jpg"
 
 type GuestSidebarProps = {
   collapsed: boolean;
