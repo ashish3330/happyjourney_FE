@@ -1,6 +1,6 @@
 import React from 'react';
 import { Facebook, Instagram, Phone, Mail, MapPin, ChevronRight } from 'lucide-react';
-import HappyJourneyLogoDark from '../assets/HappyJourney_Logo_Dark.svg';
+import HappyJourneyLogoDark from '../assets/Happy_Journey_Logo.jpg';
 
 interface FooterLink {
   label: string;
