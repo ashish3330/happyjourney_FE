@@ -144,7 +144,7 @@ const UserPasswordlessLogin: React.FC = () => {
 
         {/* Mobile: centered logo + tagline */}
         <div className="lg:hidden relative z-10 h-full flex flex-col items-center justify-center gap-3 px-6 pb-10">
-          <img src={HappyJourneyLogoDark} alt="HappyJourney" className="h-14 w-auto object-contain drop-shadow-lg" />
+          <img src={HappyJourneyLogoDark} alt="HappyJourney" className="h-24 w-auto object-contain drop-shadow-lg" />
           <p className="text-white/70 text-sm tracking-wide">Fresh. Hot. Delivered to your door.</p>
         </div>
 
@@ -152,7 +152,7 @@ const UserPasswordlessLogin: React.FC = () => {
         <div className="hidden lg:flex relative z-10 h-full flex-col justify-between py-12 px-10">
 
           {/* Logo — top left */}
-          <img src={HappyJourneyLogoDark} alt="HappyJourney" className="h-14 w-auto object-contain" />
+          <img src={HappyJourneyLogoDark} alt="HappyJourney" className="h-24 w-auto object-contain" />
 
           {/* Centre block */}
           <div>
