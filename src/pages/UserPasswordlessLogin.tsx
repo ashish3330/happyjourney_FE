@@ -164,7 +164,7 @@ const UserPasswordlessLogin: React.FC = () => {
 
             {/* Heading — 2 lines */}
             <h2 className="text-[2.6rem] font-extrabold text-white leading-[1.12] tracking-tight">
-              Fresh meals,<br />delivered sizzling hot.
+              Sizzling Meals,<br />Delivered to Your Doorstep.
             </h2>
             <p className="mt-4 text-white/55 text-sm leading-relaxed max-w-[280px]">
               Hot, fresh food from local restaurants straight to your doorstep.
