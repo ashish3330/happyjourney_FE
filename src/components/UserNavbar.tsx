@@ -105,7 +105,7 @@ const UserNavbar = () => {
               alt="Happy Journey"
               className="h-16 w-auto object-contain"
             />
-            <span className="ml-2 text-sm font-semibold text-gray-700 hidden sm:block">Siling Meal to Doorstep</span>
+            <span className="ml-2 text-sm font-semibold text-gray-700 hidden sm:block">Sizzling Meal to Doorstep</span>
           </div>
 
           {/* ── Desktop nav ── */}
