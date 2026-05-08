@@ -28,9 +28,9 @@ interface PaginationData {
 
 // ── Static data ──────────────────────────────────────────
 const STATS = [
-  { value: "500+",   label: "Partner Restaurants", icon: Utensils },
-  { value: "2000+",  label: "Routes",                icon: Train    },
-  { value: "400+",   label: "Cities Covered",       icon: MapPin   },
+  { value: "25+",   label: "Partner Restaurants", icon: Utensils },
+  { value: "100+",  label: "Routes",                icon: Train    },
+  { value: "25++",   label: "Cities Covered",       icon: MapPin   },
   { value: "100%",   label: "FSSAI Certified",      icon: Shield   },
 ];
 
