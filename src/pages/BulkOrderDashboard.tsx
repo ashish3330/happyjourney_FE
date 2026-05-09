@@ -336,7 +336,7 @@ const BulkOrdersDashboard: FC = () => {
               <p><strong>Name:</strong> {selectedOrder.name}</p>
               <p><strong>Email:</strong> {selectedOrder.email}</p>
               <p><strong>Phone:</strong> {selectedOrder.phone}</p>
-              <p><strong>Delivery Station:</strong> {selectedOrder.deliveryStation}</p>
+              <p><strong>Delivery City:</strong> {selectedOrder.deliveryStation}</p>
               <p><strong>Order Details:</strong> {selectedOrder.orderDetails}</p>
               <p><strong>Quantity:</strong> {selectedOrder.quantity}</p>
               <p><strong>Created At:</strong> {selectedOrder.createdAt}</p>

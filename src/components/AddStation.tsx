@@ -55,8 +55,8 @@ interface IndiProps {
 }
 
 const validationSchema = yup.object().shape({
-  stationCode: yup.string().required("Station code is required"),
-  stationName: yup.string().required("Station name is required"),
+  stationCode: yup.string().required("City code is required"),
+  stationName: yup.string().required("City name is required"),
   city: yup.string().required("City is required"),
   state: yup.string().required("State is required"),
   pincode: yup
@@ -261,7 +261,7 @@ export default function AddStation({
                           ? "border-red-500"
                           : "border-gray-300"
                       } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base`}
-                      placeholder="Enter station name"
+                      placeholder="Enter City name"
                     />
                     {errors.stationName && (
                       <p className="mt-1 text-xs sm:text-sm text-red-600">

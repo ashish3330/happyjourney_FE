@@ -387,7 +387,7 @@ const AdminOrders: React.FC = () => {
               return {
                 [id]: {
                   stationId: id,
-                  stationName: `Station #${id}`,
+                  stationName: `City #${id}`,
                   stationCode: "Unknown",
                   city: "Unknown",
                   state: "Unknown",

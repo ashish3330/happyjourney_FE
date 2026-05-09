@@ -480,7 +480,7 @@ const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div>
               <Label htmlFor="station" className="text-sm font-medium text-teal-700">
-                Select Station
+                Select City
               </Label>
               <Select
                 options={stationOptions}
@@ -667,7 +667,7 @@ const AdminDashboard: React.FC = () => {
       {/* Stations Last Month Sales */}
       <Card className="mb-6 shadow-md border border-teal-100">
         <CardHeader className="bg-teal-50">
-          <CardTitle className="text-lg font-semibold text-teal-800">Stations Last Month Sales</CardTitle>
+          <CardTitle className="text-lg font-semibold text-teal-800">Cities Last Month Sales</CardTitle>
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
           <div className="overflow-x-auto">
