@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Backup files from sed -i operations
+.env.bak
+*.bak
