@@ -66,3 +66,22 @@ export const IrctcBrandedHeader = ({
     <span className="font-semibold">{label}</span>
   </header>
 );
+
+/**
+ * Small "Powered by IRCTC eCatering" footer mark rendered at the bottom of
+ * every reverse-order surface. Matches Appendix C of the IRCTC integration
+ * PDF, which requires aggregator pages to carry IRCTC attribution.
+ */
+export interface IrctcPoweredByProps {
+  className?: string;
+}
+
+export const IrctcPoweredBy = ({ className }: IrctcPoweredByProps) => (
+  <p
+    className={`text-center text-xs text-gray-400 mt-6 ${className ?? ""}`}
+    role="contentinfo"
+  >
+    Powered by{" "}
+    <span className="font-semibold text-gray-500">IRCTC eCatering</span>
+  </p>
+);

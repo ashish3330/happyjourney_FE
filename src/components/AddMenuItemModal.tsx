@@ -6,6 +6,11 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import api from "@/utils/axios";
 import LoaderModal from "@/components/LoaderModal";
+import {
+  IRCTC_CUISINES,
+  IRCTC_FOOD_TYPES,
+  humanizeEnumValue,
+} from "@/integrations/irctc/catalogEnums";
 
 const style = {
   position: "absolute" as const,
@@ -36,6 +41,9 @@ interface FormData {
   availableStartTime?: string;
   availableEndTime?: string;
   itemCategory?: string;
+  // IRCTC catalog push fields — see docs/IRCTC_API_REFERENCE.md.
+  irctcCuisine?: string;
+  irctcFoodType?: string;
 }
 
 interface Props {
@@ -73,6 +81,24 @@ const validationSchema = yup.object().shape({
   availableStartTime: yup.string().optional(),
   availableEndTime: yup.string().optional(),
   itemCategory: yup.string().optional(),
+  // IRCTC catalog push — closed enums; the BE rejects items with values
+  // outside the published list, so guard at submit time too.
+  irctcCuisine: yup
+    .string()
+    .optional()
+    .test(
+      "valid-cuisine",
+      "Choose a valid IRCTC cuisine",
+      (v) => !v || (IRCTC_CUISINES as readonly string[]).includes(v)
+    ),
+  irctcFoodType: yup
+    .string()
+    .optional()
+    .test(
+      "valid-food-type",
+      "Choose a valid IRCTC food type",
+      (v) => !v || (IRCTC_FOOD_TYPES as readonly string[]).includes(v)
+    ),
   vegetarian: yup.boolean().optional(),
   available: yup.boolean().optional(),
 });
@@ -102,6 +128,8 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
       availableStartTime: "",
       availableEndTime: "",
       itemCategory: "",
+      irctcCuisine: "",
+      irctcFoodType: "",
     },
   });
 
@@ -126,6 +154,8 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
               availableStartTime: res.data.availableStartTime || "",
               availableEndTime: res.data.availableEndTime || "",
               itemCategory: res.data.itemCategory || "",
+              irctcCuisine: res.data.irctcCuisine || "",
+              irctcFoodType: res.data.irctcFoodType || "",
             });
           }
         } catch (error: any) {
@@ -156,6 +186,8 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
       availableStartTime: data.availableStartTime || undefined,
       availableEndTime: data.availableEndTime || undefined,
       itemCategory: data.itemCategory || undefined,
+      irctcCuisine: data.irctcCuisine || undefined,
+      irctcFoodType: data.irctcFoodType || undefined,
       ...(mode === "edit" && id ? { itemId: id } : {}),
     };
 
@@ -506,6 +538,74 @@ const AddMenuItemModal = ({ open, setOpen, id, setId, mode, setRefresh, refresh,
                     />
                     {errors.itemCategory && (
                       <p className="mt-1 text-sm text-red-600">{errors.itemCategory.message}</p>
+                    )}
+                  </>
+                )}
+              />
+            </div>
+
+            <div className="mb-4 w-full">
+              <label className="block text-sm font-medium text-gray-700" htmlFor="irctcCuisine">
+                Cuisine (IRCTC)
+              </label>
+              <Controller
+                name="irctcCuisine"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <select
+                      {...field}
+                      id="irctcCuisine"
+                      className={`mt-1 block w-full px-3 py-2 border ${
+                        errors.irctcCuisine ? "border-red-500" : "border-gray-300"
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
+                    >
+                      <option value="">— Select cuisine —</option>
+                      {IRCTC_CUISINES.map((c) => (
+                        <option key={c} value={c}>
+                          {humanizeEnumValue(c)}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Required for IRCTC eCatering listing
+                    </p>
+                    {errors.irctcCuisine && (
+                      <p className="mt-1 text-sm text-red-600">{errors.irctcCuisine.message}</p>
+                    )}
+                  </>
+                )}
+              />
+            </div>
+
+            <div className="mb-4 w-full">
+              <label className="block text-sm font-medium text-gray-700" htmlFor="irctcFoodType">
+                Food Type (IRCTC)
+              </label>
+              <Controller
+                name="irctcFoodType"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <select
+                      {...field}
+                      id="irctcFoodType"
+                      className={`mt-1 block w-full px-3 py-2 border ${
+                        errors.irctcFoodType ? "border-red-500" : "border-gray-300"
+                      } bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500`}
+                    >
+                      <option value="">— Select food type —</option>
+                      {IRCTC_FOOD_TYPES.map((f) => (
+                        <option key={f} value={f}>
+                          {humanizeEnumValue(f)}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Required for IRCTC eCatering listing
+                    </p>
+                    {errors.irctcFoodType && (
+                      <p className="mt-1 text-sm text-red-600">{errors.irctcFoodType.message}</p>
                     )}
                   </>
                 )}

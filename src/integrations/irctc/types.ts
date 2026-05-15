@@ -105,6 +105,7 @@ export type IrctcPaymentType = "CASH_ON_DELIVERY" | "PREPAID" | "PREPAID_ALLOWED
  * - DELIVERED — handed over to the passenger; terminal.
  * - ORDER_CANCELLED / CANCELLED — cancelled before confirmation; terminal.
  * - STATUS_PUSH_FAILED — confirmation/payment succeeded but IRCTC push failed; terminal for the FE poll loop.
+ * - REFUND_FAILED — cancel was issued on a PREPAID order but the refund failed; ops must intervene. Terminal.
  */
 export type IrctcOrderStatus =
   | "ORDER_PENDING"
@@ -117,7 +118,17 @@ export type IrctcOrderStatus =
   | "DELIVERED"
   | "ORDER_CANCELLED"
   | "CANCELLED"
-  | "STATUS_PUSH_FAILED";
+  | "STATUS_PUSH_FAILED"
+  | "REFUND_FAILED";
+
+/**
+ * Refund lifecycle for a reverse order.
+ *
+ * - NONE — no refund is in progress (most orders, including CoD, sit here).
+ * - INITIATED — a Razorpay refund has been kicked off; `refundRef` carries the id.
+ * - FAILED — the refund could not be issued automatically; ops will resolve.
+ */
+export type IrctcRefundStatus = "NONE" | "INITIATED" | "FAILED";
 
 export interface IrctcOrderSummary {
   /** Our internal id, for confirm/cancel calls */
@@ -134,4 +145,36 @@ export interface IrctcOrderSummary {
   coupon: IrctcCoupon | null;
   bookingDate: string;
   comment: string | null;
+  /**
+   * 6-digit OTP the passenger reads back to the delivery partner. BE returns
+   * it only once the order is OUT_FOR_DELIVERY (or later); null otherwise.
+   */
+  deliveryOtp?: string | null;
+  /** Razorpay refund id once a refund has been initiated; null otherwise. */
+  refundRef?: string | null;
+  /** Refund lifecycle stage. Defaults to NONE when the BE omits it. */
+  refundStatus?: IrctcRefundStatus;
+}
+
+/**
+ * Response of `GET /irctc/reverse-order/{externalOrderId}/eta`. Mirrors the
+ * IRCTC ETA endpoint (API reference §7) one-for-one. `platform` is often null
+ * — IRCTC only knows it close to arrival.
+ */
+export interface IrctcEtaResponse {
+  status: string;
+  message: string;
+  result: {
+    eta: string;
+    platform: string | null;
+  };
+}
+
+/**
+ * Body for `POST /irctc/reverse-order/{externalOrderId}/feedback`. The BE
+ * persists this and forwards a sanitised version to IRCTC.
+ */
+export interface IrctcFeedbackBody {
+  rating: number;
+  comment?: string;
 }

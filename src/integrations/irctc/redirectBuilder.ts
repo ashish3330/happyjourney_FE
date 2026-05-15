@@ -23,6 +23,24 @@ export interface RedirectUser {
 }
 
 /**
+ * UTF-8 safe Base64 encoding for arbitrary unicode strings.
+ *
+ * `btoa()` throws on any code point > 0xFF — so customer names containing
+ * Indic scripts, Bengali, Tamil, Devanagari, accented Latin characters, or
+ * emoji would crash the redirect. We TextEncoder → bytes → btoa to keep the
+ * output identical to the PDF Appendix A example for ASCII inputs while
+ * remaining safe for the full Unicode range.
+ */
+const utf8ToBase64 = (s: string): string => {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) {
+    bin += String.fromCharCode(bytes[i]);
+  }
+  return btoa(bin);
+};
+
+/**
  * Base64-encode a `name:mobile:email` triple for the IRCTC `user` param.
  * No validation here – callers decide whether they have enough info to send.
  */
@@ -30,7 +48,7 @@ export const encodeUser = (
   name: string,
   mobile: string,
   email: string
-): string => btoa(`${name}:${mobile}:${email}`);
+): string => utf8ToBase64(`${name}:${mobile}:${email}`);
 
 /** Throw a clear error when a required input is empty / whitespace. */
 const requireNonEmpty = (value: string | undefined | null, field: string): string => {

@@ -34,6 +34,7 @@ type FormData = {
   description: string;
   logoUrl: string;
   fssaiLicense: string;
+  fssaiValidUpto: string | null;
   gstNumber: string | null;
   panNumber: string | null;
   stationId: number;
@@ -92,6 +93,17 @@ const validationSchema = yup.object().shape({
     otherwise: (schema) => schema.notRequired(),
   }),
   fssaiLicense: yup.string().required("FSSAI License is required"),
+  // Required for IRCTC eCatering outlet push; nullable here so the
+  // pre-existing forward-order flow keeps working for vendors that
+  // haven't filled it yet.
+  fssaiValidUpto: yup
+    .string()
+    .nullable()
+    .test(
+      "iso-date-or-empty",
+      "Use YYYY-MM-DD format",
+      (v) => !v || /^\d{4}-\d{2}-\d{2}$/.test(v)
+    ),
   gstNumber: yup.string().nullable(),
   panNumber: yup.string().nullable(),
   stationId: yup
@@ -163,6 +175,7 @@ export default function AddVendor({
       description: "",
       logoUrl: "",
       fssaiLicense: "",
+      fssaiValidUpto: null,
       gstNumber: null,
       panNumber: null,
       stationId: 0,
@@ -252,6 +265,7 @@ export default function AddVendor({
               description: res.data.description || "",
               logoUrl: fileUrl,
               fssaiLicense: res.data.fssaiLicense || "",
+              fssaiValidUpto: res.data.fssaiValidUpto || null,
               gstNumber: res.data.gstNumber || null,
               panNumber: res.data.panNumber || null,
               stationId: Number(res.data.stationId) || 0,
@@ -302,6 +316,7 @@ export default function AddVendor({
         description: data.description,
         logoUrl: data.logoUrl,
         fssaiLicense: data.fssaiLicense,
+        fssaiValidUpto: data.fssaiValidUpto || null,
         gstNumber: data.gstNumber || null,
         panNumber: data.panNumber || null,
         stationId: data.stationId,
@@ -632,6 +647,29 @@ export default function AddVendor({
                     error={!!errors.fssaiLicense}
                     helperText={errors.fssaiLicense?.message}
                     size="small"
+                  />
+                )}
+              />
+
+              <Controller
+                name="fssaiValidUpto"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="FSSAI Valid Until"
+                    variant="outlined"
+                    type="date"
+                    fullWidth
+                    error={!!errors.fssaiValidUpto}
+                    helperText={
+                      errors.fssaiValidUpto?.message ||
+                      "Required for IRCTC eCatering listing"
+                    }
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || null)}
                   />
                 )}
               />

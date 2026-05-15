@@ -13,14 +13,57 @@ import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 
-import { IrctcBrandedHeader } from "../BrandingProvider";
-import { fetchByExternalOrderId } from "../api";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+
+import { IrctcBrandedHeader, IrctcPoweredBy } from "../BrandingProvider";
+import {
+  fetchByExternalOrderId,
+  fetchIrctcEta,
+  parseIrctcError,
+  submitIrctcFeedback,
+} from "../api";
 import type {
+  IrctcEtaResponse,
   IrctcOrderStatus,
   IrctcOrderSummary,
 } from "../types";
 
 const AUTO_REFRESH_MS = 30_000;
+
+/**
+ * localStorage namespace for "has the customer already submitted feedback for
+ * this order". Per-externalOrderId so multiple orders in the same session work
+ * independently.
+ */
+const FEEDBACK_FLAG_KEY = (externalOrderId: string): string =>
+  `irctc:feedback:submitted:${externalOrderId}`;
+
+const isFeedbackSubmitted = (externalOrderId: string): boolean => {
+  try {
+    return window.localStorage.getItem(FEEDBACK_FLAG_KEY(externalOrderId)) === "1";
+  } catch {
+    // Safari private mode etc. — treat as not-submitted; the worst case is
+    // showing the CTA once more on reload.
+    return false;
+  }
+};
+
+const markFeedbackSubmitted = (externalOrderId: string): void => {
+  try {
+    window.localStorage.setItem(FEEDBACK_FLAG_KEY(externalOrderId), "1");
+  } catch {
+    // Best-effort; non-fatal.
+  }
+};
 
 type LoadState =
   | { kind: "loading" }
@@ -100,6 +143,10 @@ const STATUS_VISUALS: Record<IrctcOrderStatus, StatusVisual> = {
     badgeClassName: "bg-orange-50 text-orange-700 border-orange-300",
     label: "Sync delayed",
   },
+  REFUND_FAILED: {
+    badgeClassName: "bg-red-50 text-red-800 border-red-400",
+    label: "Refund pending",
+  },
 };
 
 const TERMINAL_STATUSES: ReadonlySet<IrctcOrderStatus> = new Set([
@@ -107,6 +154,7 @@ const TERMINAL_STATUSES: ReadonlySet<IrctcOrderStatus> = new Set([
   "ORDER_CANCELLED",
   "CANCELLED",
   "STATUS_PUSH_FAILED",
+  "REFUND_FAILED",
 ]);
 
 const isTerminal = (status: IrctcOrderStatus): boolean =>
@@ -144,6 +192,11 @@ const stepIndexFor = (status: IrctcOrderStatus): number => {
 const IrctcOrderTracking = () => {
   const { externalOrderId } = useParams<{ externalOrderId: string }>();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [eta, setEta] = useState<IrctcEtaResponse["result"] | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackHidden, setFeedbackHidden] = useState<boolean>(() =>
+    externalOrderId ? isFeedbackSubmitted(externalOrderId) : false
+  );
 
   // Keep a ref to the current status so the interval can decide whether to
   // keep polling without re-creating itself on every refresh.
@@ -180,24 +233,48 @@ const IrctcOrderTracking = () => {
     []
   );
 
+  /**
+   * Non-blocking ETA fetch. ETA is an IRCTC upstream call so it's the most
+   * likely refresh to flake; we deliberately swallow all errors here so the
+   * tracking surface stays usable even if `/eta` is down. The chip falls back
+   * to "ETA pending" when we have no data.
+   */
+  const loadEta = useCallback(async (id: string) => {
+    try {
+      const resp = await fetchIrctcEta(id);
+      setEta(resp.result);
+    } catch (err) {
+      const info = parseIrctcError(err);
+      if (info.isAborted) return;
+      // Soft-fail: leave whatever we had (or null) in place. We log to console
+      // only so an investigator can see it; no toast — ETA is supplementary.
+      // eslint-disable-next-line no-console
+      console.debug("[IRCTC ETA] fetch failed", info.code, info.message);
+    }
+  }, []);
+
   useEffect(() => {
     if (!externalOrderId || externalOrderId.trim() === "") {
       setState({ kind: "missing" });
       return;
     }
     void load(externalOrderId, "initial");
-  }, [externalOrderId, load]);
+    void loadEta(externalOrderId);
+  }, [externalOrderId, load, loadEta]);
 
-  // Auto-refresh every AUTO_REFRESH_MS while not in a terminal state.
+  // Auto-refresh every AUTO_REFRESH_MS while not in a terminal state. The ETA
+  // piggybacks on the same cadence — never on its own timer — so a single
+  // network blip can't desync the two.
   useEffect(() => {
     if (!externalOrderId) return;
     const interval = window.setInterval(() => {
       const status = currentStatusRef.current;
       if (!status || isTerminal(status)) return;
       void load(externalOrderId, "refresh");
+      void loadEta(externalOrderId);
     }, AUTO_REFRESH_MS);
     return () => window.clearInterval(interval);
-  }, [externalOrderId, load]);
+  }, [externalOrderId, load, loadEta]);
 
   if (state.kind === "missing") {
     return <MissingIdView />;
@@ -219,19 +296,49 @@ const IrctcOrderTracking = () => {
   }
 
   const { summary, refreshing } = state;
+  const showOtpCard =
+    summary.status === "OUT_FOR_DELIVERY" &&
+    typeof summary.deliveryOtp === "string" &&
+    summary.deliveryOtp.length > 0;
+  const showFeedbackCta =
+    summary.status === "DELIVERED" && !feedbackHidden && Boolean(externalOrderId);
+
   return (
     <Shell>
+      {showOtpCard && <DeliveryOtpCard otp={summary.deliveryOtp as string} />}
       <TrackingHeader
         summary={summary}
         refreshing={refreshing}
+        eta={eta}
         onRefresh={() => {
-          if (externalOrderId) void load(externalOrderId, "refresh");
+          if (externalOrderId) {
+            void load(externalOrderId, "refresh");
+            void loadEta(externalOrderId);
+          }
         }}
       />
+      {showFeedbackCta && (
+        <FeedbackCta onClick={() => setFeedbackOpen(true)} />
+      )}
+      <RefundPanel summary={summary} />
       <StatusTimelineCard status={summary.status} />
       <DeliveryCard summary={summary} />
       <ItemsCard summary={summary} />
       <AmountCard summary={summary} />
+
+      {externalOrderId && (
+        <FeedbackModal
+          open={feedbackOpen}
+          onOpenChange={setFeedbackOpen}
+          externalOrderId={externalOrderId}
+          onSubmitted={() => {
+            markFeedbackSubmitted(externalOrderId);
+            setFeedbackHidden(true);
+            setFeedbackOpen(false);
+            toast.success("Thanks for your feedback!");
+          }}
+        />
+      )}
     </Shell>
   );
 };
@@ -245,6 +352,7 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
       <IrctcBrandedHeader className="mb-4" />
       <div className="space-y-6">{children}</div>
+      <IrctcPoweredBy />
     </div>
   </div>
 );
@@ -252,10 +360,12 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
 const TrackingHeader = ({
   summary,
   refreshing,
+  eta,
   onRefresh,
 }: {
   summary: IrctcOrderSummary;
   refreshing: boolean;
+  eta: IrctcEtaResponse["result"] | null;
   onRefresh: () => void;
 }) => {
   const visual = STATUS_VISUALS[summary.status] ?? {
@@ -275,6 +385,9 @@ const TrackingHeader = ({
           <p className="text-sm text-gray-500 mt-1">
             Booked on {summary.bookingDate}
           </p>
+          <div className="mt-3">
+            <EtaChip eta={eta} />
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <span
@@ -306,6 +419,299 @@ const TrackingHeader = ({
     </div>
   );
 };
+
+/**
+ * Live IRCTC ETA chip. Renders three states:
+ *
+ * - `eta` is null/empty → "ETA pending" (we haven't heard back from IRCTC yet,
+ *   or the upstream call failed — we deliberately don't distinguish for the
+ *   user).
+ * - `eta` is known but `platform` is null → "ETA: <eta>"
+ * - both known → "ETA: <eta> · Platform <platform>"
+ *
+ * Styling matches the rounded-pill chips elsewhere on the page.
+ */
+const EtaChip = ({
+  eta,
+}: {
+  eta: IrctcEtaResponse["result"] | null;
+}) => {
+  const hasEta = Boolean(eta?.eta && eta.eta.trim().length > 0);
+  if (!hasEta) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+        <ClockIcon />
+        ETA pending
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">
+      <ClockIcon />
+      ETA: {eta!.eta}
+      {eta!.platform ? ` · Platform ${eta!.platform}` : ""}
+    </span>
+  );
+};
+
+const ClockIcon = () => (
+  <svg
+    className="h-3.5 w-3.5"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+/**
+ * Prominent OTP card shown only while `status === OUT_FOR_DELIVERY` AND BE
+ * provided a non-empty `deliveryOtp`. Renders the OTP in a large, easily
+ * read-aloud mono font (tracking-[0.5em] adds character-level spacing).
+ */
+const DeliveryOtpCard = ({ otp }: { otp: string }) => (
+  <div className="bg-teal-600 rounded-2xl shadow-md border border-teal-700 p-6 text-white">
+    <p className="text-xs uppercase tracking-wide font-semibold opacity-90">
+      Your delivery OTP
+    </p>
+    <p
+      className="mt-3 text-4xl font-mono font-bold tracking-[0.5em] select-all"
+      aria-label={`Delivery OTP ${otp.split("").join(" ")}`}
+    >
+      {otp}
+    </p>
+    <p className="mt-3 text-sm opacity-90 max-w-md">
+      Share this with the delivery partner when they arrive. It confirms you
+      received your order.
+    </p>
+  </div>
+);
+
+/**
+ * Compact CTA shown above the timeline once the order is `DELIVERED`. Hides
+ * itself once feedback has been submitted (tracked in localStorage per order).
+ */
+const FeedbackCta = ({ onClick }: { onClick: () => void }) => (
+  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 flex items-center justify-between gap-4">
+    <div>
+      <p className="text-sm font-semibold text-gray-900">
+        How was your order?
+      </p>
+      <p className="text-xs text-gray-500 mt-0.5">
+        A quick rating helps us improve service on this train.
+      </p>
+    </div>
+    <Button
+      type="button"
+      onClick={onClick}
+      className="bg-teal-600 hover:bg-teal-700 text-white whitespace-nowrap"
+    >
+      Rate your order
+    </Button>
+  </div>
+);
+
+/**
+ * Refund banner driven by `refundStatus`. We render nothing on `NONE` (most
+ * orders) so we don't introduce extra chrome on the happy CoD path.
+ */
+const RefundPanel = ({ summary }: { summary: IrctcOrderSummary }) => {
+  const status = summary.refundStatus ?? "NONE";
+  if (status === "NONE") return null;
+  if (status === "INITIATED") {
+    return (
+      <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+        <p className="font-semibold">Refund initiated</p>
+        <p className="mt-1">
+          Refund of {formatCurrency(summary.amount.amountPayable)} initiated.
+          {summary.refundRef
+            ? ` Razorpay reference: ${summary.refundRef}.`
+            : ""}{" "}
+          Funds will reach your bank within 5–7 business days.
+        </p>
+      </div>
+    );
+  }
+  // FAILED
+  return (
+    <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+      <p className="font-semibold">Refund needs attention</p>
+      <p className="mt-1">
+        We could not refund automatically — our team is working on it. You'll
+        receive an email within 24 hours.
+      </p>
+    </div>
+  );
+};
+
+/**
+ * Feedback dialog. 5-star rating implemented as accessible buttons (no extra
+ * dependency) plus a 500-char comment textarea. Posts through
+ * `submitIrctcFeedback`; on success the parent flips the localStorage flag and
+ * closes the dialog.
+ */
+const FeedbackModal = ({
+  open,
+  onOpenChange,
+  externalOrderId,
+  onSubmitted,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  externalOrderId: string;
+  onSubmitted: () => void;
+}) => {
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>("");
+  const [submitting, setSubmitting] = useState<boolean>(false);
+
+  // Reset transient state every time the dialog closes — re-opening should
+  // start fresh.
+  useEffect(() => {
+    if (!open) {
+      setRating(0);
+      setComment("");
+      setSubmitting(false);
+    }
+  }, [open]);
+
+  const handleSubmit = async () => {
+    if (rating < 1) {
+      toast.error("Please select a rating before submitting.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await submitIrctcFeedback(externalOrderId, {
+        rating,
+        comment: comment.trim() ? comment.trim() : undefined,
+      });
+      onSubmitted();
+    } catch (err) {
+      const info = parseIrctcError(err);
+      toast.error(info.message);
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rate your order</DialogTitle>
+          <DialogDescription>
+            Tap a star to rate, and add an optional note. Your feedback goes to
+            our team and to IRCTC.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-2 space-y-4">
+          <StarRating value={rating} onChange={setRating} disabled={submitting} />
+          <div>
+            <label
+              htmlFor="feedback-comment"
+              className="text-sm font-medium text-gray-900"
+            >
+              Comment <span className="text-gray-400">(optional)</span>
+            </label>
+            <Textarea
+              id="feedback-comment"
+              maxLength={500}
+              rows={4}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Tell us anything you'd like our team to know…"
+              disabled={submitting}
+              className="mt-1"
+            />
+            <p className="text-xs text-gray-400 mt-1 text-right">
+              {comment.length}/500
+            </p>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={submitting || rating < 1}
+            className="bg-teal-600 hover:bg-teal-700 text-white"
+          >
+            {submitting ? "Submitting…" : "Submit feedback"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+/**
+ * Accessible 5-button star rating row. Avoids pulling in a star-rating
+ * dependency — we use simple buttons + SVG that flip styling based on the
+ * currently-selected value.
+ */
+const StarRating = ({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  disabled?: boolean;
+}) => (
+  <div
+    className="flex items-center gap-2"
+    role="radiogroup"
+    aria-label="Rating from 1 to 5 stars"
+  >
+    {[1, 2, 3, 4, 5].map((n) => {
+      const active = n <= value;
+      return (
+        <button
+          key={n}
+          type="button"
+          role="radio"
+          aria-checked={value === n}
+          aria-label={`${n} star${n === 1 ? "" : "s"}`}
+          disabled={disabled}
+          onClick={() => onChange(n)}
+          className={`h-10 w-10 flex items-center justify-center rounded-md border transition-colors disabled:opacity-50 ${
+            active
+              ? "bg-teal-50 border-teal-500 text-teal-600"
+              : "bg-white border-gray-200 text-gray-300 hover:border-gray-300"
+          }`}
+        >
+          <StarIcon filled={active} />
+        </button>
+      );
+    })}
+  </div>
+);
+
+const StarIcon = ({ filled }: { filled: boolean }) => (
+  <svg
+    className="h-6 w-6"
+    viewBox="0 0 24 24"
+    fill={filled ? "currentColor" : "none"}
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+);
 
 const RefreshIcon = ({ spinning }: { spinning: boolean }) => (
   <svg

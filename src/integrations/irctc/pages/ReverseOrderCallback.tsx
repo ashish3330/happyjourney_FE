@@ -1,14 +1,27 @@
-import { useCallback, useEffect, useState } from "react";
+/**
+ * IRCTC reverse-order callback landing page.
+ *
+ * Mounted at `/reverse-order/callback?data=<encrypted-blob>`. On mount we POST
+ * the opaque `data` blob to the BE which decrypts it, persists the order, and
+ * returns a sanitised `IrctcOrderSummary`. We then render the summary and
+ * hand off to `ReverseOrderPayment` for the payment-mode selection.
+ *
+ * Hardening notes:
+ *  - The ingest request is cancelled via `AbortController` if the component
+ *    unmounts mid-fetch, preventing "setState on unmounted component" warnings
+ *    and avoiding wasted BE work.
+ *  - Skeleton has a soft min-display time so super-fast networks don't make
+ *    the layout flash.
+ *  - Errors funnel through `parseIrctcError` for a single normalised shape.
+ *  - The `?data` param is treated as opaque ciphertext and never logged.
+ */
+
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
 
-import {
-  cancelReverseOrder,
-  confirmReverseOrder,
-  ingestCallback,
-} from "../api";
-import { IrctcBrandedHeader } from "../BrandingProvider";
+import { ingestCallback, parseIrctcError } from "../api";
+import { IrctcBrandedHeader, IrctcPoweredBy } from "../BrandingProvider";
 import type { IrctcOrderSummary } from "../types";
 import ReverseOrderPayment from "./ReverseOrderPayment";
 
@@ -25,40 +38,54 @@ const formatCurrency = (n: number): string =>
     maximumFractionDigits: 2,
   }).format(n);
 
-const errorMessage = (err: unknown): string => {
-  if (err instanceof AxiosError) {
-    const data = err.response?.data as { message?: string } | undefined;
-    return data?.message || err.message || "Failed to load order.";
-  }
-  if (err instanceof Error) return err.message;
-  return "Failed to load order.";
-};
+/** Skeleton must show for at least this long so fast networks don't flash. */
+const MIN_SKELETON_MS = 200;
 
 const ReverseOrderCallback = () => {
   const [searchParams] = useSearchParams();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const errorRef = useRef<HTMLDivElement | null>(null);
 
   const dataParam = searchParams.get("data");
 
-  const load = useCallback(async (raw: string) => {
+  const load = useCallback(async (raw: string, signal: AbortSignal) => {
     setState({ kind: "loading" });
+    const startedAt = Date.now();
     try {
-      const summary = await ingestCallback(raw);
+      const summary = await ingestCallback(raw, signal);
+      // Soft min display so the skeleton doesn't blink on fast connections.
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < MIN_SKELETON_MS) {
+        await new Promise((r) => setTimeout(r, MIN_SKELETON_MS - elapsed));
+      }
+      if (signal.aborted) return;
       setState({ kind: "ready", summary });
     } catch (err) {
-      const message = errorMessage(err);
-      toast.error(message);
-      setState({ kind: "error", message });
+      const info = parseIrctcError(err);
+      if (info.isAborted || signal.aborted) return;
+      toast.error(info.message);
+      setState({ kind: "error", message: info.message });
     }
   }, []);
 
   useEffect(() => {
-    if (!dataParam || dataParam.trim() === "") {
+    // Trim whitespace so a `?data=%20%20` doesn't fool the truthy check below.
+    const trimmed = dataParam?.trim() ?? "";
+    if (!trimmed) {
       setState({ kind: "missing" });
       return;
     }
-    void load(dataParam);
+    const controller = new AbortController();
+    void load(trimmed, controller.signal);
+    return () => controller.abort();
   }, [dataParam, load]);
+
+  // When an error appears, move focus to it so screen-reader users hear it.
+  useEffect(() => {
+    if (state.kind === "error" && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [state.kind]);
 
   if (state.kind === "missing") {
     return <SafeError />;
@@ -71,9 +98,14 @@ const ReverseOrderCallback = () => {
   if (state.kind === "error") {
     return (
       <ErrorView
+        ref={errorRef}
         message={state.message}
         onRetry={() => {
-          if (dataParam) void load(dataParam);
+          const trimmed = dataParam?.trim();
+          if (trimmed) {
+            const controller = new AbortController();
+            void load(trimmed, controller.signal);
+          }
         }}
       />
     );
@@ -82,7 +114,8 @@ const ReverseOrderCallback = () => {
   const { summary } = state;
   const showPayment =
     summary.paymentType === "CASH_ON_DELIVERY" ||
-    summary.paymentType === "PREPAID";
+    summary.paymentType === "PREPAID" ||
+    summary.paymentType === "PREPAID_ALLOWED";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -97,9 +130,10 @@ const ReverseOrderCallback = () => {
           {showPayment ? (
             <ReverseOrderPayment summary={summary} />
           ) : (
-            <PlaceholderActions summary={summary} />
+            <UnsupportedPaymentTypeCard summary={summary} />
           )}
         </div>
+        <IrctcPoweredBy />
       </div>
     </div>
   );
@@ -120,10 +154,16 @@ const Header = ({ summary }: { summary: IrctcOrderSummary }) => (
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">
+        <span
+          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200"
+          aria-label={`Order status: ${summary.status.replace(/_/g, " ")}`}
+        >
           {summary.status.replace(/_/g, " ")}
         </span>
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+        <span
+          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200"
+          aria-label={`Payment type: ${summary.paymentType.replace(/_/g, " ")}`}
+        >
           {summary.paymentType.replace(/_/g, " ")}
         </span>
       </div>
@@ -185,7 +225,7 @@ const ItemsCard = ({ summary }: { summary: IrctcOrderSummary }) => (
               </p>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Qty {item.quantity} · {formatCurrency(item.sellingPrice)} each
+              Qty {item.quantity} {"·"} {formatCurrency(item.sellingPrice)} each
             </p>
             {item.customisations.length > 0 && (
               <p className="text-xs text-gray-500 mt-1">
@@ -216,10 +256,13 @@ const ItemTypeDot = ({ type }: { type: "VEG" | "NON_VEG" | "EGG" }) => {
       : type === "EGG"
         ? "border-yellow-600 bg-yellow-600"
         : "border-red-600 bg-red-600";
+  const label =
+    type === "VEG" ? "Vegetarian" : type === "EGG" ? "Contains egg" : "Non-vegetarian";
   return (
     <span
+      role="img"
       className={`inline-block h-3 w-3 border ${color} rounded-sm`}
-      aria-label={type}
+      aria-label={label}
     />
   );
 };
@@ -281,62 +324,35 @@ const Row = ({
   </div>
 );
 
-const PlaceholderActions = ({ summary }: { summary: IrctcOrderSummary }) => {
-  const [busy, setBusy] = useState(false);
-
-  const onConfirm = async () => {
-    setBusy(true);
-    try {
-      await confirmReverseOrder(summary.internalOrderId, {
-        paymentMode:
-          summary.paymentType === "CASH_ON_DELIVERY" ? "COD" : "PREPAID",
-      });
-      toast.success("Order confirmed (placeholder).");
-    } catch (err) {
-      toast.error(errorMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onCancel = async () => {
-    setBusy(true);
-    try {
-      await cancelReverseOrder(summary.internalOrderId, {
-        reason: "User cancelled from callback page.",
-      });
-      toast.success("Order cancelled (placeholder).");
-    } catch (err) {
-      toast.error(errorMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col sm:flex-row gap-3">
-      <button
-        type="button"
-        onClick={onConfirm}
-        disabled={busy}
-        className="flex-1 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-medium rounded-lg py-3 transition-colors"
-      >
-        Confirm (placeholder)
-      </button>
-      <button
-        type="button"
-        onClick={onCancel}
-        disabled={busy}
-        className="flex-1 bg-white hover:bg-gray-50 disabled:opacity-50 text-gray-700 font-medium rounded-lg py-3 border border-gray-300 transition-colors"
-      >
-        Cancel (placeholder)
-      </button>
-    </div>
-  );
-};
+/**
+ * Defence-in-depth fallback rendered when the BE returns a `paymentType` we
+ * don't know how to drive (e.g. a future value added without a FE update).
+ * Avoids leaving the user with no actionable surface.
+ */
+const UnsupportedPaymentTypeCard = ({
+  summary,
+}: {
+  summary: IrctcOrderSummary;
+}) => (
+  <div className="bg-white rounded-2xl shadow-sm border border-amber-200 p-6">
+    <h2 className="text-base font-semibold text-gray-900">
+      This payment type is not yet supported here
+    </h2>
+    <p className="text-sm text-gray-600 mt-2">
+      Our team has been notified. You can track this order at any time using
+      the order id below.
+    </p>
+    <Link
+      to={`/irctc-order/${summary.externalOrderId}`}
+      className="mt-4 inline-block bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg px-5 py-2.5 transition-colors"
+    >
+      Track Order #{summary.externalOrderId}
+    </Link>
+  </div>
+);
 
 const LoadingView = () => (
-  <div className="min-h-screen bg-gray-50">
+  <div className="min-h-screen bg-gray-50" aria-busy="true">
     <div className="max-w-4xl mx-auto p-4 md:p-6">
       <IrctcBrandedHeader className="mb-4" />
       <p className="sr-only" aria-live="polite">
@@ -410,6 +426,7 @@ const LoadingView = () => (
           </div>
         </SkeletonCard>
       </div>
+      <IrctcPoweredBy />
     </div>
   </div>
 );
@@ -422,7 +439,10 @@ const SkeletonCard = ({ children }: { children: React.ReactNode }) => (
 
 const SafeError = () => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
+    <div
+      role="alert"
+      className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center"
+    >
       <h2 className="text-lg font-semibold text-gray-900">
         Order link is invalid
       </h2>
@@ -436,19 +456,26 @@ const SafeError = () => (
       >
         Return to home
       </Link>
+      <IrctcPoweredBy />
     </div>
   </div>
 );
 
-const ErrorView = ({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry: () => void;
-}) => (
+const ErrorView = forwardRef<
+  HTMLDivElement,
+  {
+    message: string;
+    onRetry: () => void;
+  }
+>(({ message, onRetry }, ref) => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
+    <div
+      ref={ref}
+      tabIndex={-1}
+      role="alert"
+      aria-live="assertive"
+      className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center outline-none"
+    >
       <h2 className="text-lg font-semibold text-gray-900">
         Something went wrong
       </h2>
@@ -468,8 +495,10 @@ const ErrorView = ({
           Return to home
         </Link>
       </div>
+      <IrctcPoweredBy />
     </div>
   </div>
-);
+));
+ErrorView.displayName = "ErrorView";
 
 export default ReverseOrderCallback;

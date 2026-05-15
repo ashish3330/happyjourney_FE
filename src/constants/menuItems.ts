@@ -38,6 +38,7 @@ export const adminMenuItems: MenuItem[] = [
   { icon: Download, label: "Orders Export", path: "/orders-export" },
   { icon: FileText, label: "Vendor Summary", path: "/vendor-summary" },
   { icon: FileCheck, label: "Vendor Invoice", path: "/vendor-invoice" },
+  { icon: Train, label: "IRCTC Ops", path: "/admin/irctc/dashboard" },
 ];
 
 // Vendor menu items (unchanged)

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
 
 import api from "@/utils/axios";
 import { loadScript } from "@/utils/razorpay";
@@ -14,12 +13,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import {
   cancelReverseOrder,
   confirmReverseOrder,
+  parseIrctcError,
 } from "../api";
-import { IrctcBrandedHeader } from "../BrandingProvider";
+import type { CancelReverseOrderBody } from "../api";
+import { IrctcBrandedHeader, IrctcPoweredBy } from "../BrandingProvider";
 import type { IrctcOrderSummary, IrctcPaymentType } from "../types";
 
 /**
@@ -57,18 +65,6 @@ const RAZORPAY_CREATE_ORDER_PATH = (internalOrderId: number): string =>
 
 const formatRupees = (n: number): string => `₹${n.toFixed(2)}`;
 
-const errorMessage = (err: unknown): string => {
-  if (err instanceof AxiosError) {
-    const data = err.response?.data as { message?: string } | undefined;
-    return data?.message || err.message || "Something went wrong.";
-  }
-  if (err instanceof Error) return err.message;
-  return "Something went wrong.";
-};
-
-const isBadGateway = (err: unknown): boolean =>
-  err instanceof AxiosError && err.response?.status === 502;
-
 interface AllowedModes {
   prepaid: boolean;
   cod: boolean;
@@ -76,6 +72,30 @@ interface AllowedModes {
   codDisabledReason?: string;
   defaultMode: PaymentMode;
 }
+
+/**
+ * IRCTC-approved cancellation remarks (API reference §6 / "Cancellation
+ * remarks"). The dropdown surfaces a friendly label; we transmit the enum
+ * value verbatim to the BE so it can be forwarded to IRCTC unmodified.
+ *
+ * `PASSENGER_JOURNEY_CANCELLED` is the safe default — it covers the most
+ * common user-initiated cancel and is the only remark IRCTC always accepts
+ * without an ops follow-up.
+ */
+type CancelRemark = NonNullable<CancelReverseOrderBody["cancelRemark"]>;
+
+const CANCEL_REMARK_OPTIONS: ReadonlyArray<{
+  value: CancelRemark;
+  label: string;
+}> = [
+  { value: "PASSENGER_JOURNEY_CANCELLED", label: "Journey cancelled" },
+  { value: "TRAIN_DELAYED", label: "Train delayed" },
+  { value: "BEYOND_SERVICE_HOUR", label: "Outside service hours" },
+  { value: "LAW_N_ORDER", label: "Law & order issue" },
+  { value: "NATURAL_CALAMITY", label: "Natural calamity" },
+];
+
+const DEFAULT_CANCEL_REMARK: CancelRemark = "PASSENGER_JOURNEY_CANCELLED";
 
 const allowedModesFor = (
   paymentType: IrctcPaymentType,
@@ -154,6 +174,9 @@ export const ReverseOrderPayment = ({
   const [codDialogOpen, setCodDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [cancelRemark, setCancelRemark] = useState<CancelRemark>(
+    DEFAULT_CANCEL_REMARK
+  );
 
   // Eagerly load the Razorpay script so the modal opens instantly on click.
   const [razorpayReady, setRazorpayReady] = useState<boolean>(
@@ -182,11 +205,23 @@ export const ReverseOrderPayment = ({
   };
 
   const handleConfirmFailure = (err: unknown) => {
-    const bad502 = isBadGateway(err);
-    const message = bad502
-      ? "Your payment succeeded but we couldn't update IRCTC. Our team is retrying — you'll receive an SMS shortly."
-      : errorMessage(err);
-    setLastError({ message, isBadGateway: bad502 });
+    const info = parseIrctcError(err);
+    let message: string;
+    if (info.isRefundFailed) {
+      // Cancel path failure: refund could not be issued. Money is still with
+      // the customer's payment provider — ops will reconcile manually.
+      message =
+        "We couldn't process the refund automatically. Our team has been notified and will reach out within 24 hours.";
+    } else if (info.isBadGateway) {
+      message =
+        "Your payment succeeded but we couldn't update IRCTC. Our team is retrying automatically — you'll receive an SMS shortly.";
+    } else if (info.isConflict) {
+      message =
+        "This order is in a state that can't be changed right now. Please refresh and try again.";
+    } else {
+      message = info.message;
+    }
+    setLastError({ message, isBadGateway: info.isBadGateway || info.isRefundFailed });
     toast.error(message);
   };
 
@@ -265,7 +300,7 @@ export const ReverseOrderPayment = ({
               });
             } catch (err) {
               // Best-effort cancel; surface but don't block the UI.
-              toast.error(errorMessage(err));
+              toast.error(parseIrctcError(err).message);
             }
             toast.error("Payment cancelled.");
           },
@@ -283,9 +318,9 @@ export const ReverseOrderPayment = ({
       rzp.open();
     } catch (err) {
       setStage("idle");
-      const message = errorMessage(err);
-      setLastError({ message, isBadGateway: false });
-      toast.error(message);
+      const info = parseIrctcError(err);
+      setLastError({ message: info.message, isBadGateway: false });
+      toast.error(info.message);
     }
   };
 
@@ -325,11 +360,23 @@ export const ReverseOrderPayment = ({
     try {
       await cancelReverseOrder(summary.internalOrderId, {
         reason: "user_cancelled_from_payment_screen",
+        cancelRemark,
       });
       toast.success("Order cancelled.");
       navigate("/");
     } catch (err) {
-      toast.error(errorMessage(err));
+      const info = parseIrctcError(err);
+      // Refund-failed = money is parked, not lost: keep them on the screen
+      // with a clear non-toast message so they don't reload thinking it
+      // worked.
+      if (info.isRefundFailed) {
+        setLastError({
+          message:
+            "We've cancelled the order but the refund could not be issued automatically. Our team will reach out within 24 hours to complete the refund.",
+          isBadGateway: true,
+        });
+      }
+      toast.error(info.message);
     } finally {
       setCancelling(false);
       setCancelDialogOpen(false);
@@ -470,7 +517,17 @@ export const ReverseOrderPayment = ({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+      <IrctcPoweredBy />
+
+      <Dialog
+        open={cancelDialogOpen}
+        onOpenChange={(open) => {
+          setCancelDialogOpen(open);
+          // Reset the dropdown when the user closes/cancels the dialog so
+          // re-opening it always starts at the documented default.
+          if (!open) setCancelRemark(DEFAULT_CANCEL_REMARK);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cancel this order?</DialogTitle>
@@ -479,6 +536,33 @@ export const ReverseOrderPayment = ({
               from the IRCTC eCatering app any time.
             </DialogDescription>
           </DialogHeader>
+          <div className="py-2 space-y-2">
+            <label
+              htmlFor="cancel-remark"
+              className="text-sm font-medium text-gray-900"
+            >
+              Cancellation reason
+            </label>
+            <Select
+              value={cancelRemark}
+              onValueChange={(v) => setCancelRemark(v as CancelRemark)}
+              disabled={cancelling}
+            >
+              <SelectTrigger id="cancel-remark" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CANCEL_REMARK_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500">
+              We share this with IRCTC for refund eligibility.
+            </p>
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
@@ -699,6 +783,7 @@ const SuccessPanel = ({
 }) => (
   <div className="space-y-6">
     <IrctcBrandedHeader />
+    <IrctcPoweredBy />
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
       <div className="text-5xl mb-3" aria-hidden>
         🎉
