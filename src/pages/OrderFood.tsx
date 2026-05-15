@@ -11,6 +11,7 @@ import Pagination from "@/components/Pagination";
 import { SparklesIcon, FireIcon } from "@heroicons/react/20/solid";
 import WhyChoose from "@/components/WhyChoose";
 import { HappyJourneyConfig } from "@/components/HappyJourneyConfig";
+import IrctcSearchTabs from "@/integrations/irctc/components/IrctcSearchTabs";
 
 // ── Types ────────────────────────────────────────────────
 interface Station  { stationId: number; stationCode: string; stationName: string; }
@@ -379,6 +380,21 @@ const OrderFood = () => {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          IRCTC TRAIN ORDERING (Aggregator handoff)
+      ══════════════════════════════════════════ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+            Order Food on Your Train
+          </h2>
+          <p className="text-gray-500 mt-2 text-sm sm:text-base">
+            Search by PNR, train number, or station — powered by IRCTC eCatering.
+          </p>
+        </div>
+        <IrctcSearchTabs />
       </section>
 
       {/* ══════════════════════════════════════════

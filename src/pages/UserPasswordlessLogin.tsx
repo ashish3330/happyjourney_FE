@@ -92,7 +92,7 @@ const UserPasswordlessLogin: React.FC = () => {
 
         if (isNaN(userIdNumber)) throw new Error('Invalid userId');
 
-        login({ accessToken, role, username, userId: userIdNumber });
+        login({ accessToken, role, username, userId: userIdNumber, mobile: phoneNumber });
 
         if (role.toLowerCase() === 'user') {
           navigate('/home');

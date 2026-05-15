@@ -45,6 +45,9 @@ import UserPasswordlessLogin from "./pages/UserPasswordlessLogin";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import VendorLedgerSummary from "./pages/VendorLedgerSummary";
 import { HappyJourneyFooter } from "./components/FooterConfigs";
+import ReverseOrderCallback from "./integrations/irctc/pages/ReverseOrderCallback";
+import HomeFallback from "./integrations/irctc/pages/HomeFallback";
+import IrctcOrderTracking from "./integrations/irctc/pages/IrctcOrderTracking";
 
 const FooterWrapper = () => {
   return (
@@ -69,6 +72,9 @@ const App = () => {
           <Route path="/admin/register" element={<AdminRegister />} />
           <Route path="/verify-otp" element={<Otp />} />
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
+          <Route path="/reverse-order/callback" element={<ReverseOrderCallback />} />
+          <Route path="/irctc-fallback" element={<HomeFallback />} />
+          <Route path="/irctc-order/:externalOrderId" element={<IrctcOrderTracking />} />
           {/* Public routes with navbar and sidebar */}
           <Route element={<PublicLayout />}>
             <Route path="/home" element={<OrderFood />} />

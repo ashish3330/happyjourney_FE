@@ -30,12 +30,18 @@ const Login: React.FC = () => {
       });
 
       if (response.status === 200 && response.data.accessToken) {
-        const { accessToken, role, userName: username, userId } = response.data;
+        const { accessToken, role, userName: username, userId, identifier } = response.data;
+        // The /auth/login endpoint accepts either an email or a phone in the
+        // identifier field. Echo it back into the corresponding context slot so
+        // downstream consumers (e.g. IRCTC handoff) get the right field.
+        const looksLikeEmail = typeof identifier === "string" && identifier.includes("@");
         login({
           accessToken,
           role,
           username,
           userId,
+          email: looksLikeEmail ? identifier : email,
+          mobile: !looksLikeEmail && identifier ? identifier : undefined,
         });
 
         // Redirect based on role (case-insensitive)
