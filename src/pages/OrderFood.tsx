@@ -11,7 +11,12 @@ import Pagination from "@/components/Pagination";
 import { SparklesIcon, FireIcon } from "@heroicons/react/20/solid";
 import WhyChoose from "@/components/WhyChoose";
 import { HappyJourneyConfig } from "@/components/HappyJourneyConfig";
-import IrctcSearchTabs from "@/integrations/irctc/components/IrctcSearchTabs";
+import {
+  buildPnrRedirectUrl,
+  buildTrainRedirectUrl,
+  buildStationRedirectUrl,
+} from "@/integrations/irctc/redirectBuilder";
+import { useRedirectUser } from "@/integrations/irctc/useRedirectUser";
 
 // ── Types ────────────────────────────────────────────────
 interface Station  { stationId: number; stationCode: string; stationName: string; }
@@ -86,8 +91,19 @@ const CardSkeleton = () => (
 // ── Main component ───────────────────────────────────────
 const OrderFood = () => {
   const [heroSlide, setHeroSlide] = useState(0);
-  const [searchType,  setSearchType]  = useState<"stationCode" | "city">("city");
+  // City / Code search OUR outlets (existing). PNR / Train / Station search IRCTC's
+  // catalog and redirect the browser to IRCTC eCatering (PDF §4.1).
+  const [searchType,  setSearchType]  = useState<
+    "city" | "stationCode" | "pnr" | "train"
+  >("city");
   const [searchQuery, setSearchQuery] = useState("");
+  // Train mode needs two extra fields beyond the main input.
+  const [boardingStation, setBoardingStation] = useState("");
+  const [boardingDate, setBoardingDate] = useState(
+    () => new Date().toISOString().slice(0, 10)
+  );
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const redirectUser = useRedirectUser();
   const [stations,    setStations]    = useState<Station[]>([]);
   const [vendors,     setVendors]     = useState<Vendor[]>([]);
   const [loading,     setLoading]     = useState(false);
@@ -198,10 +214,80 @@ const OrderFood = () => {
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value;
     setSearchQuery(q);
-    debouncedFetch(q, searchType);
+    setSearchError(null);
+    // Only the OUR-outlets modes hit the BE on every keystroke.
+    if (searchType === "city" || searchType === "stationCode") {
+      debouncedFetch(q, searchType);
+    }
   };
 
-  const handleSearch = () => fetchStations(searchQuery, searchType);
+  /**
+   * Single Search button — routes by `searchType`:
+   * - city / stationCode → existing local outlet fetch (unchanged behaviour).
+   * - pnr → IRCTC PNR redirect (PDF §4.1).
+   * - train → IRCTC train+station+date redirect.
+   * - (station code in IRCTC mode is folded into the existing "Code" pill so
+   *   we don't double up — users who want IRCTC station outlets click Code
+   *   and then choose "Order on Train" from the result card; we don't need
+   *   a 5th toggle.)
+   */
+  const handleSearch = () => {
+    setSearchError(null);
+    if (searchType === "city" || searchType === "stationCode") {
+      fetchStations(searchQuery, searchType);
+      return;
+    }
+    try {
+      if (searchType === "pnr") {
+        if (!/^\d{10}$/.test(searchQuery.trim())) {
+          setSearchError("Enter a 10-digit PNR.");
+          return;
+        }
+        window.location.href = buildPnrRedirectUrl(searchQuery.trim(), redirectUser);
+        return;
+      }
+      if (searchType === "train") {
+        if (!/^\d{5}$/.test(searchQuery.trim())) {
+          setSearchError("Train number must be 5 digits.");
+          return;
+        }
+        const stn = boardingStation.trim().toUpperCase();
+        if (!/^[A-Z]{2,5}$/.test(stn)) {
+          setSearchError("Boarding station code must be 2-5 letters.");
+          return;
+        }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(boardingDate)) {
+          setSearchError("Pick a boarding date.");
+          return;
+        }
+        window.location.href = buildTrainRedirectUrl(
+          searchQuery.trim(),
+          stn,
+          boardingDate,
+          redirectUser
+        );
+        return;
+      }
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : "Failed to build IRCTC redirect.");
+    }
+  };
+
+  /** Optional secondary CTA — for users on the Code tab who want to order
+   *  on train at that station via IRCTC instead of seeing our local outlets. */
+  const handleStationIrctcRedirect = () => {
+    setSearchError(null);
+    try {
+      const stn = searchQuery.trim().toUpperCase();
+      if (!/^[A-Z]{2,5}$/.test(stn)) {
+        setSearchError("City code must be 2-5 letters.");
+        return;
+      }
+      window.location.href = buildStationRedirectUrl(stn, redirectUser);
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : "Failed to build IRCTC redirect.");
+    }
+  };
 
   const handleCityClick = (city: string) => {
     setSearchQuery(city);
@@ -298,19 +384,23 @@ const OrderFood = () => {
           <div className="w-full max-w-2xl">
             <div className="bg-white rounded-2xl shadow-2xl p-2 flex flex-col sm:flex-row items-stretch gap-2">
 
-              {/* Toggle (compact pills) */}
-              <div className="flex gap-1 p-1 bg-gray-100 rounded-xl shrink-0">
-                {(["city", "stationCode"] as const).map((type) => (
+              {/* Toggle (compact pills) — City/Code search OUR outlets,
+                  PNR/Train hand the user off to IRCTC eCatering. */}
+              <div className="flex gap-1 p-1 bg-gray-100 rounded-xl shrink-0 overflow-x-auto">
+                {(["city", "stationCode", "pnr", "train"] as const).map((type) => (
                   <button
                     key={type}
-                    onClick={() => setSearchType(type)}
+                    onClick={() => { setSearchType(type); setSearchError(null); }}
                     className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
                       searchType === type
                         ? "bg-teal-600 text-white shadow-sm"
                         : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
-                    {type === "city" ? "🏙 City" : "🔍 Code"}
+                    {type === "city" && "🏙 City"}
+                    {type === "stationCode" && "🔍 Code"}
+                    {type === "pnr" && "🎫 PNR"}
+                    {type === "train" && "🚆 Train"}
                   </button>
                 ))}
               </div>
@@ -321,15 +411,22 @@ const OrderFood = () => {
                 <input
                   ref={inputRef}
                   type="text"
+                  inputMode={searchType === "pnr" || searchType === "train" ? "numeric" : "text"}
+                  maxLength={searchType === "pnr" ? 10 : searchType === "train" ? 5 : undefined}
                   value={searchQuery}
                   onChange={handleInput}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  placeholder={searchType === "city" ? "Search city — Delhi, Mumbai…" : "City code — NDLS, BCT…"}
+                  placeholder={
+                    searchType === "city" ? "Search city — Delhi, Mumbai…" :
+                    searchType === "stationCode" ? "City code — NDLS, BCT…" :
+                    searchType === "pnr" ? "10-digit PNR (e.g. 2721880872)" :
+                    "5-digit train number (e.g. 12951)"
+                  }
                   className="w-full h-full pl-9 pr-8 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none bg-transparent"
                 />
                 {searchQuery && (
                   <button
-                    onClick={() => { setSearchQuery(""); setVendors([]); setHasSearched(false); inputRef.current?.focus(); }}
+                    onClick={() => { setSearchQuery(""); setVendors([]); setHasSearched(false); setSearchError(null); inputRef.current?.focus(); }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     <X size={14} />
@@ -347,9 +444,53 @@ const OrderFood = () => {
                   ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   : <Search size={15} />
                 }
-                <span className="hidden sm:inline">{loading ? "Searching…" : "Search"}</span>
+                <span className="hidden sm:inline">
+                  {loading ? "Searching…" :
+                    searchType === "pnr" || searchType === "train" ? "Order on Train" : "Search"}
+                </span>
               </button>
             </div>
+
+            {/* Train mode — extra fields appear inline so the toggle stays
+                a single search-bar experience instead of opening a separate
+                widget. */}
+            {searchType === "train" && (
+              <div className="mt-2 flex flex-col sm:flex-row gap-2 bg-white rounded-2xl shadow-lg p-2">
+                <input
+                  type="text"
+                  value={boardingStation}
+                  onChange={(e) => setBoardingStation(e.target.value.toUpperCase().slice(0, 5))}
+                  placeholder="Boarding station — NDLS, BRC…"
+                  className="flex-1 px-3 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none uppercase"
+                />
+                <input
+                  type="date"
+                  value={boardingDate}
+                  onChange={(e) => setBoardingDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
+                  className="px-3 py-3 text-sm text-gray-800 focus:outline-none"
+                />
+              </div>
+            )}
+
+            {/* Inline error message — same surface, no toast required. */}
+            {searchError && (
+              <p className="mt-2 text-xs font-semibold text-rose-300 bg-rose-900/40 border border-rose-500/40 rounded-lg px-3 py-2">
+                {searchError}
+              </p>
+            )}
+
+            {/* Cross-promote IRCTC for the Code path — one-click jump to the
+                train flow with the same code, no separate widget. */}
+            {searchType === "stationCode" && searchQuery.trim() && (
+              <button
+                onClick={handleStationIrctcRedirect}
+                type="button"
+                className="mt-2 text-xs font-semibold text-teal-300 hover:text-teal-200 underline-offset-4 hover:underline"
+              >
+                Order food on train at this station →
+              </button>
+            )}
 
             {/* Popular cities — below bar */}
             <div className="flex items-center gap-2 mt-3 flex-wrap justify-center">
@@ -382,20 +523,8 @@ const OrderFood = () => {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════
-          IRCTC TRAIN ORDERING (Aggregator handoff)
-      ══════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            Order Food on Your Train
-          </h2>
-          <p className="text-gray-500 mt-2 text-sm sm:text-base">
-            Search by PNR, train number, or station — powered by IRCTC eCatering.
-          </p>
-        </div>
-        <IrctcSearchTabs />
-      </section>
+      {/* The standalone IRCTC widget has been merged into the hero search
+          bar above (PNR + Train pills). Removed the duplicate surface. */}
 
       {/* ══════════════════════════════════════════
           STATS BAR
