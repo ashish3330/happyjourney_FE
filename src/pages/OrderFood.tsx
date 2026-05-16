@@ -17,6 +17,7 @@ import {
   buildStationRedirectUrl,
 } from "@/integrations/irctc/redirectBuilder";
 import { useRedirectUser } from "@/integrations/irctc/useRedirectUser";
+import IrctcDatePicker from "@/integrations/irctc/components/IrctcDatePicker";
 
 // ── Types ────────────────────────────────────────────────
 interface Station  { stationId: number; stationCode: string; stationName: string; }
@@ -224,16 +225,26 @@ const OrderFood = () => {
             Search by PNR, train number, or station — fresh, hygienic meals delivered to your berth via IRCTC eCatering.
           </p>
 
-          {/* ── Compact search bar ── */}
-          <div className="w-full max-w-2xl">
-            <div className="bg-white rounded-2xl shadow-2xl p-2 flex flex-col sm:flex-row items-stretch gap-2">
+          {/* ── Unified search bar ──
+              All three entry-point fields (Train#, Boarding station, Date)
+              live in the same shadow card as the PNR/Station mode so the
+              UI doesn't visually split into two bars when Train is picked.
+              Inspired by booking-engine patterns (MMT, Zoop) — one card,
+              thin dividers between fields, single CTA. */}
+          <div className="w-full max-w-3xl">
+            <div className="bg-white rounded-2xl shadow-2xl p-2 flex flex-col lg:flex-row items-stretch gap-2 lg:gap-0">
 
               {/* IRCTC entry tabs — PDF §4.1: PNR / Train / Station. */}
-              <div className="flex gap-1 p-1 bg-gray-100 rounded-xl shrink-0 overflow-x-auto">
+              <div className="flex gap-1 p-1 bg-gray-100 rounded-xl shrink-0 overflow-x-auto lg:mr-1">
                 {(["pnr", "train", "station"] as const).map((type) => (
                   <button
                     key={type}
-                    onClick={() => { setSearchType(type); setSearchError(null); setSearchQuery(""); }}
+                    onClick={() => {
+                      setSearchType(type);
+                      setSearchError(null);
+                      setSearchQuery("");
+                      if (type !== "train") setBoardingStation("");
+                    }}
                     className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
                       searchType === type
                         ? "bg-teal-600 text-white shadow-sm"
@@ -247,68 +258,88 @@ const OrderFood = () => {
                 ))}
               </div>
 
-              {/* Input */}
-              <div className="flex-1 relative min-w-0">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  inputMode={searchType === "pnr" || searchType === "train" ? "numeric" : "text"}
-                  maxLength={searchType === "pnr" ? 10 : searchType === "train" ? 5 : 5}
-                  value={searchQuery}
-                  onChange={handleInput}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  placeholder={
-                    searchType === "pnr" ? "10-digit PNR (e.g. 2721880872)" :
-                    searchType === "train" ? "5-digit train number (e.g. 12951)" :
-                    "Station code — NDLS, BCT, MAS…"
-                  }
-                  className={`w-full h-full pl-9 pr-8 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none bg-transparent ${
-                    searchType === "station" ? "uppercase" : ""
+              {/* Field row — for PNR / Station this is a single input.
+                  For Train it splits into Train# | Boarding | Date with
+                  thin gray dividers, all inside the same card. */}
+              <div className="flex-1 flex items-stretch min-w-0 lg:divide-x lg:divide-gray-200">
+                {/* Primary input */}
+                <div
+                  className={`relative min-w-0 ${
+                    searchType === "train" ? "flex-[1.2] lg:px-2" : "flex-1"
                   }`}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => { setSearchQuery(""); setSearchError(null); inputRef.current?.focus(); }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X size={14} />
-                  </button>
+                >
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    inputMode={searchType === "pnr" || searchType === "train" ? "numeric" : "text"}
+                    maxLength={searchType === "pnr" ? 10 : searchType === "train" ? 5 : 5}
+                    value={searchQuery}
+                    onChange={handleInput}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    placeholder={
+                      searchType === "pnr" ? "10-digit PNR" :
+                      searchType === "train" ? "Train # (e.g. 12951)" :
+                      "Station code — NDLS, BCT…"
+                    }
+                    className={`w-full h-full pl-9 pr-8 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none bg-transparent ${
+                      searchType === "station" ? "uppercase" : ""
+                    }`}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => { setSearchQuery(""); setSearchError(null); inputRef.current?.focus(); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Boarding station — only when Train is active. Inline,
+                    inside the same card. Divider is provided by the
+                    parent `lg:divide-x` above. */}
+                {searchType === "train" && (
+                  <div className="relative flex-1 min-w-0 lg:px-2">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={boardingStation}
+                      onChange={(e) => setBoardingStation(e.target.value.toUpperCase().slice(0, 5))}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                      placeholder="Boarding station"
+                      className="w-full h-full pl-9 pr-3 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none bg-transparent uppercase"
+                    />
+                  </div>
+                )}
+
+                {/* Date — only when Train is active. Custom calendar (no
+                    native <input type="date">) so the trigger matches
+                    the rest of the bar visually. */}
+                {searchType === "train" && (
+                  <div className="flex-1 min-w-[10rem] lg:px-1">
+                    <IrctcDatePicker
+                      value={boardingDate}
+                      onChange={setBoardingDate}
+                      minDate={new Date().toISOString().slice(0, 10)}
+                      className="h-full"
+                    />
+                  </div>
                 )}
               </div>
 
               {/* Search button — every mode redirects to IRCTC eCatering. */}
               <button
+                type="button"
                 onClick={handleSearch}
                 disabled={!searchQuery.trim()}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-all active:scale-95 shrink-0"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-all active:scale-95 shrink-0 lg:ml-1"
               >
                 <Search size={15} />
                 <span className="hidden sm:inline">Order on Train</span>
               </button>
             </div>
-
-            {/* Train mode — extra fields appear inline so the toggle stays
-                a single search-bar experience instead of opening a separate
-                widget. */}
-            {searchType === "train" && (
-              <div className="mt-2 flex flex-col sm:flex-row gap-2 bg-white rounded-2xl shadow-lg p-2">
-                <input
-                  type="text"
-                  value={boardingStation}
-                  onChange={(e) => setBoardingStation(e.target.value.toUpperCase().slice(0, 5))}
-                  placeholder="Boarding station — NDLS, BRC…"
-                  className="flex-1 px-3 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none uppercase"
-                />
-                <input
-                  type="date"
-                  value={boardingDate}
-                  onChange={(e) => setBoardingDate(e.target.value)}
-                  min={new Date().toISOString().slice(0, 10)}
-                  className="px-3 py-3 text-sm text-gray-800 focus:outline-none"
-                />
-              </div>
-            )}
 
             {/* Inline error message — same surface, no toast required. */}
             {searchError && (
