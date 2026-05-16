@@ -24,12 +24,15 @@
  */
 
 import {
+  useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
 const MONTHS = [
@@ -74,6 +77,11 @@ interface IrctcDatePickerProps {
   className?: string;
 }
 
+/** Width of the popover card (matches `w-72` Tailwind = 18rem = 288px). */
+const POPOVER_WIDTH = 288;
+/** Vertical gap between trigger bottom and popover top. */
+const POPOVER_GAP = 8;
+
 export const IrctcDatePicker = ({
   value,
   onChange,
@@ -81,7 +89,10 @@ export const IrctcDatePicker = ({
   className = "",
 }: IrctcDatePickerProps) => {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  /** Fixed-position coords for the portal-rendered popover. */
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
 
   // Month currently shown in the grid. Defaults to the month of `value`,
   // or today's month if value is empty.
@@ -105,11 +116,57 @@ export const IrctcDatePicker = ({
     }
   }, [value]);
 
-  // Close on click outside + Esc.
+  /**
+   * Position the portal-rendered popover relative to the trigger.
+   * Uses fixed coords so we escape any `overflow-hidden` on ancestors
+   * (e.g. the hero section's clipped background carousel).
+   * Clamps inside the viewport so the popover never hangs off-screen.
+   */
+  const reposition = useCallback(() => {
+    const t = triggerRef.current;
+    if (!t) return;
+    const rect = t.getBoundingClientRect();
+    const vw = window.innerWidth;
+    // Prefer left-aligned to the trigger; fall back to right-aligned if
+    // that would overflow the viewport.
+    let left = rect.left;
+    if (left + POPOVER_WIDTH + 8 > vw) {
+      left = Math.max(8, rect.right - POPOVER_WIDTH);
+    }
+    setCoords({ top: rect.bottom + POPOVER_GAP, left });
+  }, []);
+
+  // Open → measure trigger and place the popover.
+  useLayoutEffect(() => {
+    if (open) reposition();
+  }, [open, reposition]);
+
+  // Track scroll / resize so the popover follows the trigger if the
+  // page moves under it.
+  useEffect(() => {
+    if (!open) return;
+    const onMove = () => reposition();
+    window.addEventListener("scroll", onMove, true);
+    window.addEventListener("resize", onMove);
+    return () => {
+      window.removeEventListener("scroll", onMove, true);
+      window.removeEventListener("resize", onMove);
+    };
+  }, [open, reposition]);
+
+  // Close on click outside + Esc. "Outside" = neither the trigger nor the
+  // popover (both can live in different parts of the DOM thanks to the
+  // portal, so check both refs).
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        !triggerRef.current?.contains(target) &&
+        !popoverRef.current?.contains(target)
+      ) {
+        setOpen(false);
+      }
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -153,26 +210,19 @@ export const IrctcDatePicker = ({
     }
   };
 
-  return (
-    <div ref={containerRef} className={`relative ${className}`}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        onKeyDown={onTriggerKey}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        className="w-full h-full flex items-center gap-2 px-3 py-3 text-sm text-gray-800 hover:bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset"
-      >
-        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <span className="font-medium truncate">{formatTriggerLabel(value)}</span>
-      </button>
-
-      {open && (
-        <div
-          role="dialog"
-          aria-label="Choose date"
-          className="absolute z-50 mt-2 right-0 sm:left-0 sm:right-auto w-72 bg-white border border-gray-200 rounded-2xl shadow-2xl p-3 select-none"
-        >
+  const popover = open && coords && (
+    <div
+      ref={popoverRef}
+      role="dialog"
+      aria-label="Choose date"
+      style={{
+        position: "fixed",
+        top: coords.top,
+        left: coords.left,
+        width: POPOVER_WIDTH,
+      }}
+      className="z-[1000] bg-white border border-gray-200 rounded-2xl shadow-2xl p-3 select-none"
+    >
           {/* Month nav */}
           <div className="flex items-center justify-between mb-2">
             <button
@@ -273,8 +323,30 @@ export const IrctcDatePicker = ({
               Close
             </button>
           </div>
-        </div>
-      )}
+    </div>
+  );
+
+  return (
+    <div className={`relative ${className}`}>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={onTriggerKey}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        className="w-full h-full flex items-center gap-2 px-3 py-3 text-sm text-gray-800 hover:bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-inset"
+      >
+        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <span className="font-medium truncate">{formatTriggerLabel(value)}</span>
+      </button>
+
+      {/* Render the popover via a portal so it escapes any
+          `overflow-hidden` / `transform` / stacking-context ancestor —
+          notably the hero section that clips its background carousel. */}
+      {typeof window !== "undefined" && popover
+        ? createPortal(popover, document.body)
+        : null}
     </div>
   );
 };
